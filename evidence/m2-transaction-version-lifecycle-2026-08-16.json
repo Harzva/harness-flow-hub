@@ -1,10 +1,11 @@
 {
-  "milestone": "M2-transaction-installer-real-lifecycle",
-  "date": "2026-08-16T11:19:54.336Z",
+  "milestone": "M2-update-downgrade-uninstall",
+  "date": "2026-08-16T11:13:03.578Z",
   "dshVersion": "0.1.0-rc.6",
-  "fixture": "artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz",
   "privatePathsRecorded": false,
-  "add": {
+  "install": {
+    "from": null,
+    "to": "0.0.2-m2",
     "ok": true,
     "phases": [
       {
@@ -15,12 +16,12 @@
       {
         "phase": "snapshot",
         "status": "passed",
-        "detail": "snapshot=86136a9413db3b44560c7d22"
+        "detail": "snapshot=20cca4550b187bf42a787b17"
       },
       {
         "phase": "staging",
         "status": "passed",
-        "detail": "profile=flow-hub-stage-86136a9413db3b44560c7d22"
+        "detail": "profile=flow-hub-stage-20cca4550b187bf42a787b17"
       },
       {
         "phase": "install",
@@ -33,7 +34,51 @@
       {
         "phase": "commit",
         "status": "passed",
-        "detail": "backup=86136a9413db3b44560c7d22"
+        "detail": "backup=20cca4550b187bf42a787b17"
+      },
+      {
+        "phase": "health",
+        "status": "passed",
+        "detail": "official dump-config passed"
+      },
+      {
+        "phase": "complete",
+        "status": "passed"
+      }
+    ]
+  },
+  "downgrade": {
+    "from": "0.0.2-m2",
+    "to": "0.0.1-m0",
+    "ok": true,
+    "phases": [
+      {
+        "phase": "preflight",
+        "status": "passed",
+        "detail": "source=tgz; platform=win32/x64; dsh=0.1.0-rc.6; network=not-required; signature=not-applicable-trusted-fixture; scripts=disabled"
+      },
+      {
+        "phase": "snapshot",
+        "status": "passed",
+        "detail": "snapshot=705afbf4643b007fa02685aa"
+      },
+      {
+        "phase": "staging",
+        "status": "passed",
+        "detail": "profile=flow-hub-stage-705afbf4643b007fa02685aa"
+      },
+      {
+        "phase": "install",
+        "status": "passed"
+      },
+      {
+        "phase": "dump-config",
+        "status": "passed"
+      },
+      {
+        "phase": "commit",
+        "status": "passed",
+        "detail": "backup=705afbf4643b007fa02685aa"
       },
       {
         "phase": "health",
@@ -45,56 +90,11 @@
         "status": "passed"
       }
     ],
-    "backupRetained": true
+    "officialDumpConfig": "passed"
   },
-  "injectedFailure": {
-    "at": "health",
-    "ok": false,
-    "phases": [
-      {
-        "phase": "preflight",
-        "status": "passed",
-        "detail": "source=tgz; platform=win32/x64; dsh=0.1.0-rc.6; network=not-required; signature=not-applicable-trusted-fixture; scripts=disabled"
-      },
-      {
-        "phase": "snapshot",
-        "status": "passed",
-        "detail": "snapshot=3ad550a34d09d6c31fd25f17"
-      },
-      {
-        "phase": "staging",
-        "status": "passed",
-        "detail": "profile=flow-hub-stage-3ad550a34d09d6c31fd25f17"
-      },
-      {
-        "phase": "install",
-        "status": "passed"
-      },
-      {
-        "phase": "dump-config",
-        "status": "passed"
-      },
-      {
-        "phase": "commit",
-        "status": "passed",
-        "detail": "backup=3ad550a34d09d6c31fd25f17"
-      },
-      {
-        "phase": "health",
-        "status": "failed",
-        "detail": "injected-failure:health"
-      },
-      {
-        "phase": "rollback",
-        "status": "passed",
-        "detail": "restored=3ad550a34d09d6c31fd25f17"
-      }
-    ],
-    "manifestRestoredByteForByte": true,
-    "lockfileRestoredByteForByte": true,
-    "officialDumpConfigAfterRollback": "passed"
-  },
-  "remove": {
+  "uninstall": {
+    "from": "0.0.1-m0",
+    "to": null,
     "ok": true,
     "phases": [
       {
@@ -105,12 +105,12 @@
       {
         "phase": "snapshot",
         "status": "passed",
-        "detail": "snapshot=f3b56b05b6c59935adb04b30"
+        "detail": "snapshot=7643d03894645210bf9aadfc"
       },
       {
         "phase": "staging",
         "status": "passed",
-        "detail": "profile=flow-hub-stage-f3b56b05b6c59935adb04b30"
+        "detail": "profile=flow-hub-stage-7643d03894645210bf9aadfc"
       },
       {
         "phase": "install",
@@ -123,7 +123,7 @@
       {
         "phase": "commit",
         "status": "passed",
-        "detail": "backup=f3b56b05b6c59935adb04b30"
+        "detail": "backup=7643d03894645210bf9aadfc"
       },
       {
         "phase": "health",
@@ -134,7 +134,6 @@
         "phase": "complete",
         "status": "passed"
       }
-    ],
-    "officialDumpConfigAfterRemove": "passed"
+    ]
   }
 }

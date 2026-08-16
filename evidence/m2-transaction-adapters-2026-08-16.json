@@ -1,0 +1,410 @@
+{
+  "milestone": "M2-four-transaction-source-adapters",
+  "date": "2026-08-16T11:08:43.293Z",
+  "dshVersion": "0.1.0-rc.6",
+  "privatePathsRecorded": false,
+  "lifecycleScriptsDisabled": true,
+  "allPassed": true,
+  "adapters": [
+    {
+      "kind": "npm",
+      "source": "@harness-flow/hello-bundle@0.0.1-m0 (loopback fixture Registry)",
+      "add": {
+        "ok": true,
+        "phases": [
+          {
+            "phase": "preflight",
+            "status": "passed",
+            "detail": "source=npm; platform=win32/x64; dsh=0.1.0-rc.6; network=passed; signature=not-applicable-trusted-fixture; scripts=disabled"
+          },
+          {
+            "phase": "snapshot",
+            "status": "passed",
+            "detail": "snapshot=b85cdc7b18249bb99d8a7325"
+          },
+          {
+            "phase": "staging",
+            "status": "passed",
+            "detail": "profile=flow-hub-stage-b85cdc7b18249bb99d8a7325"
+          },
+          {
+            "phase": "install",
+            "status": "passed"
+          },
+          {
+            "phase": "dump-config",
+            "status": "passed"
+          },
+          {
+            "phase": "commit",
+            "status": "passed",
+            "detail": "backup=b85cdc7b18249bb99d8a7325"
+          },
+          {
+            "phase": "health",
+            "status": "passed",
+            "detail": "official dump-config passed"
+          },
+          {
+            "phase": "complete",
+            "status": "passed"
+          }
+        ],
+        "preflight": {
+          "platform": "win32",
+          "architecture": "x64",
+          "dshVersion": "0.1.0-rc.6",
+          "freeBytes": 2273861632,
+          "network": "passed",
+          "credentials": "not-required",
+          "signature": "not-applicable-trusted-fixture",
+          "sourceExact": true
+        }
+      },
+      "installedDependency": "0.0.1-m0",
+      "dumpConfig": "passed",
+      "remove": {
+        "ok": true,
+        "phases": [
+          {
+            "phase": "preflight",
+            "status": "passed",
+            "detail": "source=npm; platform=win32/x64; dsh=0.1.0-rc.6; network=passed; signature=not-applicable-trusted-fixture; scripts=disabled"
+          },
+          {
+            "phase": "snapshot",
+            "status": "passed",
+            "detail": "snapshot=b083b650766348838c9e3250"
+          },
+          {
+            "phase": "staging",
+            "status": "passed",
+            "detail": "profile=flow-hub-stage-b083b650766348838c9e3250"
+          },
+          {
+            "phase": "install",
+            "status": "passed"
+          },
+          {
+            "phase": "dump-config",
+            "status": "passed"
+          },
+          {
+            "phase": "commit",
+            "status": "passed",
+            "detail": "backup=b083b650766348838c9e3250"
+          },
+          {
+            "phase": "health",
+            "status": "passed",
+            "detail": "official dump-config passed"
+          },
+          {
+            "phase": "complete",
+            "status": "passed"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "tgz",
+      "source": "artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz",
+      "add": {
+        "ok": true,
+        "phases": [
+          {
+            "phase": "preflight",
+            "status": "passed",
+            "detail": "source=tgz; platform=win32/x64; dsh=0.1.0-rc.6; network=not-required; signature=not-applicable-trusted-fixture; scripts=disabled"
+          },
+          {
+            "phase": "snapshot",
+            "status": "passed",
+            "detail": "snapshot=a8513ec0a8cadd2726c9a845"
+          },
+          {
+            "phase": "staging",
+            "status": "passed",
+            "detail": "profile=flow-hub-stage-a8513ec0a8cadd2726c9a845"
+          },
+          {
+            "phase": "install",
+            "status": "passed"
+          },
+          {
+            "phase": "dump-config",
+            "status": "passed"
+          },
+          {
+            "phase": "commit",
+            "status": "passed",
+            "detail": "backup=a8513ec0a8cadd2726c9a845"
+          },
+          {
+            "phase": "health",
+            "status": "passed",
+            "detail": "official dump-config passed"
+          },
+          {
+            "phase": "complete",
+            "status": "passed"
+          }
+        ],
+        "preflight": {
+          "platform": "win32",
+          "architecture": "x64",
+          "dshVersion": "0.1.0-rc.6",
+          "freeBytes": 2277298176,
+          "network": "not-required",
+          "credentials": "not-required",
+          "signature": "not-applicable-trusted-fixture",
+          "sourceExact": true
+        }
+      },
+      "installedDependency": "file:C:/Users/harzva/Documents/Codex/2026-08-16/https-deepseek-harness-github-io-deepseek/outputs/harness-flow-hub/artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz",
+      "dumpConfig": "passed",
+      "remove": {
+        "ok": true,
+        "phases": [
+          {
+            "phase": "preflight",
+            "status": "passed",
+            "detail": "source=tgz; platform=win32/x64; dsh=0.1.0-rc.6; network=not-required; signature=not-applicable-trusted-fixture; scripts=disabled"
+          },
+          {
+            "phase": "snapshot",
+            "status": "passed",
+            "detail": "snapshot=9a3119de7ce3dce513d86d26"
+          },
+          {
+            "phase": "staging",
+            "status": "passed",
+            "detail": "profile=flow-hub-stage-9a3119de7ce3dce513d86d26"
+          },
+          {
+            "phase": "install",
+            "status": "passed"
+          },
+          {
+            "phase": "dump-config",
+            "status": "passed"
+          },
+          {
+            "phase": "commit",
+            "status": "passed",
+            "detail": "backup=9a3119de7ce3dce513d86d26"
+          },
+          {
+            "phase": "health",
+            "status": "passed",
+            "detail": "official dump-config passed"
+          },
+          {
+            "phase": "complete",
+            "status": "passed"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "github-sha",
+      "source": "github:Harzva/dsh-flow-hub-hello-fixture#770891307389487f6e4dc6bc4bd7a6db65d5c087",
+      "add": {
+        "ok": true,
+        "phases": [
+          {
+            "phase": "preflight",
+            "status": "passed",
+            "detail": "source=github-sha; platform=win32/x64; dsh=0.1.0-rc.6; network=passed; signature=not-applicable-trusted-fixture; scripts=disabled"
+          },
+          {
+            "phase": "snapshot",
+            "status": "passed",
+            "detail": "snapshot=405535395f308e0096a1be75"
+          },
+          {
+            "phase": "staging",
+            "status": "passed",
+            "detail": "profile=flow-hub-stage-405535395f308e0096a1be75"
+          },
+          {
+            "phase": "install",
+            "status": "passed"
+          },
+          {
+            "phase": "dump-config",
+            "status": "passed"
+          },
+          {
+            "phase": "commit",
+            "status": "passed",
+            "detail": "backup=405535395f308e0096a1be75"
+          },
+          {
+            "phase": "health",
+            "status": "passed",
+            "detail": "official dump-config passed"
+          },
+          {
+            "phase": "complete",
+            "status": "passed"
+          }
+        ],
+        "preflight": {
+          "platform": "win32",
+          "architecture": "x64",
+          "dshVersion": "0.1.0-rc.6",
+          "freeBytes": 2275094528,
+          "network": "passed",
+          "credentials": "not-required",
+          "signature": "not-applicable-trusted-fixture",
+          "sourceExact": true
+        }
+      },
+      "installedDependency": "github:Harzva/dsh-flow-hub-hello-fixture#770891307389487f6e4dc6bc4bd7a6db65d5c087",
+      "dumpConfig": "passed",
+      "remove": {
+        "ok": true,
+        "phases": [
+          {
+            "phase": "preflight",
+            "status": "passed",
+            "detail": "source=github-sha; platform=win32/x64; dsh=0.1.0-rc.6; network=passed; signature=not-applicable-trusted-fixture; scripts=disabled"
+          },
+          {
+            "phase": "snapshot",
+            "status": "passed",
+            "detail": "snapshot=7ede8e870a09eded47b86942"
+          },
+          {
+            "phase": "staging",
+            "status": "passed",
+            "detail": "profile=flow-hub-stage-7ede8e870a09eded47b86942"
+          },
+          {
+            "phase": "install",
+            "status": "passed"
+          },
+          {
+            "phase": "dump-config",
+            "status": "passed"
+          },
+          {
+            "phase": "commit",
+            "status": "passed",
+            "detail": "backup=7ede8e870a09eded47b86942"
+          },
+          {
+            "phase": "health",
+            "status": "passed",
+            "detail": "official dump-config passed"
+          },
+          {
+            "phase": "complete",
+            "status": "passed"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "local-directory",
+      "source": "fixtures/hello-bundle",
+      "add": {
+        "ok": true,
+        "phases": [
+          {
+            "phase": "preflight",
+            "status": "passed",
+            "detail": "source=local-directory; platform=win32/x64; dsh=0.1.0-rc.6; network=not-required; signature=not-applicable-trusted-fixture; scripts=disabled"
+          },
+          {
+            "phase": "snapshot",
+            "status": "passed",
+            "detail": "snapshot=30da6db004a2f2dcdabcfc15"
+          },
+          {
+            "phase": "staging",
+            "status": "passed",
+            "detail": "profile=flow-hub-stage-30da6db004a2f2dcdabcfc15"
+          },
+          {
+            "phase": "install",
+            "status": "passed"
+          },
+          {
+            "phase": "dump-config",
+            "status": "passed"
+          },
+          {
+            "phase": "commit",
+            "status": "passed",
+            "detail": "backup=30da6db004a2f2dcdabcfc15"
+          },
+          {
+            "phase": "health",
+            "status": "passed",
+            "detail": "official dump-config passed"
+          },
+          {
+            "phase": "complete",
+            "status": "passed"
+          }
+        ],
+        "preflight": {
+          "platform": "win32",
+          "architecture": "x64",
+          "dshVersion": "0.1.0-rc.6",
+          "freeBytes": 2271363072,
+          "network": "not-required",
+          "credentials": "not-required",
+          "signature": "not-applicable-trusted-fixture",
+          "sourceExact": true
+        }
+      },
+      "installedDependency": "link:C:/Users/harzva/Documents/Codex/2026-08-16/https-deepseek-harness-github-io-deepseek/outputs/harness-flow-hub/fixtures/hello-bundle",
+      "dumpConfig": "passed",
+      "remove": {
+        "ok": true,
+        "phases": [
+          {
+            "phase": "preflight",
+            "status": "passed",
+            "detail": "source=local-directory; platform=win32/x64; dsh=0.1.0-rc.6; network=not-required; signature=not-applicable-trusted-fixture; scripts=disabled"
+          },
+          {
+            "phase": "snapshot",
+            "status": "passed",
+            "detail": "snapshot=0a9287609dbd3e8d9b97421d"
+          },
+          {
+            "phase": "staging",
+            "status": "passed",
+            "detail": "profile=flow-hub-stage-0a9287609dbd3e8d9b97421d"
+          },
+          {
+            "phase": "install",
+            "status": "passed"
+          },
+          {
+            "phase": "dump-config",
+            "status": "passed"
+          },
+          {
+            "phase": "commit",
+            "status": "passed",
+            "detail": "backup=0a9287609dbd3e8d9b97421d"
+          },
+          {
+            "phase": "health",
+            "status": "passed",
+            "detail": "official dump-config passed"
+          },
+          {
+            "phase": "complete",
+            "status": "passed"
+          }
+        ]
+      }
+    }
+  ]
+}

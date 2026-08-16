@@ -28,8 +28,9 @@ try {
   const addPlan = createInstallPlan({
     action: 'add', profile: 'web', packageName: '@harness-flow/hello-bundle', sourceSpec: fixture,
     verification: 'trusted-fixture',
+    signature: 'not-applicable-trusted-fixture',
   })
-  const add = await executeInstallPlan(addPlan, { home, dshCli })
+  const add = await executeInstallPlan(addPlan, { home, dshCli, dshVersion: pkg.version })
   assert(add.ok, `transactional add failed: ${add.error ?? 'unknown'}`)
   const manifestPath = join(home, 'profiles', 'web', 'package.json')
   const lockPath = join(home, 'profiles', 'web', 'pnpm-lock.yaml')
@@ -41,8 +42,9 @@ try {
   const updatePlan = createInstallPlan({
     action: 'update', profile: 'web', packageName: '@harness-flow/hello-bundle', sourceSpec: fixture,
     verification: 'trusted-fixture',
+    signature: 'not-applicable-trusted-fixture',
   })
-  const injectedFailure = await executeInstallPlan(updatePlan, { home, dshCli, failAt: 'health' })
+  const injectedFailure = await executeInstallPlan(updatePlan, { home, dshCli, dshVersion: pkg.version, failAt: 'health' })
   assert(!injectedFailure.ok, 'injected health failure unexpectedly succeeded')
   assert(injectedFailure.phases.some(item => item.phase === 'rollback' && item.status === 'passed'), 'rollback did not pass')
   const afterFailureManifest = await readFile(manifestPath)
@@ -55,8 +57,9 @@ try {
   const removePlan = createInstallPlan({
     action: 'remove', profile: 'web', packageName: '@harness-flow/hello-bundle', sourceSpec: fixture,
     verification: 'trusted-fixture',
+    signature: 'not-applicable-trusted-fixture',
   })
-  const remove = await executeInstallPlan(removePlan, { home, dshCli })
+  const remove = await executeInstallPlan(removePlan, { home, dshCli, dshVersion: pkg.version })
   assert(remove.ok, `transactional remove failed: ${remove.error ?? 'unknown'}`)
   const removedManifest = JSON.parse(await readFile(manifestPath, 'utf8'))
   assert(removedManifest.dependencies?.['@harness-flow/hello-bundle'] === undefined, 'hello dependency remained after remove')

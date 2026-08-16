@@ -1,0 +1,31 @@
+{
+  "milestone": "M2-native-ui-install",
+  "observedAt": "2026-08-16T19:13:12.5623799+08:00",
+  "surface": "DSH Settings > Plugins > Flow Hub",
+  "dshVersion": "0.1.0-rc.6",
+  "hubVersion": "0.0.2-m0",
+  "userConfirmation": true,
+  "externalNavigation": false,
+  "plan": {
+    "action": "add",
+    "profile": "web",
+    "sourceKind": "tgz",
+    "publicSource": "configured-tgz",
+    "verification": "trusted-fixture",
+    "lifecycleScriptsDisabled": true,
+    "permissions": [],
+    "credentials": []
+  },
+  "result": {
+    "ok": true,
+    "planId": "ef6376790ed99c2975394da5",
+    "phases": ["preflight", "snapshot", "staging", "install", "dump-config", "commit", "health", "complete"],
+    "allPhasesPassed": true
+  },
+  "postcondition": {
+    "installedPackage": "@harness-flow/hello-bundle",
+    "officialDumpConfigExit": 0,
+    "profileStartable": true
+  },
+  "privatePathsRecorded": false
+}

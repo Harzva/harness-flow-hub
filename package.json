@@ -55,6 +55,8 @@
     "registry:verify-install": "node scripts/verify-installations.mjs registry/generated/registry.json registry/verifications 10",
     "registry:verify-trusted-fixture": "node scripts/verify-trusted-fixture-lifecycle.mjs",
     "transaction:verify-lifecycle": "pnpm build && node scripts/verify-transaction-lifecycle.mjs",
+    "transaction:verify-adapters": "pnpm build && node scripts/verify-transaction-adapters.mjs",
+    "transaction:verify-versions": "pnpm build && node scripts/verify-transaction-version-lifecycle.mjs",
     "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts",
     "pack:hub": "pnpm pack --pack-destination artifacts"
   },

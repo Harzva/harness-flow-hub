@@ -4,7 +4,7 @@
   "title": "Harness Flow Hub Install Plan",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "createdAt", "expiresAt", "action", "profile", "packageName", "source", "risk", "phases"],
+  "required": ["schemaVersion", "id", "createdAt", "expiresAt", "action", "profile", "packageName", "source", "requirements", "risk", "phases"],
   "properties": {
     "schemaVersion": { "const": 1 },
     "id": { "type": "string", "pattern": "^[a-f0-9]{24}$" },
@@ -22,15 +22,34 @@
         "spec": { "type": "string", "minLength": 1 }
       }
     },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dshVersion", "platforms", "network"],
+      "properties": {
+        "dshVersion": { "type": "string", "minLength": 1 },
+        "platforms": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["win32", "linux", "darwin"] } },
+        "network": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required"],
+          "properties": {
+            "required": { "type": "boolean" },
+            "endpoint": { "type": "string", "format": "uri" }
+          }
+        }
+      }
+    },
     "risk": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["lifecycleScriptsDisabled", "permissions", "credentials", "verification"],
+      "required": ["lifecycleScriptsDisabled", "permissions", "credentials", "verification", "signature"],
       "properties": {
         "lifecycleScriptsDisabled": { "const": true },
         "permissions": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
         "credentials": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "verification": { "type": "string", "minLength": 1 }
+        "verification": { "type": "string", "minLength": 1 },
+        "signature": { "enum": ["verified", "not-applicable-trusted-fixture", "unverified"] }
       }
     },
     "phases": {

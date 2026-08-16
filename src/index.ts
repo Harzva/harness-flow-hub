@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
-import { createInstallPlan, executeInstallPlan, type InstallPlan, type PluginAction, type TransactionResult } from './transaction.js'
+import { createInstallPlan, executeInstallPlan, recoverInterruptedTransactions, type InstallPlan, type PluginAction, type TransactionResult } from './transaction.js'
 
 export const inject = ['webServer']
 
@@ -122,6 +122,10 @@ function publicPlan(plan: InstallPlan): InstallPlan {
 export function apply(ctx: Context, config: Config = {}): void {
   const profile = config.profile?.trim() || 'web'
   const fixtureSpec = config.fixtureSpec?.trim() || ''
+  const recoveryPromise = recoverInterruptedTransactions({ home: config.dshHome }).then(recovered => {
+    recentTransactions.unshift(...recovered)
+    if (recentTransactions.length > 20) recentTransactions.length = 20
+  }).catch(() => {})
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const pathname = new URL(req.url ?? '/', 'http://local').pathname
     if (pathname === `${API_PATH}/bootstrap` && req.method === 'GET') {
@@ -152,6 +156,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       return
     }
     if (pathname === `${API_PATH}/tasks` && req.method === 'GET') {
+      await recoveryPromise
       json(res, 200, { ok: true, active: activeTransaction, tasks: recentTransactions })
       return
     }
@@ -171,6 +176,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       json(res, 409, { ok: false, error: 'transaction-in-progress' })
       return
     }
+    if (pathname === `${API_PATH}/plugin`) await recoveryPromise
     let body: Record<string, unknown>
     try {
       body = await readJson(req)
@@ -191,6 +197,7 @@ export function apply(ctx: Context, config: Config = {}): void {
           packageName: PACKAGE_NAME,
           sourceSpec: fixtureSpec,
           verification: 'trusted-fixture',
+          signature: 'not-applicable-trusted-fixture',
         })
         pendingPlans.set(plan.id, plan)
         json(res, 200, { ok: true, plan: publicPlan(plan) })
@@ -212,7 +219,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     pendingPlans.delete(planId)
     activeTransaction = true
     try {
-      const result = await executeInstallPlan(plan, { dshCli: resolveDshCli(), home: config.dshHome })
+      const result = await executeInstallPlan(plan, { dshCli: resolveDshCli(), home: config.dshHome, dshVersion: resolveDshVersion() ?? undefined })
       recentTransactions.unshift(result)
       if (recentTransactions.length > 20) recentTransactions.length = 20
       json(res, result.ok ? 200 : 502, result)
