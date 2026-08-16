@@ -1,5 +1,5 @@
 {
-  "milestone": "M1-partial",
+  "milestone": "M1-complete",
   "date": "2026-08-16",
   "registryVersion": "2026.08.16-alpha.1",
   "discovery": {
@@ -76,8 +76,8 @@
     "expiryFailClosed": true,
     "keyRevocationFailClosed": true,
     "registryVersionRevocationFailClosed": true,
-    "productionKeyCreated": false,
-    "publishedSignature": false
+    "productionKeyCreated": true,
+    "publishedSignature": true
   },
   "trustedFixtureLifecycle": {
     "subject": "@harness-flow/hello-bundle",
@@ -109,8 +109,21 @@
       "REGISTRY_ED25519_PUBLIC_KEY_B64"
     ],
     "immutableGithubReleaseConfigured": true,
-    "hostedRunCompleted": false,
-    "publicReleaseCreated": false
+    "hostedRunCompleted": true,
+    "publicReleaseCreated": true
+  },
+  "publishedRelease": {
+    "runId": 31942275585,
+    "runUrl": "https://github.com/Harzva/harness-flow-hub/actions/runs/31942275585",
+    "releaseUrl": "https://github.com/Harzva/harness-flow-hub/releases/tag/registry-v2026.08.16-alpha.1",
+    "assetUrl": "https://github.com/Harzva/harness-flow-hub/releases/download/registry-v2026.08.16-alpha.1/registry-2026.08.16-alpha.1.tar.gz",
+    "assetSha256": "afb531c53316c376fe1658ebb4ea7c9b1f6bd685220dcbec47ae707f396485d6",
+    "assetFiles": 36,
+    "status": "signed",
+    "signatureExpiresAt": "2027-08-16T00:00:00.000Z",
+    "immutable": true,
+    "prerelease": true,
+    "downloadAndIndependentValidation": "passed"
   },
   "generatedRegistry": {
     "path": "registry/generated/registry.json",
@@ -146,7 +159,6 @@
     "pnpm check"
   ],
   "openGates": [
-    "Publish and sign the versioned Registry.",
     "Keep macOS explicitly not-covered until a macOS worker is funded.",
     "Run third-party dump-config, boot, health, uninstall and recovery only inside an OS-level sandbox."
   ]
