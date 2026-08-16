@@ -17,6 +17,22 @@
       "ubuntu-latest"
     ]
   },
+  "hosted": {
+    "provider": "GitHub Actions",
+    "run": "https://github.com/Harzva/harness-flow-hub/actions/runs/31954638790",
+    "commit": "45e46c5a3ca93542da797c8d05e0018055a42f06",
+    "result": "passed",
+    "jobs": 6,
+    "artifacts": 6,
+    "coverage": [
+      "windows-latest/current/0.1.0-rc.6",
+      "windows-latest/previous/0.1.0-rc.3",
+      "windows-latest/older-rc/0.1.0-rc.2",
+      "ubuntu-latest/current/0.1.0-rc.6",
+      "ubuntu-latest/previous/0.1.0-rc.3",
+      "ubuntu-latest/older-rc/0.1.0-rc.2"
+    ]
+  },
   "commands": [
     "pnpm run compatibility:resolve-matrix",
     "pnpm run ui:verify-dsh-version-entry",

@@ -1,7 +1,7 @@
 {
   "name": "@harness-flow/dsh-flow-hub",
   "version": "0.0.2-m0",
-  "description": "Native in-DSH Flow Hub bootstrap and plugin transaction spike",
+  "description": "DSH-native Harness Flow Hub for DeepSeek Harness plugins, Agent Stacks, and recoverable Profile transactions",
   "keywords": [
     "dsh",
     "dsh-plugin",
