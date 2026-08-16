@@ -15,19 +15,13 @@ try {
 const candidateSubjects = new Set(source.candidates.map(candidate => idOf(candidate.package.name)))
 const allVerificationInputs = await Promise.all(verificationNames.map(async name => ({
   name,
-  text: await readFile(resolve(verificationDir, name), 'utf8'),
+  result: JSON.parse(await readFile(resolve(verificationDir, name), 'utf8')),
 })))
-const verificationInputs = allVerificationInputs.filter(({ text }) => {
-  const result = JSON.parse(text)
-  return candidateSubjects.has(result.subject)
-})
-const verificationBySubject = new Map(verificationInputs.map(({ text }) => {
-  const result = JSON.parse(text)
-  return [result.subject, result]
-}))
+const verificationInputs = allVerificationInputs.filter(({ result }) => candidateSubjects.has(result.subject))
+const verificationBySubject = new Map(verificationInputs.map(({ result }) => [result.subject, result]))
 const sha256 = createHash('sha256')
-  .update(sourceText)
-  .update(verificationInputs.map(item => `\0${item.name}\0${item.text}`).join(''))
+  .update(JSON.stringify(source))
+  .update(verificationInputs.map(item => `\0${item.name}\0${JSON.stringify(item.result)}`).join(''))
   .digest('hex')
 
 function idOf(value) {

@@ -62,6 +62,24 @@ test('same discovery input generates byte-identical valid registry', async () =>
   }
 })
 
+test('registry source hash is identical for LF and CRLF discovery files', async () => {
+  const temp = await mkdtemp(join(tmpdir(), 'flow-hub-registry-newlines-'))
+  try {
+    const source = (await readFile(input, 'utf8')).replaceAll('\r\n', '\n')
+    const lfInput = join(temp, 'lf.json')
+    const crlfInput = join(temp, 'crlf.json')
+    const lfOutput = join(temp, 'lf-registry.json')
+    const crlfOutput = join(temp, 'crlf-registry.json')
+    await writeFile(lfInput, source, 'utf8')
+    await writeFile(crlfInput, source.replaceAll('\n', '\r\n'), 'utf8')
+    execFileSync(process.execPath, ['scripts/generate-registry.mjs', lfInput, lfOutput])
+    execFileSync(process.execPath, ['scripts/generate-registry.mjs', crlfInput, crlfOutput])
+    assert.deepEqual(await readFile(lfOutput), await readFile(crlfOutput))
+  } finally {
+    await rm(temp, { recursive: true, force: true })
+  }
+})
+
 test('invalid verification state is blocked from registry publication', async () => {
   const temp = await mkdtemp(join(tmpdir(), 'flow-hub-invalid-registry-'))
   try {
