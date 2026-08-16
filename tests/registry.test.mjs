@@ -110,7 +110,7 @@ test('prepublication input gate rejects floating sources and private evidence pa
     await writeFile(badDiscovery, JSON.stringify(discovery), 'utf8')
     const floating = spawnSync(process.execPath, ['scripts/validate-registry-inputs.mjs', badDiscovery, 'registry/verifications'], { encoding: 'utf8' })
     assert.notEqual(floating.status, 0)
-    assert.match(floating.stderr, /not pinned exactly/)
+    assert.match(floating.stderr, /not pinned exactly|must match pattern/)
 
     const verificationDir = join(temp, 'verifications')
     await mkdir(verificationDir)

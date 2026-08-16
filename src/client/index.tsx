@@ -82,6 +82,12 @@ interface PluginRecord {
 }
 
 interface Registry { registryVersion: string, plugins: PluginRecord[], flows: unknown[] }
+
+function sourcePinning(plugin: PluginRecord): string {
+  if (plugin.source.kind === 'github-sha' && /^[a-f0-9]{40}$/.test(plugin.source.commit ?? '') && plugin.source.spec.endsWith(`#${plugin.source.commit}`)) return `固定 commit · ${plugin.source.commit?.slice(0, 12)}`
+  if (plugin.source.kind === 'npm' && plugin.source.spec === `${plugin.package}@${plugin.version}` && /^sha512-/.test(plugin.source.integrity ?? '')) return '精确 npm 版本 · integrity 已记录'
+  return '浮动来源，禁止安装'
+}
 interface RegistryAvailability {
   catalog: 'bundled-snapshot' | 'unavailable'
   upstream: 'not-configured' | 'reachable' | 'unreachable'
@@ -404,7 +410,7 @@ export function FlowHubFullUI({ bootstrap }: { bootstrap: BootstrapResponse }): 
               <div className="flowHubList" aria-label="插件搜索结果">{plugins.map(plugin => <button className="flowHubPlugin" type="button" key={plugin.id} aria-current={selected === plugin.id} onClick={() => { setSelected(plugin.id) }}><span><strong>{plugin.package}</strong><small>{plugin.version} · {plugin.license ?? '许可证未知'}</small></span><StatePill state={plugin.verification.state} /></button>)}</div>
               <aside className="flowHubDetail" aria-live="polite">{selectedPlugin ? <>
                 <StatePill state={selectedPlugin.verification.state} /><h4>{selectedPlugin.package}</h4><small>{selectedPlugin.id}</small>
-                <dl><dt>版本</dt><dd>{selectedPlugin.version}</dd><dt>来源</dt><dd className="flowHubCode">{selectedPlugin.source.spec}</dd><dt>完整性</dt><dd className="flowHubCode">{selectedPlugin.source.integrity ?? selectedPlugin.source.commit ?? '未披露'}</dd><dt>许可证</dt><dd>{selectedPlugin.license ?? '未披露'}</dd><dt>安装脚本</dt><dd>{Object.keys(selectedPlugin.lifecycleScripts).length ? Object.keys(selectedPlugin.lifecycleScripts).join('、') : '无披露脚本'}</dd><dt>权限</dt><dd>{selectedPlugin.permissions.length ? selectedPlugin.permissions.join('、') : '未声明额外权限'}</dd><dt>凭据</dt><dd>{selectedPlugin.credentials.length ? selectedPlugin.credentials.join('、') : '未声明凭据需求'}</dd><dt>验证时间</dt><dd>{selectedPlugin.verification.verifiedAt ?? '尚无运行证据'}</dd><dt>环境</dt><dd>{selectedPlugin.verification.environment ? `${selectedPlugin.verification.environment.os} · ${selectedPlugin.verification.environment.arch} · ${selectedPlugin.verification.environment.node}` : '尚无运行证据'}</dd><dt>DSH 版本</dt><dd>{selectedPlugin.verification.dshVersion ?? '尚无运行证据'}</dd><dt>证据链接</dt><dd className="flowHubCode">{selectedPlugin.verification.evidence?.find(item => item.startsWith('https://github.com/Harzva/harness-flow-hub/blob/registry-v')) ?? '尚无公开验证证据'}</dd></dl>
+                <dl><dt>版本</dt><dd>{selectedPlugin.version}</dd><dt>来源</dt><dd className="flowHubCode">{selectedPlugin.source.spec}</dd><dt>来源固定</dt><dd>{sourcePinning(selectedPlugin)}</dd><dt>完整性</dt><dd className="flowHubCode">{selectedPlugin.source.integrity ?? selectedPlugin.source.commit ?? '未披露'}</dd><dt>许可证</dt><dd>{selectedPlugin.license ?? '未披露'}</dd><dt>安装脚本</dt><dd>{Object.keys(selectedPlugin.lifecycleScripts).length ? Object.keys(selectedPlugin.lifecycleScripts).join('、') : '无披露脚本'}</dd><dt>权限</dt><dd>{selectedPlugin.permissions.length ? selectedPlugin.permissions.join('、') : '未声明额外权限'}</dd><dt>凭据</dt><dd>{selectedPlugin.credentials.length ? selectedPlugin.credentials.join('、') : '未声明凭据需求'}</dd><dt>验证时间</dt><dd>{selectedPlugin.verification.verifiedAt ?? '尚无运行证据'}</dd><dt>环境</dt><dd>{selectedPlugin.verification.environment ? `${selectedPlugin.verification.environment.os} · ${selectedPlugin.verification.environment.arch} · ${selectedPlugin.verification.environment.node}` : '尚无运行证据'}</dd><dt>DSH 版本</dt><dd>{selectedPlugin.verification.dshVersion ?? '尚无运行证据'}</dd><dt>证据链接</dt><dd className="flowHubCode">{selectedPlugin.verification.evidence?.find(item => item.startsWith('https://github.com/Harzva/harness-flow-hub/blob/registry-v')) ?? '尚无公开验证证据'}</dd></dl>
               </> : <div className="flowHubEmpty"><div><b>没有匹配插件</b><p>尝试缩短搜索词，或搜索插件名称和许可证。</p></div></div>}</aside>
             </div>
           </> : null}

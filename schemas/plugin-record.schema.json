@@ -22,9 +22,12 @@
       },
       "allOf": [
         {
-          "if": { "properties": { "kind": { "const": "github-sha" } } },
+          "if": { "properties": { "kind": { "const": "github-sha" } }, "required": ["kind"] },
           "then": {
-            "properties": { "commit": true },
+            "properties": {
+              "spec": { "type": "string", "pattern": "^github:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[a-f0-9]{40}$" },
+              "commit": true
+            },
             "required": ["commit"]
           }
         }

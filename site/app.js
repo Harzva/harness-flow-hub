@@ -20,6 +20,12 @@ function sourceUrl(plugin) {
   return match ? `https://github.com/${match[1]}` : null
 }
 
+function sourcePinning(plugin) {
+  if (plugin.source?.kind === 'github-sha' && /^[a-f0-9]{40}$/.test(plugin.source.commit ?? '') && plugin.source.spec?.endsWith(`#${plugin.source.commit}`)) return `固定 commit · ${plugin.source.commit.slice(0, 12)}`
+  if (plugin.source?.kind === 'npm' && plugin.source.spec === `${plugin.package}@${plugin.version}` && /^sha512-/.test(plugin.source.integrity ?? '')) return `精确 npm 版本 · integrity 已记录`
+  return '浮动来源，禁止安装'
+}
+
 function normalizedState(plugin) {
   const value = plugin.verification?.state ?? 'unknown'
   return value === 'unknown' ? 'unverified' : value
@@ -62,7 +68,7 @@ function renderInspector(plugin) {
     ['验证时间', plugin.verification?.verifiedAt ?? '尚无运行证据'],
     ['环境', plugin.verification?.environment ? [plugin.verification.environment.os, plugin.verification.environment.arch, plugin.verification.environment.node].join(' · ') : '尚无运行证据'],
     ['DSH 版本', plugin.verification?.dshVersion ?? '尚无运行证据'],
-    ['来源', publicSource(plugin)], ['许可证', plugin.license ?? '未披露'],
+    ['来源', publicSource(plugin)], ['来源固定', sourcePinning(plugin)], ['许可证', plugin.license ?? '未披露'],
     ['脚本', Object.keys(plugin.lifecycleScripts ?? {}).join('、') || '无披露脚本'],
     ['权限', (plugin.permissions ?? []).join('、') || '未声明额外权限'],
     ['凭据', (plugin.credentials ?? []).join('、') || '未声明凭据需求'],

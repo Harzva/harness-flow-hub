@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-16T18:14:00.746Z",
+  "subject": "Remote plugin source pinning and floating-branch blocking",
+  "checks": {
+    "plugins": 20,
+    "githubCommitPinned": 10,
+    "npmVersionAndIntegrityPinned": 10,
+    "discoveryInputGate": "passed",
+    "publishedRegistryGate": "passed",
+    "transactionAdapterGate": "passed",
+    "nativeDshWarning": "present",
+    "publicDiscoveryWarning": "present"
+  },
+  "policy": {
+    "floatingGitHubBranch": "blocked",
+    "githubInstall": "40-character-commit-sha-only",
+    "npmInstall": "exact-version-and-integrity"
+  },
+  "privacy": {
+    "credentialsCaptured": false,
+    "privatePathsRecorded": false,
+    "userContentCaptured": false
+  },
+  "result": "passed"
+}
