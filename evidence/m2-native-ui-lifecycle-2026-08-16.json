@@ -1,6 +1,6 @@
 {
-  "date": "2026-08-16T12:39:37.047Z",
-  "baseCommit": "1e0ef47f6b1c68370c00179a4526838b8891c1cf",
+  "date": "2026-08-16T12:47:55.168Z",
+  "baseCommit": "ece31beb90d97205a23759e02259b4d8019fab26",
   "subject": "DSH native Flow Hub lifecycle through same-origin Host API used by the client UI",
   "environment": {
     "os": "win32",

@@ -77,10 +77,40 @@ async function request(origin, path, body) {
   return { status: response.status, payload }
 }
 
-async function execute(origin, action) {
+async function readEventually(origin, path, child, timeout = 60_000) {
+  const deadline = Date.now() + timeout
+  let lastError
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) throw new Error(`dsh web exited while reading ${path}: ${child.exitCode}`)
+    try {
+      return await request(origin, path)
+    } catch (error) {
+      lastError = error
+      await new Promise(resolveWait => setTimeout(resolveWait, 250))
+    }
+  }
+  throw lastError ?? new Error(`${path} did not recover`)
+}
+
+async function executePrepared(origin, path, planId, child) {
+  try {
+    return await request(origin, path, { planId })
+  } catch (error) {
+    const deadline = Date.now() + 120_000
+    while (Date.now() < deadline) {
+      const tasks = await readEventually(origin, 'tasks', child).catch(() => null)
+      const task = tasks?.payload?.tasks?.find(candidate => candidate.planId === planId)
+      if (task !== undefined) return { status: task.ok ? 200 : 502, payload: task, recoveredAfterDisconnect: true }
+      await new Promise(resolveWait => setTimeout(resolveWait, 250))
+    }
+    throw error
+  }
+}
+
+async function execute(origin, action, child) {
   const prepared = await request(origin, 'plan', { action })
   if (prepared.status !== 200 || prepared.payload.plan?.action !== action) throw new Error(`${action} plan failed`)
-  const executed = await request(origin, 'plugin', { planId: prepared.payload.plan.id })
+  const executed = await executePrepared(origin, 'plugin', prepared.payload.plan.id, child)
   return { plan: prepared.payload.plan, response: executed }
 }
 
@@ -101,23 +131,23 @@ try {
   requireDsh(runDsh(cli, home, ['plugin', '--profile', 'web', 'add', fixtureArtifact, '--save-exact', '--ignore-scripts', '--reporter=silent']), 'fixture install')
 
   server = await startWeb(cli, home, fixtureArtifact)
-  const bootstrap = await request(server.origin, 'bootstrap')
+  const bootstrap = await readEventually(server.origin, 'bootstrap', server.child)
   if (bootstrap.status !== 200 || bootstrap.payload.state !== 'compatible' || bootstrap.payload.testFailurePhase !== null) throw new Error('normal bootstrap contract failed')
-  const initial = await request(server.origin, 'profiles')
+  const initial = await readEventually(server.origin, 'profiles', server.child)
   if (initial.status !== 200 || initial.payload.profiles?.[0]?.plugin?.installed !== true) throw new Error('fixture is not installed before UI lifecycle')
 
-  const update = await execute(server.origin, 'update')
+  const update = await execute(server.origin, 'update', server.child)
   if (update.response.status !== 200 || update.response.payload.ok !== true) throw new Error(`UI update failed: ${update.response.payload.error ?? update.response.status}`)
-  const remove = await execute(server.origin, 'remove')
+  const remove = await execute(server.origin, 'remove', server.child)
   if (remove.response.status !== 200 || remove.response.payload.ok !== true || typeof remove.response.payload.backupId !== 'string') throw new Error(`UI remove failed: ${remove.response.payload.error ?? remove.response.status}`)
-  const removed = await request(server.origin, 'profiles')
+  const removed = await readEventually(server.origin, 'profiles', server.child)
   if (removed.payload.profiles?.[0]?.plugin?.installed !== false) throw new Error('UI remove did not update Host inventory')
 
   const rollbackPlan = await request(server.origin, 'rollback-plan', { backupId: remove.response.payload.backupId })
   if (rollbackPlan.status !== 200 || rollbackPlan.payload.plan?.action !== 'rollback') throw new Error('UI rollback plan failed')
-  const rollback = await request(server.origin, 'rollback', { planId: rollbackPlan.payload.plan.id })
+  const rollback = await executePrepared(server.origin, 'rollback', rollbackPlan.payload.plan.id, server.child)
   if (rollback.status !== 200 || rollback.payload.ok !== true) throw new Error(`UI rollback failed: ${rollback.payload.error ?? rollback.status}`)
-  const restored = await request(server.origin, 'profiles')
+  const restored = await readEventually(server.origin, 'profiles', server.child)
   if (restored.payload.profiles?.[0]?.plugin?.installed !== true) throw new Error('UI rollback did not restore Host inventory')
   await stop(server.child)
   server = undefined
@@ -128,9 +158,9 @@ try {
   const beforeLock = await readFile(lockPath)
 
   server = await startWeb(cli, home, fixtureArtifact, 'health')
-  const injectedBootstrap = await request(server.origin, 'bootstrap')
+  const injectedBootstrap = await readEventually(server.origin, 'bootstrap', server.child)
   if (injectedBootstrap.payload.testFailurePhase !== 'health') throw new Error('failure-injection state is not visible in Bootstrap')
-  const failedUpdate = await execute(server.origin, 'update')
+  const failedUpdate = await execute(server.origin, 'update', server.child)
   const rollbackPhase = failedUpdate.response.payload.phases?.find(item => item.phase === 'rollback')
   if (failedUpdate.response.status !== 502 || failedUpdate.response.payload.ok !== false || rollbackPhase?.status !== 'passed') throw new Error('injected UI failure did not report a passed rollback')
   await stop(server.child)
