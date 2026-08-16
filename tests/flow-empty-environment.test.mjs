@@ -50,7 +50,7 @@ test('transaction commits callback validation evidence into the Stack lock and r
 })
 
 test('hosted Windows and Linux job executes and retains empty-environment Flow evidence', () => {
-  assert.equal(packageJson.scripts['flow:verify-empty-environment'], 'node scripts/verify-flow-empty-environment.mjs')
+  assert.equal(packageJson.scripts['flow:verify-empty-environment'], 'pnpm build && node scripts/verify-flow-empty-environment.mjs')
   assert.match(workflow, /Verify three signed Flow plans install from empty environments and pass their smoke workflows/)
   assert.match(workflow, /DSH_FLOW_EMPTY_ENV_ALLOWED: hosted-ephemeral/)
   assert.match(workflow, /evidence\/flow-empty-environment\/\*\*\/\*\.json/)
