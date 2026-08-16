@@ -62,7 +62,7 @@ test('v1 schemas are valid JSON and keep distinct responsibilities', async () =>
     ['registry-revocations.schema.json', 'revokedRegistryVersions'],
     ['discovery-snapshot.schema.json', 'candidates'],
     ['registry-release-manifest.schema.json', 'files'],
-    ['install-plan.schema.json', 'phases'],
+    ['install-plan.schema.json', 'artifact'],
     ['flow-install-plan.schema.json', 'operations'],
     ['flow-migration-preview.schema.json', 'changes'],
     ['rollback-plan.schema.json', 'backupId'],

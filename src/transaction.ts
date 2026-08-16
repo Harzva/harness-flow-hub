@@ -20,6 +20,11 @@ export interface InstallPlan {
   profile: string
   packageName: string
   source: { kind: SourceKind, spec: string }
+  artifact: {
+    version: string
+    integrity: string
+    lifecycleScripts: string[]
+  }
   requirements: {
     dshVersion: string
     platforms: string[]
@@ -145,6 +150,7 @@ export function inferSourceKind(spec: string): SourceKind {
 
 export function createInstallPlan(input: {
   action: PluginAction, profile: string, packageName: string, sourceSpec: string,
+  version?: string, integrity?: string, lifecycleScripts?: string[],
   permissions?: string[], credentials?: string[], verification?: string,
   signature?: InstallPlan['risk']['signature'], dshVersion?: string, platforms?: string[], networkEndpoint?: string, now?: Date,
 }): InstallPlan {
@@ -152,6 +158,8 @@ export function createInstallPlan(input: {
   if (!/^(@[a-z0-9._-]+\/)?[a-z0-9._-]+$/i.test(input.packageName)) throw new Error('invalid-package-name')
   const source = { kind: inferSourceKind(input.sourceSpec), spec: input.sourceSpec }
   const networkRequired = source.kind === 'npm' || source.kind === 'github-sha'
+  const version = input.version?.trim() || 'not-disclosed'
+  const integrity = input.integrity?.trim() || 'not-disclosed'
   const now = input.now ?? new Date()
   const body = {
     schemaVersion: 1 as const,
@@ -161,6 +169,11 @@ export function createInstallPlan(input: {
     profile: input.profile,
     packageName: input.packageName,
     source,
+    artifact: {
+      version,
+      integrity,
+      lifecycleScripts: [...(input.lifecycleScripts ?? [])],
+    },
     requirements: {
       dshVersion: input.dshVersion ?? '>=0.1.0-rc.6 <0.2.0',
       platforms: [...(input.platforms ?? ['win32', 'linux', 'darwin'])],

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "subject": "Complete pre-install trust disclosure in the DSH-native Flow Hub",
+  "date": "2026-08-17T00:00:00.000Z",
+  "environment": {
+    "os": "win32",
+    "dsh": "0.1.0-rc.6",
+    "hub": "0.0.2-m0",
+    "profile": "isolated-web"
+  },
+  "installPlan": {
+    "source": "configured-tgz",
+    "version": "0.0.2-m2",
+    "integrity": "sha256:1642c7db6ed1c536cc116951b3bea89986325bb5d7d0abc5fba845c3d42ec5d6",
+    "declaredLifecycleScripts": [],
+    "lifecycleScriptsDisabled": true,
+    "permissions": [],
+    "credentials": [],
+    "verification": "trusted-fixture",
+    "privatePathLeaked": false
+  },
+  "nativeUi": {
+    "location": "DSH Settings > Plugins > Flow Hub",
+    "registryDetailFields": [
+      "version",
+      "source",
+      "integrity",
+      "license",
+      "lifecycle scripts",
+      "permissions",
+      "credentials",
+      "verification environment"
+    ],
+    "writeButtonsClicked": false,
+    "reason": "Real update, uninstall, and rollback clicks remain behind explicit user confirmation"
+  },
+  "verification": {
+    "command": "pnpm check",
+    "testsPassed": 69,
+    "testsFailed": 0,
+    "schemaRejectsMissingArtifactDisclosure": true,
+    "unversionedFixtureFailsClosed": true,
+    "nonTgzFixtureFailsClosed": true
+  },
+  "result": "passed"
+}

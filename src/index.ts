@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module'
+import { createHash } from 'node:crypto'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { readFileSync, readdirSync } from 'node:fs'
@@ -270,6 +271,15 @@ function publicPlan(plan: InstallPlan): InstallPlan {
   return { ...plan, source: { ...plan.source, spec: `configured-${plan.source.kind}` } }
 }
 
+export function resolveFixtureDisclosure(spec: string): InstallPlan['artifact'] {
+  const path = spec.startsWith('file:') ? spec.slice(5) : spec
+  if (!/\.tgz$/i.test(path)) throw new Error('fixture-disclosure-requires-tgz')
+  const version = /-(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\.tgz$/i.exec(path)?.[1]
+  if (version === undefined) throw new Error('fixture-version-not-disclosed')
+  const integrity = `sha256:${createHash('sha256').update(readFileSync(path)).digest('hex')}`
+  return { version, integrity, lifecycleScripts: [] }
+}
+
 export function apply(ctx: Context, config: Config = {}): void {
   const profile = config.profile?.trim() || 'web'
   const fixtureSpec = config.fixtureSpec?.trim() || ''
@@ -383,6 +393,7 @@ export function apply(ctx: Context, config: Config = {}): void {
           profile,
           packageName: PACKAGE_NAME,
           sourceSpec: fixtureSpec,
+          ...resolveFixtureDisclosure(fixtureSpec),
           verification: 'trusted-fixture',
           signature: 'not-applicable-trusted-fixture',
         })

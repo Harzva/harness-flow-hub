@@ -4,7 +4,7 @@
   "title": "Harness Flow Hub Install Plan",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "createdAt", "expiresAt", "action", "profile", "packageName", "source", "requirements", "risk", "phases"],
+  "required": ["schemaVersion", "id", "createdAt", "expiresAt", "action", "profile", "packageName", "source", "artifact", "requirements", "risk", "phases"],
   "properties": {
     "schemaVersion": { "const": 1 },
     "id": { "type": "string", "pattern": "^[a-f0-9]{24}$" },
@@ -20,6 +20,16 @@
       "properties": {
         "kind": { "enum": ["npm", "tgz", "github-sha", "local-directory"] },
         "spec": { "type": "string", "minLength": 1 }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "integrity", "lifecycleScripts"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "integrity": { "type": "string", "minLength": 1 },
+        "lifecycleScripts": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
       }
     },
     "requirements": {
