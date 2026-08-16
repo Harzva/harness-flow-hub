@@ -7,7 +7,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import {
   createInstallPlan, createRollbackPlan, executeInstallPlan, executeRollbackPlan, listRecoveryPoints, recoverInterruptedTransactions,
-  type InstallPlan, type PluginAction, type RollbackPlan, type TransactionResult,
+  type InstallPlan, type PluginAction, type RollbackPlan, type TransactionPhase, type TransactionResult,
 } from './transaction.js'
 
 export const inject = ['webServer']
@@ -16,6 +16,7 @@ export interface Config {
   profile?: string
   fixtureSpec?: string
   dshHome?: string
+  testFailAt?: string
 }
 
 type BootstrapState = 'compatible' | 'unknown' | 'incompatible'
@@ -28,6 +29,14 @@ let activeTransaction = false
 const recentTransactions: TaskRecord[] = []
 const pendingPlans = new Map<string, InstallPlan>()
 const pendingRollbackPlans = new Map<string, RollbackPlan>()
+const TEST_FAILURE_PHASES = new Set<TransactionPhase>(['preflight', 'snapshot', 'staging', 'install', 'dump-config', 'commit', 'relink', 'health', 'complete'])
+
+export function parseTestFailurePhase(value?: string): TransactionPhase | undefined {
+  const phase = value?.trim()
+  if (phase === undefined || phase === '') return undefined
+  if (!TEST_FAILURE_PHASES.has(phase as TransactionPhase)) throw new Error(`invalid-test-failure-phase:${phase}`)
+  return phase as TransactionPhase
+}
 
 function json(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, {
@@ -161,6 +170,8 @@ export function apply(ctx: Context, config: Config = {}): void {
   const profile = config.profile?.trim() || 'web'
   const fixtureSpec = config.fixtureSpec?.trim() || ''
   const home = configuredDshHome(config.dshHome)
+  const testFailurePhase = parseTestFailurePhase(config.testFailAt)
+  if (testFailurePhase !== undefined && fixtureSpec.length === 0) throw new Error('test-failure-injection-requires-fixture')
   const recoveryPromise = recoverInterruptedTransactions({ home: config.dshHome }).then(recovered => {
     recentTransactions.unshift(...recovered)
     if (recentTransactions.length > 20) recentTransactions.length = 20
@@ -179,6 +190,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         fixtureReady: fixtureSpec.length > 0,
         packageName: PACKAGE_NAME,
         hubVersion: hub.version,
+        testFailurePhase: testFailurePhase ?? null,
       })
       return
     }
@@ -277,7 +289,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       pendingRollbackPlans.delete(planId)
       activeTransaction = true
       try {
-        const result = await executeRollbackPlan(rollbackPlan, { dshCli: resolveDshCli(), home, dshVersion: resolveDshVersion() ?? undefined })
+        const result = await executeRollbackPlan(rollbackPlan, { dshCli: resolveDshCli(), home, dshVersion: resolveDshVersion() ?? undefined, failAt: testFailurePhase })
         recentTransactions.unshift(result)
         if (recentTransactions.length > 20) recentTransactions.length = 20
         json(res, result.ok ? 200 : 502, result)
@@ -294,7 +306,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     pendingPlans.delete(planId)
     activeTransaction = true
     try {
-      const result = await executeInstallPlan(plan, { dshCli: resolveDshCli(), home: config.dshHome, dshVersion: resolveDshVersion() ?? undefined })
+      const result = await executeInstallPlan(plan, { dshCli: resolveDshCli(), home, dshVersion: resolveDshVersion() ?? undefined, failAt: testFailurePhase })
       recentTransactions.unshift(result)
       if (recentTransactions.length > 20) recentTransactions.length = 20
       json(res, result.ok ? 200 : 502, result)

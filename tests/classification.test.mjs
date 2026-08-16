@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyVersion } from '../lib/index.js'
+import { classifyVersion, parseTestFailurePhase } from '../lib/index.js'
 
 test('bootstrap classifier fails closed across compatible unknown and incompatible states', () => {
   assert.equal(classifyVersion(null), 'unknown')
@@ -17,6 +17,18 @@ test('management endpoint exposes only fixed plugin actions and structured rollb
   assert.match(source, /local-same-origin-required/)
   assert.match(source, /rollback-plan-missing-or-consumed/)
   assert.match(source, /recovery-point-unavailable/)
+})
+
+test('test failure injection is server-configured and phase allowlisted', async () => {
+  assert.equal(parseTestFailurePhase(undefined), undefined)
+  assert.equal(parseTestFailurePhase(''), undefined)
+  assert.equal(parseTestFailurePhase('health'), 'health')
+  assert.throws(() => parseTestFailurePhase('shell'), /invalid-test-failure-phase:shell/)
+  const host = await import('node:fs/promises').then(fs => fs.readFile('src/index.ts', 'utf8'))
+  const client = await import('node:fs/promises').then(fs => fs.readFile('src/client/index.tsx', 'utf8'))
+  assert.match(host, /failAt: testFailurePhase/)
+  assert.doesNotMatch(client, /testFailAt/)
+  assert.match(client, /隔离测试模式/)
 })
 
 test('v1 schemas are valid JSON and keep distinct responsibilities', async () => {

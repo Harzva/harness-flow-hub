@@ -59,6 +59,7 @@
     "transaction:verify-versions": "pnpm build && node scripts/verify-transaction-version-lifecycle.mjs",
     "transaction:verify-rollback": "pnpm build && node scripts/verify-rollback-lifecycle.mjs",
     "ui:prepare-spike": "pnpm build && node scripts/prepare-native-ui-spike.mjs",
+    "ui:verify-lifecycle": "pnpm build && node scripts/verify-native-ui-lifecycle.mjs",
     "site:audit": "node scripts/audit-public-site.mjs _site",
     "site:serve": "node scripts/serve-site.mjs",
     "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts",
