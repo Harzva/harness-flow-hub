@@ -1,0 +1,93 @@
+{
+  "date": "2026-08-16T14:36:46.789Z",
+  "baseCommit": "cc068e68429c000257bd7fe3a90f91f3d8506264",
+  "subject": "Four-dimensional Bootstrap compatibility on an isolated real DSH Web Profile",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0",
+    "profile": "isolated web"
+  },
+  "artifact": {
+    "file": "artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz",
+    "sha256": "10bb019c50aac9d25644ebaf699de07316b3f9b715fcd7af4e70e2ea7fc34711"
+  },
+  "checks": {
+    "current": {
+      "status": "passed",
+      "aggregate": "compatible",
+      "dimensions": {
+        "dsh": {
+          "actual": "0.1.0-rc.6",
+          "supported": ">=0.1.0-rc.6 <0.2.0",
+          "state": "compatible",
+          "reason": "range-satisfied"
+        },
+        "hub": {
+          "actual": "0.0.2-m0",
+          "supported": ">=0.0.2-m0 <0.1.0",
+          "state": "compatible",
+          "reason": "range-satisfied"
+        },
+        "registrySchema": {
+          "actual": "1",
+          "supported": "1.x",
+          "state": "compatible",
+          "reason": "schema-supported"
+        },
+        "flowSchema": {
+          "actual": "1",
+          "supported": "1.x",
+          "state": "compatible",
+          "reason": "all-flow-schemas-supported"
+        }
+      }
+    },
+    "simulatedIncompatible": {
+      "status": "passed",
+      "aggregate": "incompatible",
+      "dimensions": {
+        "dsh": {
+          "actual": "0.2.0",
+          "supported": ">=0.1.0-rc.6 <0.2.0",
+          "state": "incompatible",
+          "reason": "range-not-satisfied"
+        },
+        "hub": {
+          "actual": "0.0.2-m0",
+          "supported": ">=0.0.2-m0 <0.1.0",
+          "state": "compatible",
+          "reason": "range-satisfied"
+        },
+        "registrySchema": {
+          "actual": "1",
+          "supported": "1.x",
+          "state": "compatible",
+          "reason": "schema-supported"
+        },
+        "flowSchema": {
+          "actual": "1",
+          "supported": "1.x",
+          "state": "compatible",
+          "reason": "all-flow-schemas-supported"
+        }
+      }
+    },
+    "hostWriteGate": {
+      "status": "passed",
+      "http": 409,
+      "error": "bootstrap-compatibility-required",
+      "profileMutationAttempted": false
+    },
+    "postCheckDumpConfig": {
+      "status": "passed",
+      "exitCode": 0
+    }
+  },
+  "trustBoundary": {
+    "userProfileTouched": false,
+    "credentialsCaptured": false,
+    "browserWriteActionPerformed": false
+  },
+  "result": "passed"
+}

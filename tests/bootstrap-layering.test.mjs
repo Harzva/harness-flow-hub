@@ -32,6 +32,8 @@ test('safe Bootstrap keeps recovery local and full data calls behind the compati
   assert.match(bootstrap, /if \(runtime\.loadFullUi && bootstrap !== null\)/)
   assert.match(bootstrap, /dsh plugin --profile web remove @harness-flow\/dsh-flow-hub/)
   assert.match(bootstrap, /完整 Flow Hub 已保持关闭/)
+  assert.match(bootstrap, /Registry Schema/)
+  assert.match(bootstrap, /Flow Schema/)
   assert.doesNotMatch(bootstrap, /api\/registry|api\/profiles|api\/tasks|api\/flows|api\/plan|api\/plugin|api\/rollback/)
   assert.doesNotMatch(bootstrap, /window\.open|location\.(?:assign|replace)|<a\s/i)
   assert.doesNotMatch(fullUi, /api<BootstrapResponse>\('bootstrap'\)/)

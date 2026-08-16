@@ -10,6 +10,7 @@ function SafeRecovery({ bootstrap, failed, retry }: { bootstrap: BootstrapRespon
   const runtime = decideBootstrapRuntime(bootstrap, failed)
   const waiting = runtime.mode === 'loading'
   const state = waiting ? '正在检查兼容性' : runtime.reason === 'version-incompatible' ? '版本不兼容' : runtime.reason === 'version-unknown' ? '版本尚未验证' : 'Bootstrap 不可用'
+  const dimensions = bootstrap?.compatibility.dimensions
   return <section className="flowHubBootstrap" data-runtime-mode={runtime.mode}>
     <style>{`
       .flowHubBootstrap{--fh-accent:#e08a32;--fh-line:color-mix(in srgb,currentColor 14%,transparent);min-height:360px;border:1px solid var(--fh-line);border-radius:18px;padding:clamp(24px,5vw,48px);font-family:"Aptos","Noto Sans SC",sans-serif;color:inherit;background:radial-gradient(circle at 85% 0,color-mix(in srgb,var(--fh-accent) 14%,transparent),transparent 36%)}
@@ -18,7 +19,7 @@ function SafeRecovery({ bootstrap, failed, retry }: { bootstrap: BootstrapRespon
     <p className="flowHubBootstrap__kicker">DEEPSEEK HARNESS / FLOW HUB BOOTSTRAP</p>
     <h2>{state}</h2>
     <p>{waiting ? '正在读取 DSH 与 Hub 版本。完整市场、Profile 数据和事务模块尚未初始化。' : '完整 Flow Hub 已保持关闭；不会读取 Registry，也不会发起安装、更新、卸载或回滚。你仍可在当前 DSH 页面查看恢复方法。'}</p>
-    <dl><dt>DSH</dt><dd>{bootstrap?.dshVersion ?? '未知'}</dd><dt>Hub</dt><dd>{bootstrap?.hubVersion ?? '未知'}</dd><dt>支持范围</dt><dd>{bootstrap?.supported ?? '无法读取'}</dd><dt>运行模式</dt><dd>{runtime.mode} · 只读</dd></dl>
+    <dl><dt>DSH</dt><dd>{dimensions ? `${dimensions.dsh.actual ?? '未知'} · ${dimensions.dsh.state} · 支持 ${dimensions.dsh.supported}` : '未知'}</dd><dt>Hub</dt><dd>{dimensions ? `${dimensions.hub.actual ?? '未知'} · ${dimensions.hub.state} · 支持 ${dimensions.hub.supported}` : '未知'}</dd><dt>Registry Schema</dt><dd>{dimensions ? `${dimensions.registrySchema.actual ?? '未知'} · ${dimensions.registrySchema.state} · 支持 ${dimensions.registrySchema.supported}` : '未知'}</dd><dt>Flow Schema</dt><dd>{dimensions ? `${dimensions.flowSchema.actual ?? '未知'} · ${dimensions.flowSchema.state} · 支持 ${dimensions.flowSchema.supported}` : '未知'}</dd><dt>运行模式</dt><dd>{runtime.mode} · 只读</dd></dl>
     <b>CLI 救援命令</b>
     <code>dsh plugin --profile web remove @harness-flow/dsh-flow-hub</code>
     <p><button type="button" disabled={waiting} onClick={retry}>{waiting ? '检查中…' : '重新检查兼容性'}</button></p>

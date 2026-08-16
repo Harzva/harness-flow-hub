@@ -6,6 +6,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import { parse as parseYaml } from 'yaml'
+import { classifyDshVersion, evaluateCompatibility, type CompatibilitySnapshot, type CompatibilityState } from './compatibility.js'
 import { compareFlowVariants, compileFlowInstallPlan, compileStackPreview, type FlowVariantName, type HarnessFlow, type RegistryPlugin } from './flow-resolver.js'
 import {
   createInstallPlan, createRollbackPlan, executeInstallPlan, executeRollbackPlan, listRecoveryPoints, recoverInterruptedTransactions,
@@ -22,7 +23,6 @@ export interface Config {
   testDshVersion?: string
 }
 
-type BootstrapState = 'compatible' | 'unknown' | 'incompatible'
 type TaskRecord = TransactionResult
 
 const PACKAGE_NAME = '@harness-flow/hello-bundle'
@@ -107,6 +107,31 @@ function resolveRegistry(): unknown {
   const hub = resolveHubPackage()
   if (hub.root === null) throw new Error('hub-package-unavailable')
   return JSON.parse(readFileSync(resolve(hub.root, 'registry/generated/registry.json'), 'utf8')) as unknown
+}
+
+function resolveCompatibilitySnapshot(dshVersionOverride: string | null = null): CompatibilitySnapshot {
+  const hub = resolveHubPackage()
+  let registrySchemaVersion: unknown = null
+  let flowSchemaVersions: unknown = null
+  if (hub.root !== null) {
+    try {
+      const registry = JSON.parse(readFileSync(resolve(hub.root, 'registry/generated/registry.json'), 'utf8')) as { schemaVersion?: unknown }
+      registrySchemaVersion = registry.schemaVersion ?? null
+    } catch {}
+    try {
+      const directory = resolve(hub.root, 'registry/flows')
+      flowSchemaVersions = readdirSync(directory).filter(name => name.endsWith('.dsh-flow.yml')).sort().map(name => {
+        const flow = parseYaml(readFileSync(resolve(directory, name), 'utf8')) as { schemaVersion?: unknown }
+        return flow.schemaVersion ?? null
+      })
+    } catch {}
+  }
+  return evaluateCompatibility({
+    dshVersion: dshVersionOverride ?? resolveDshVersion(),
+    hubVersion: hub.version,
+    registrySchemaVersion,
+    flowSchemaVersions,
+  })
 }
 
 function resolveFlowCatalog(): unknown[] {
@@ -203,14 +228,8 @@ async function profileView(home: string, profile: string): Promise<unknown> {
   return { id: profile, active: true, managedBy: 'dsh', plugin: { packageName: PACKAGE_NAME, installed: source !== null, enabled, source: publicDependencySource(source), version }, recoveryPoints }
 }
 
-export function classifyVersion(version: string | null): BootstrapState {
-  if (version === null) return 'unknown'
-  const match = /^0\.1\.(\d+)(?:-rc\.(\d+))?$/.exec(version)
-  if (match === null) return 'incompatible'
-  const patch = Number(match[1])
-  const releaseCandidate = match[2] === undefined ? null : Number(match[2])
-  if (patch > 0 || releaseCandidate === null || releaseCandidate >= 6) return 'compatible'
-  return 'incompatible'
+export function classifyVersion(version: string | null): CompatibilityState {
+  return classifyDshVersion(version)
 }
 
 export function parseTestDshVersion(value?: string): string | null {
@@ -241,11 +260,13 @@ export function apply(ctx: Context, config: Config = {}): void {
     if (pathname === `${API_PATH}/bootstrap` && req.method === 'GET') {
       const dshVersion = testDshVersion ?? resolveDshVersion()
       const hub = resolveHubPackage()
+      const compatibility = resolveCompatibilitySnapshot(testDshVersion)
       json(res, 200, {
         ok: true,
-        state: classifyVersion(dshVersion),
+        state: compatibility.overall,
         dshVersion,
-        supported: '>=0.1.0-rc.6 <0.2.0 (M0 verified prereleases)',
+        supported: compatibility.dimensions.dsh.supported,
+        compatibility,
         profile,
         fixtureReady: fixtureSpec.length > 0,
         packageName: PACKAGE_NAME,
@@ -287,6 +308,11 @@ export function apply(ctx: Context, config: Config = {}): void {
     }
     if (!isLoopback(req) || !sameOrigin(req)) {
       json(res, 403, { ok: false, error: 'local-same-origin-required' })
+      return
+    }
+    const compatibility = resolveCompatibilitySnapshot(testDshVersion)
+    if (compatibility.overall !== 'compatible') {
+      json(res, 409, { ok: false, error: 'bootstrap-compatibility-required', compatibility })
       return
     }
     if ((pathname === `${API_PATH}/plan` || pathname === `${API_PATH}/plugin`) && fixtureSpec.length === 0) {

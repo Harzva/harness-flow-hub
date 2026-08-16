@@ -27,6 +27,10 @@
       "types": "./lib/types/bootstrap-policy.d.ts",
       "default": "./lib/bootstrap-policy.js"
     },
+    "./compatibility": {
+      "types": "./lib/types/compatibility.d.ts",
+      "default": "./lib/compatibility.js"
+    },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
@@ -35,6 +39,7 @@
     "lib/transaction.js",
     "lib/flow-resolver.js",
     "lib/bootstrap-policy.js",
+    "lib/compatibility.js",
     "lib/client.js",
     "lib/client.js.map",
     "lib/types/**/*.d.ts",
@@ -76,6 +81,7 @@
     "transaction:verify-flow": "pnpm build && node scripts/verify-flow-transaction-lifecycle.mjs",
     "ui:prepare-spike": "pnpm build && node scripts/prepare-native-ui-spike.mjs",
     "ui:verify-lifecycle": "pnpm build && node scripts/verify-native-ui-lifecycle.mjs",
+    "ui:verify-bootstrap-compatibility": "pnpm build && node scripts/verify-bootstrap-compatibility.mjs",
     "site:audit": "node scripts/audit-public-site.mjs _site",
     "site:serve": "node scripts/serve-site.mjs",
     "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts",

@@ -6,12 +6,25 @@ type Action = PluginAction | 'rollback'
 type View = 'home' | 'plugins' | 'flows' | 'profiles' | 'tasks'
 type VerificationState = 'unknown' | 'unverified' | 'passed' | 'failed' | 'stale'
 
+export interface CompatibilityDimension {
+  actual: string | null
+  supported: string
+  state: BootstrapState
+  reason: string
+}
+
+export interface CompatibilitySnapshot {
+  overall: BootstrapState
+  dimensions: Record<'dsh' | 'hub' | 'registrySchema' | 'flowSchema', CompatibilityDimension>
+}
+
 export interface BootstrapResponse {
   ok: boolean
   state: BootstrapState
   dshVersion: string | null
   hubVersion: string | null
   supported: string
+  compatibility: CompatibilitySnapshot
   profile: string
   fixtureReady: boolean
   packageName: string
@@ -353,7 +366,7 @@ export function FlowHubFullUI({ bootstrap }: { bootstrap: BootstrapResponse }): 
         @container(max-width:760px){.flowHubTop{grid-template-columns:1fr;padding:22px}.flowHubStatus{justify-items:start}.flowHubBody{grid-template-columns:1fr}.flowHubNav{border-right:0;border-bottom:1px solid var(--fh-line);display:grid;grid-template-columns:repeat(5,minmax(86px,1fr));overflow:auto}.flowHubNav button{grid-template-columns:1fr;gap:3px;text-align:center;padding:9px 5px}.flowHubMain{padding:20px 16px}.flowHubGrid{grid-template-columns:1fr 1fr}.flowHubPluginLayout,.flowHubFlowColumns{grid-template-columns:1fr}.flowHubList{max-height:270px}.flowHubDetail{min-height:0}.flowHubSectionHead{align-items:start;flex-direction:column}.flowHubTask{grid-template-columns:72px 1fr}.flowHubCompare{grid-template-columns:1fr 1fr}.flowHubCompare>div:not(:first-child){border-left:0;border-top:1px solid var(--fh-line);padding:10px 0 0}.flowHubFlowHero{flex-direction:column}.flowHubPreviewBadge{white-space:normal}}
         @media(max-width:900px){.flowHubGrid{grid-template-columns:repeat(2,1fr)}.flowHubPluginLayout{grid-template-columns:1fr}.flowHubDetail{min-height:0}}@media(max-width:650px){.flowHubGrid{grid-template-columns:1fr}}@media(prefers-reduced-motion:no-preference){.flowHubMain>*{animation:fh-rise .28s ease both}@keyframes fh-rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}}
       `}</style>
-      <header className="flowHubTop"><div><p className="flowHubKicker">DEEPSEEK HARNESS / FLOW HUB</p><h2 className="flowHubTitle">组装你的 Agent 工作台</h2><p className="flowHubSub">插件是能力，Flow 是经过验证的专家方案。所有发现、检查、安装与恢复都留在当前 DSH 界面。</p></div><div className={`flowHubStatus flowHubStatus--${bootstrap.state}`} role="status" aria-live="polite"><b>{compatible ? '兼容，可执行' : bootstrap.state === 'unknown' ? '版本未知，只读' : '不兼容，只读'}</b><span>DSH {bootstrap.dshVersion ?? '—'} · Hub {bootstrap.hubVersion ?? '—'}</span></div></header>
+      <header className="flowHubTop"><div><p className="flowHubKicker">DEEPSEEK HARNESS / FLOW HUB</p><h2 className="flowHubTitle">组装你的 Agent 工作台</h2><p className="flowHubSub">插件是能力，Flow 是经过验证的专家方案。所有发现、检查、安装与恢复都留在当前 DSH 界面。</p></div><div className={`flowHubStatus flowHubStatus--${bootstrap.state}`} role="status" aria-live="polite"><b>{compatible ? '四维兼容，可执行' : bootstrap.state === 'unknown' ? '版本未知，只读' : '不兼容，只读'}</b><span>DSH {bootstrap.dshVersion ?? '—'} · Hub {bootstrap.hubVersion ?? '—'}</span><span>Registry Schema {bootstrap.compatibility.dimensions.registrySchema.actual ?? '—'} · Flow Schema {bootstrap.compatibility.dimensions.flowSchema.actual ?? '—'}</span></div></header>
       <div className="flowHubBody">
         <nav className="flowHubNav" aria-label="Flow Hub 区域">{views.map(item => <button key={item.id} type="button" aria-current={view === item.id ? 'page' : undefined} onClick={() => { setView(item.id) }}><small>{item.mark}</small><span>{item.label}</span></button>)}</nav>
         <main ref={mainRef} className="flowHubMain" tabIndex={-1} aria-busy={running !== null}>
