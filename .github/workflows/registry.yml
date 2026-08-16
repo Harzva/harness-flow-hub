@@ -63,6 +63,8 @@ jobs:
           "DSH_VERSION=0.1.0-rc.6" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Verify ten package transactions without running third-party code
         run: node scripts/verify-installations.mjs registry/generated/registry.json registry/verifications-ci/${{ runner.os }} 10
+      - name: Summarize hosted worker isolation evidence
+        run: node scripts/summarize-hosted-worker.mjs registry/verifications-ci/${{ runner.os }} evidence/m1-hosted-worker-${{ runner.os }}-2026-08-17.json 10
       - name: Build trusted native UI lifecycle fixtures
         run: |
           pnpm run pack:fixture
@@ -83,6 +85,7 @@ jobs:
           name: registry-install-transaction-${{ runner.os }}
           path: |
             registry/verifications-ci/${{ runner.os }}/*.json
+            evidence/m1-hosted-worker-${{ runner.os }}-2026-08-17.json
             evidence/m2-bootstrap-recovery-modes-2026-08-16.json
             evidence/m2-native-ui-lifecycle-2026-08-16.json
             evidence/m2-registry-offline-resilience-2026-08-17.json

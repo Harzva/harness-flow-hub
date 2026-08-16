@@ -1,15 +1,16 @@
 {
   "schemaVersion": 1,
-  "asOf": "2026-08-16",
+  "asOf": "2026-08-17",
   "platforms": {
     "win32": {
       "worker": "implemented",
-      "currentEvidence": "evidence/m1-registry-alpha-2026-08-16.json"
+      "currentEvidence": "https://github.com/Harzva/harness-flow-hub/actions/runs/31959673778",
+      "isolation": "fresh temporary DSH_HOME per candidate; lifecycle scripts disabled; third-party runtime not executed"
     },
     "linux": {
-      "worker": "configured",
-      "currentEvidence": null,
-      "note": "Hosted CI job is defined but has not run in a published repository."
+      "worker": "implemented",
+      "currentEvidence": "https://github.com/Harzva/harness-flow-hub/actions/runs/31959673778",
+      "isolation": "fresh temporary DSH_HOME per candidate; lifecycle scripts disabled; third-party runtime not executed"
     },
     "darwin": {
       "worker": "not-covered",
