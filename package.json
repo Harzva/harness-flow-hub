@@ -88,7 +88,7 @@
     "compatibility:aggregate-matrix": "node scripts/aggregate-dsh-version-matrix.mjs",
     "site:audit": "node scripts/audit-public-site.mjs _site",
     "site:serve": "node scripts/serve-site.mjs",
-    "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts",
+    "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts && pnpm --dir fixtures/hello-bundle-v2 pack --pack-destination ../../artifacts",
     "pack:hub": "pnpm build && pnpm pack --pack-destination artifacts"
   },
   "dependencies": {

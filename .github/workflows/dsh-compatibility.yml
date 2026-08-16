@@ -96,8 +96,11 @@ jobs:
         run: |
           $root = "evidence-ci/dsh-matrix/${{ runner.os }}"
           node scripts/verify-transaction-lifecycle.mjs "$root/candidate-transaction-${{ matrix.version }}.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/verify-transaction-version-lifecycle.mjs "$root/candidate-version-lifecycle-${{ matrix.version }}.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/verify-rollback-lifecycle.mjs "$root/candidate-rollback-${{ matrix.version }}.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         if: always()
         with:

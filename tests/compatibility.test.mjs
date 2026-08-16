@@ -91,9 +91,10 @@ test('new npm dist-tags enter the matrix as unknown without silently extending c
 })
 
 test('hosted compatibility workflow installs exact published binaries and retains matrix evidence', async () => {
-  const [workflow, resolver] = await Promise.all([
+  const [workflow, resolver, versionVerifier] = await Promise.all([
     readFile('.github/workflows/dsh-compatibility.yml', 'utf8').then(parseYaml),
     readFile('scripts/resolve-dsh-ci-matrix.mjs', 'utf8'),
+    readFile('scripts/verify-transaction-version-lifecycle.mjs', 'utf8'),
   ])
   assert.equal(workflow.on.schedule[0].cron, '23 3 * * *')
   assert.deepEqual(workflow.on.repository_dispatch.types, ['dsh-release'])
@@ -122,6 +123,9 @@ test('hosted compatibility workflow installs exact published binaries and retain
   assert.match(qualification.run, /verify-transaction-lifecycle\.mjs/)
   assert.match(qualification.run, /verify-transaction-version-lifecycle\.mjs/)
   assert.match(qualification.run, /verify-rollback-lifecycle\.mjs/)
+  assert.equal((qualification.run.match(/LASTEXITCODE -ne 0/g) ?? []).length, 3)
+  assert.match(versionVerifier, /harness-flow-hello-bundle-0\.0\.2-m2\.tgz/)
+  assert.doesNotMatch(versionVerifier, /spawnSync|ComSpec|cmd\.exe|shell:/)
   const upload = verify.steps.find(step => step.uses === 'actions/upload-artifact@v4')
   assert.equal(upload.if, 'always()')
   assert.match(upload.with.path, /evidence-ci\/dsh-matrix/)

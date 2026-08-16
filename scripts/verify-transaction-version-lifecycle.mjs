@@ -1,5 +1,4 @@
-import { spawnSync } from 'node:child_process'
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve, sep } from 'node:path'
 import { createInstallPlan, executeInstallPlan } from '../lib/transaction.js'
 import { dshPackageInfo, runDsh } from './dsh-cli-lib.mjs'
@@ -7,12 +6,11 @@ import { dshPackageInfo, runDsh } from './dsh-cli-lib.mjs'
 const output = resolve(process.argv[2] ?? 'evidence/m2-transaction-version-lifecycle-2026-08-16.json')
 const tempRoot = resolve('../../work/transaction-version-verifier')
 const stableTgz = resolve('artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz')
+const v2Tgz = resolve('artifacts/harness-flow-hello-bundle-0.0.2-m2.tgz')
 const { package: dshPackage, cli: dshCli } = dshPackageInfo()
 await mkdir(tempRoot, { recursive: true })
 const runRoot = await mkdtemp(join(tempRoot, 'run-'))
 const home = join(runRoot, 'home')
-const v2Source = join(runRoot, 'hello-v2')
-const packed = join(runRoot, 'packed')
 
 function assert(condition, message) { if (!condition) throw new Error(message) }
 function plan(action, sourceSpec) {
@@ -24,17 +22,6 @@ function plan(action, sourceSpec) {
 
 await mkdir(dirname(output), { recursive: true })
 try {
-  await cp(resolve('fixtures/hello-bundle'), v2Source, { recursive: true })
-  const v2ManifestPath = join(v2Source, 'package.json')
-  const v2Manifest = JSON.parse(await readFile(v2ManifestPath, 'utf8'))
-  v2Manifest.version = '0.0.2-m2'
-  await writeFile(v2ManifestPath, JSON.stringify(v2Manifest, null, 2) + '\n', 'utf8')
-  await mkdir(packed, { recursive: true })
-  const packCommand = 'pnpm pack --pack-destination ../packed'
-  const pack = spawnSync(process.env.ComSpec ?? 'cmd.exe', ['/d', '/s', '/c', packCommand], { cwd: v2Source, encoding: 'utf8', windowsHide: true })
-  assert(pack.status === 0, `fixture v2 pack failed (${pack.status}): ${pack.error?.message ?? ''} ${pack.stderr ?? ''} ${pack.stdout ?? ''}`)
-  const v2Tgz = join(packed, 'harness-flow-hello-bundle-0.0.2-m2.tgz')
-
   const bootstrap = runDsh(dshCli, home, ['--profile', 'web', '--dump-default-config'])
   assert(bootstrap.status === 0, 'official web profile bootstrap failed')
   const installV2 = await executeInstallPlan(plan('add', v2Tgz), { home, dshCli, dshVersion: dshPackage.version })
