@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "date": "2026-08-16T18:44:40.112Z",
+  "date": "2026-08-16T20:49:05.448Z",
   "subject": "Fail-closed Flow recommendation trust gate",
   "checks": {
     "invalidSignatureRecommendationAllowed": false,

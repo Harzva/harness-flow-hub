@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "date": "2026-08-16T18:14:00.746Z",
+  "date": "2026-08-16T20:49:00.665Z",
   "subject": "Remote plugin source pinning and floating-branch blocking",
   "checks": {
-    "plugins": 20,
-    "githubCommitPinned": 10,
-    "npmVersionAndIntegrityPinned": 10,
+    "plugins": 21,
+    "githubCommitPinned": 9,
+    "npmVersionAndIntegrityPinned": 12,
     "discoveryInputGate": "passed",
     "publishedRegistryGate": "passed",
     "transactionAdapterGate": "passed",

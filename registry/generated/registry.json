@@ -4,7 +4,7 @@
   "generatedFrom": {
     "kind": "github-topic+npm-search",
     "asOf": "2026-08-16",
-    "sha256": "4dedd1426be708fcbed0b01841979e3d504c3b9408fdf61748917830b8141662"
+    "sha256": "583ea8e2e62f73b80cb7904f33c5410dc1938c2a40d47a64dcaaac873f08ac0c"
   },
   "plugins": [
     {
@@ -48,9 +48,9 @@
       "package": "@anionex/dsh-vision-toolkit",
       "version": "0.1.8",
       "source": {
-        "kind": "github-sha",
-        "spec": "github:Anionex/dsh-vision-toolkit#5cd1279d9a5a98bb634093dadcd73ea2a396a74e",
-        "commit": "5cd1279d9a5a98bb634093dadcd73ea2a396a74e"
+        "kind": "npm",
+        "spec": "@anionex/dsh-vision-toolkit@0.1.8",
+        "integrity": "sha512-tBTXTG5uDc0w8g/1FIHEi3ePUUNILLWvrYfVRTh2IluwVPFMphAaBaLfnU3OId9a584BmFD7JOFGIfRWN8o8CQ=="
       },
       "compatibility": {
         "dsh": "unknown"
@@ -70,8 +70,8 @@
       "permissions": [],
       "credentials": [],
       "verification": {
-        "state": "failed",
-        "verifiedAt": "2026-08-16T09:30:11.991Z",
+        "state": "unverified",
+        "verifiedAt": "2026-08-17T00:00:00.000Z",
         "dshVersion": "0.1.0-rc.6",
         "platform": "win32",
         "environment": {
@@ -368,6 +368,48 @@
           "https://www.npmjs.com/package/dsh-mnemon",
           "registry/verifications/dsh-mnemon.json",
           "https://github.com/Harzva/harness-flow-hub/blob/registry-v2026.08.16-alpha.1/registry/verifications/dsh-mnemon.json"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "dsh-openwolf",
+      "package": "dsh-openwolf",
+      "version": "0.9.1",
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-openwolf@0.9.1",
+        "integrity": "sha512-2Uoubtjsge2rJ4sSNn8S7sXNfnj9xOpvdCTTIUrBkPJ7HgCHjxjP1CPxz5A385zeRBkqTcv4M7f9gn2UJeRUjQ=="
+      },
+      "compatibility": {
+        "dsh": "unknown"
+      },
+      "platforms": [],
+      "license": "MIT",
+      "lifecycleScripts": {
+        "build": "tsc -p tsconfig.json",
+        "prepare": "tsc -p tsconfig.json",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "test": "node --test \"test/**/*.test.ts\"",
+        "prepublishOnly": "node scripts/inject-npm-readme.mjs inject",
+        "postpublish": "node scripts/inject-npm-readme.mjs restore"
+      },
+      "permissions": [],
+      "credentials": [],
+      "verification": {
+        "state": "unverified",
+        "verifiedAt": "2026-08-17T00:00:00.000Z",
+        "dshVersion": "0.1.0-rc.6",
+        "platform": "win32",
+        "environment": {
+          "os": "win32",
+          "arch": "x64",
+          "node": "v25.2.0"
+        },
+        "evidence": [
+          "https://www.npmjs.com/package/dsh-openwolf",
+          "registry/verifications/dsh-openwolf.json",
+          "https://github.com/Harzva/harness-flow-hub/blob/registry-v2026.08.16-alpha.1/registry/verifications/dsh-openwolf.json"
         ]
       }
     },
@@ -813,7 +855,7 @@
       "id": "coding-expert",
       "version": "0.1.0-alpha.1",
       "manifest": "registry/flows/coding-expert.dsh-flow.yml",
-      "digest": "sha256:4c3b3f6706857f6917fc568a808ca067648ae321f42890af6dac3a2cf0828988",
+      "digest": "sha256:bc6c16122489c222c66066e92d05fa2b62619abc18c47328a14eb660da84338f",
       "variants": [
         "lite",
         "local",
@@ -869,7 +911,7 @@
       "id": "ui-design-studio",
       "version": "0.1.0-alpha.1",
       "manifest": "registry/flows/ui-design-studio.dsh-flow.yml",
-      "digest": "sha256:0304d926e0b9e2cee90765ed229e4eff5cf41670d2936c2056a8de721f17a29c",
+      "digest": "sha256:b64b91aac678ea4fbe6dd5b042d777fee8c8cd005aa87ef04baf50af830eeece",
       "variants": [
         "lite",
         "local",

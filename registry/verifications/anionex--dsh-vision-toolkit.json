@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "subject": "anionex--dsh-vision-toolkit",
-  "state": "failed",
-  "verifiedAt": "2026-08-16T09:30:11.991Z",
+  "state": "unverified",
+  "verifiedAt": "2026-08-17T00:00:00.000Z",
   "environment": {
     "os": "win32",
     "arch": "x64",
@@ -11,13 +11,18 @@
   },
   "checks": [
     {
-      "id": "profile-bootstrap",
+      "id": "exact-artifact-integrity",
       "status": "passed"
     },
     {
       "id": "package-installation-flow",
-      "status": "failed",
-      "detail": "package installation failed"
+      "status": "skipped",
+      "detail": "previous GitHub-source failure does not apply to the exact prebuilt npm artifact; hosted ephemeral verification pending"
+    },
+    {
+      "id": "ui-workflow-smoke",
+      "status": "skipped",
+      "detail": "fixture image and UI restoration workflow not yet executed"
     }
   ],
   "evidence": [

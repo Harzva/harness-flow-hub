@@ -13,7 +13,7 @@ async function fixturePlan() {
   const flow = parseYaml(await readFile('registry/flows/coding-expert.dsh-flow.yml', 'utf8'))
   const registry = JSON.parse(await readFile('registry/generated/registry.json', 'utf8'))
   const trusted = structuredClone(registry.plugins)
-  for (const candidate of trusted.filter(item => ['dsh-mnemon', 'dsh-plugin-writing-guard'].includes(item.package))) {
+  for (const candidate of trusted.filter(item => ['dsh-mnemon', 'dsh-openwolf'].includes(item.package))) {
     candidate.verification.state = 'passed'
     candidate.compatibility.dsh = '>=0.1.0-rc.6 <0.2.0'
     candidate.platforms = ['linux']
@@ -52,7 +52,7 @@ function fakeFlowDsh(home) {
       const source = args[4]
       const candidates = {
         'dsh-mnemon@0.1.6': ['dsh-mnemon', '0.1.6'],
-        'dsh-plugin-writing-guard@0.9.2': ['dsh-plugin-writing-guard', '0.9.2'],
+        'dsh-openwolf@0.9.1': ['dsh-openwolf', '0.9.1'],
       }
       const selected = candidates[source]
       if (selected === undefined) return { code: 2, stdout: '', stderr: 'unexpected source' }
@@ -93,7 +93,7 @@ test('Flow transaction creates one isolated headless Profile and writes the dete
     const profileDir = join(fx.home, 'profiles', fx.plan.profile.name)
     const manifest = JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'))
     assert.deepEqual(manifest.dsh.profile.bundles.slice(0, 2), ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-headless'])
-    assert.deepEqual(manifest.dependencies, { 'dsh-mnemon': '0.1.6', 'dsh-plugin-writing-guard': '0.9.2' })
+    assert.deepEqual(manifest.dependencies, { 'dsh-mnemon': '0.1.6', 'dsh-openwolf': '0.9.1' })
     const lock = JSON.parse(await readFile(join(profileDir, 'coding-expert.stack.lock.json'), 'utf8'))
     assert.deepEqual(lock, fx.plan.stack)
     const snapshot = JSON.parse(await readFile(join(fx.home, 'flow-hub', 'flow-snapshots', fx.plan.id, 'original.json'), 'utf8'))

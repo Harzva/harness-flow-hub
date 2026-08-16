@@ -10,10 +10,12 @@
       "integrity": "sha512-vE4y1b0jFKR8dYDlMBGfiacUXX+IiAwSvMyoR/VJZEIiCs8GWoUy25GmlDKUZPik5YiYsock28PGbgGZ7PcIXw==",
       "license": "MIT",
       "entry": "lib/index.js",
+      "inspectFiles": [],
       "bundlePatch": "./cordis.patch.yml",
       "capabilityEvidence": ["mnemon_recall", "mnemon_runtime_memory", "registerTools"],
       "riskEvidence": ["node:child_process", "writeFileSync", "registry.npmjs.org"],
       "hostedBootEligible": true,
+      "allowedInstallLifecycleScripts": [],
       "flowFit": {
         "coding-expert": "supporting-only",
         "research-expert": "supporting-only"
@@ -27,10 +29,12 @@
       "integrity": "sha512-jdKds69V8uScKwOG+nP++/OCiwYFEWZxtExUgsRY/4+Wvv/BHzU3dEtuSAX1dxgEJeLEPb4BYL2m8xZ+cZgpqg==",
       "license": "MIT",
       "entry": "lib/index.js",
+      "inspectFiles": [],
       "bundlePatch": "./cordis.patch.yml",
       "capabilityEvidence": ["writing_audit", "writing_style_profile", "writing_rules"],
       "riskEvidence": ["node:fs/promises", "writeFile"],
       "hostedBootEligible": true,
+      "allowedInstallLifecycleScripts": [],
       "flowFit": {
         "coding-expert": "mismatch",
         "research-expert": "primary-match",
@@ -45,10 +49,12 @@
       "integrity": "sha512-IcPQBG7e8MpJiuVZEOSmW4uK4C6IJYKKDqI0gxDArM8GNUfzy2dz8q8IN78f+OgaE0mDiGDU6GAN9OZthyMjvg==",
       "license": "MIT",
       "entry": "lib/index.js",
+      "inspectFiles": [],
       "bundlePatch": "./cordis.patch.yml",
       "capabilityEvidence": ["bio_init_project", "bio_run_cell", "bio_rerun_cell"],
       "riskEvidence": ["ctx.get(\"shell\")", "Rscript", "pip freeze", "path: \"/biowb\""],
       "hostedBootEligible": true,
+      "allowedInstallLifecycleScripts": [],
       "flowFit": {
         "research-expert": "primary-match"
       },
@@ -61,10 +67,12 @@
       "integrity": "sha512-67wkrwM2oHmpzJxngjBcMg+b9OyuH8eKV6F0l2GrPYf9Cs5nGrlz/fg3u4S51mPT3+Nb/w3h1bc6Uyl+0ZTzlA==",
       "license": "MIT",
       "entry": "lib/index.mjs",
+      "inspectFiles": ["src/index.ts", "src/server.ts"],
       "bundlePatch": "./cordis.patch.yml",
       "capabilityEvidence": ["127.0.0.1", "registerAdminTools", "registerWriteApprovalGate"],
       "riskEvidence": ["WebSocketServer", "writeFileSync", "staticClients"],
       "hostedBootEligible": true,
+      "allowedInstallLifecycleScripts": [],
       "flowFit": {
         "ui-design-studio": "supporting-only"
       },
@@ -77,20 +85,58 @@
       "integrity": "sha512-U5jrcdFTTRTmougScqxbY0hqddWiWK+UIO0gguRoFX7c2vobH/28mj6OLauCV2fclkjArwR0OtH4YwGfmo6rnQ==",
       "license": "MIT",
       "entry": "entry.js",
+      "inspectFiles": ["index.js"],
       "bundlePatch": "./cordis.patch.yml",
       "capabilityEvidence": ["vision_describe", "vision_pixel_diff", "vision_html_screenshot"],
       "riskEvidence": ["execFile", "writeFile", "oai.endpoints.kepler.ai.cloud.ovh.net"],
       "hostedBootEligible": true,
+      "allowedInstallLifecycleScripts": [],
       "flowFit": {
         "ui-design-studio": "primary-match"
       },
       "notes": "Provides visual inspection and image tools. Some operations write artifacts, call local executables, launch a browser, or can send images to configured or built-in remote providers; the Flow must disclose outbound-image behavior."
+    },
+    {
+      "package": "dsh-openwolf",
+      "version": "0.9.1",
+      "tarball": "https://registry.npmjs.org/dsh-openwolf/-/dsh-openwolf-0.9.1.tgz",
+      "integrity": "sha512-2Uoubtjsge2rJ4sSNn8S7sXNfnj9xOpvdCTTIUrBkPJ7HgCHjxjP1CPxz5A385zeRBkqTcv4M7f9gn2UJeRUjQ==",
+      "license": "MIT",
+      "entry": "lib/index.js",
+      "inspectFiles": ["lib/brain.js", "lib/digest.js", "lib/render.js"],
+      "bundlePatch": "./cordis.patch.yml",
+      "capabilityEvidence": ["wolf_map", "wolf_file", "wolf_refresh"],
+      "riskEvidence": ["writeFile", "execFile", "AGENTS.md"],
+      "hostedBootEligible": true,
+      "allowedInstallLifecycleScripts": ["prepare"],
+      "flowFit": {
+        "coding-expert": "primary-match-with-dsh-core"
+      },
+      "notes": "Provides repository maps, file digests, context continuity and coding-oriented skills. DSH core still supplies file editing, shell and test execution. The prebuilt artifact declares prepare for source installs; Hub installs must use --ignore-scripts. Runtime may create .dshwolf, update a managed AGENTS.md block, watch the workspace and invoke git."
+    },
+    {
+      "package": "@anionex/dsh-vision-toolkit",
+      "version": "0.1.8",
+      "tarball": "https://registry.npmjs.org/@anionex/dsh-vision-toolkit/-/dsh-vision-toolkit-0.1.8.tgz",
+      "integrity": "sha512-tBTXTG5uDc0w8g/1FIHEi3ePUUNILLWvrYfVRTh2IluwVPFMphAaBaLfnU3OId9a584BmFD7JOFGIfRWN8o8CQ==",
+      "license": "MIT",
+      "entry": "lib/index.js",
+      "inspectFiles": ["lib/tools.js", "lib/runtime.js", "lib/runtime-install.js", "lib/client.js"],
+      "bundlePatch": "./cordis.patch.yml",
+      "capabilityEvidence": ["vision_ground", "vision_pixel_diff", "vision_long_screenshot_ocr"],
+      "riskEvidence": ["writeFile", "subprocess.spawn", "external vision API"],
+      "hostedBootEligible": true,
+      "allowedInstallLifecycleScripts": [],
+      "flowFit": {
+        "ui-design-studio": "primary-match"
+      },
+      "notes": "Provides native DSH Web UI plus image Q&A, OCR, grounding, UI restoration and pixel comparison. It can install or spawn a local runtime, write artifacts and send selected image bytes to a configured external vision API; those actions require explicit disclosure and policy controls."
     }
   ],
   "flowCapabilityGate": {
     "coding-expert": {
       "passed": false,
-      "reason": "No required package currently provides a coding, review, repository, or execution capability; memory is supporting-only and writing-guard is a domain mismatch."
+      "reason": "The corrected stack now combines DSH core editing, shell and test execution with required dsh-openwolf repository intelligence, but the exact artifact still needs hosted runtime and a bounded fixture coding workflow before recommendation."
     },
     "research-expert": {
       "passed": false,
@@ -98,7 +144,7 @@
     },
     "ui-design-studio": {
       "passed": false,
-      "reason": "Vision is a primary match, but the bridge is transport-only and requires a separately declared frontend tool provider; outbound-image disclosure and runtime evidence remain open."
+      "reason": "The corrected stack now requires the native @anionex/dsh-vision-toolkit and treats the bridge as optional transport, but local-runtime installation, Web client loading, artifact writes, outbound-image disclosure and a fixture UI-restoration workflow remain open."
     }
   }
 }

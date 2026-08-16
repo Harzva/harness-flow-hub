@@ -24,7 +24,7 @@ test('Coding Expert manifest and deterministic Lite Stack satisfy public schemas
   const second = compileStackPreview(flow, 'lite', registry.plugins, options)
   assert.deepEqual(first, second)
   assert.equal(first.profile, 'flow-coding-expert-lite')
-  assert.deepEqual(first.packages.map(item => item.package), ['dsh-mnemon', 'dsh-plugin-writing-guard'])
+  assert.deepEqual(first.packages.map(item => item.package), ['dsh-mnemon', 'dsh-openwolf'])
   assert.match(first.flow.digest, /^sha256:[a-f0-9]{64}$/)
   assert.match(first.configDigest, /^sha256:[a-f0-9]{64}$/)
   const validateStack = ajv.compile(JSON.parse(await readFile(resolve('schemas/stack-lock.schema.json'), 'utf8')))
@@ -36,9 +36,9 @@ test('Coding Expert manifest and deterministic Lite Stack satisfy public schemas
   assert.equal(plan.profile.name, 'flow-coding-expert-lite')
   assert.equal(plan.profile.template, 'headless')
   assert.equal(plan.executable, false)
-  assert.deepEqual(plan.operations.map(item => item.source.spec), ['dsh-mnemon@0.1.6'])
+  assert.deepEqual(plan.operations.map(item => item.source.spec), ['dsh-openwolf@0.9.1'])
   assert.ok(plan.blockers.includes('registry-signature-not-verified'))
-  assert.ok(plan.blockers.includes('plugin-not-verified:dsh-mnemon:unverified'))
+  assert.ok(plan.blockers.includes('plugin-not-verified:dsh-openwolf:unverified'))
   assert.deepEqual(plan.steps, ['preflight', 'initialize-profile', 'snapshot', 'staging', 'install-packages', 'dump-config', 'boot-smoke', 'commit', 'health', 'write-stack-lock'])
   const validatePlan = ajv.compile(JSON.parse(await readFile(resolve('schemas/flow-install-plan.schema.json'), 'utf8')))
   assert.equal(validatePlan(plan), true, ajv.errorsText(validatePlan.errors))
@@ -48,7 +48,7 @@ test('Coding Expert manifest and deterministic Lite Stack satisfy public schemas
 test('Lite and Safe comparison exposes exact plugin differences', async () => {
   const { flow } = await fixture()
   assert.deepEqual(compareFlowVariants(flow, 'lite', 'safe'), {
-    added: [], removed: ['dsh-mnemon'], shared: ['dsh-plugin-writing-guard'],
+    added: [], removed: ['dsh-mnemon'], shared: ['dsh-openwolf'],
   })
 })
 
@@ -68,8 +68,8 @@ test('Stack preview fails closed for unresolved, failed and ambiguous packages',
 test('Flow selection handles recommended, alternative and conflict relationships explicitly', async () => {
   const { flow, registry } = await fixture()
   const options = { generatedAt: '2026-08-16T00:00:00.000Z', dshVersion: '0.1.0-rc.6', platform: 'linux', arch: 'x64', node: 'v24.0.0' }
-  assert.deepEqual(compileStackPreview(flow, 'lite', registry.plugins, { ...options, includeRecommended: false }).packages.map(item => item.package), ['dsh-mnemon'])
-  assert.deepEqual(compileFlowInstallPlan(flow, 'lite', registry.plugins, { ...options, registrySignature: 'unverified' }).operations.map(item => item.package), ['dsh-mnemon'])
+  assert.deepEqual(compileStackPreview(flow, 'lite', registry.plugins, { ...options, includeRecommended: false }).packages.map(item => item.package), ['dsh-openwolf'])
+  assert.deepEqual(compileFlowInstallPlan(flow, 'lite', registry.plugins, { ...options, registrySignature: 'unverified' }).operations.map(item => item.package), ['dsh-openwolf'])
 
   const selectable = structuredClone(flow)
   selectable.variants.lite.plugins.push({ package: 'another-plugin', range: '1.0.0', relationship: 'alternative', alternativeGroup: 'memory' })
@@ -89,21 +89,21 @@ test('recommendations fail closed for floating sources and stale verification', 
   const { flow, registry } = await fixture()
   const options = { generatedAt: '2026-08-16T00:00:00.000Z', dshVersion: '0.1.0-rc.6', platform: 'linux', arch: 'x64', node: 'v24.0.0' }
   const floating = structuredClone(registry.plugins)
-  const recommended = floating.find(item => item.package === 'dsh-plugin-writing-guard')
+  const recommended = floating.find(item => item.package === 'dsh-mnemon')
   recommended.source = { kind: 'github-sha', spec: 'github:owner/repo#main', commit: '0123456789abcdef0123456789abcdef01234567' }
   assert.throws(() => compileStackPreview(flow, 'lite', floating, options), /flow-package-source-unpinned/)
-  assert.deepEqual(compileStackPreview(flow, 'lite', floating, { ...options, includeRecommended: false }).packages.map(item => item.package), ['dsh-mnemon'])
+  assert.deepEqual(compileStackPreview(flow, 'lite', floating, { ...options, includeRecommended: false }).packages.map(item => item.package), ['dsh-openwolf'])
 
   const stale = structuredClone(registry.plugins)
-  stale.find(item => item.package === 'dsh-plugin-writing-guard').verification.state = 'stale'
+  stale.find(item => item.package === 'dsh-mnemon').verification.state = 'stale'
   assert.throws(() => compileStackPreview(flow, 'lite', stale, options), /flow-package-not-eligible/)
-  assert.deepEqual(compileStackPreview(flow, 'lite', stale, { ...options, includeRecommended: false }).packages.map(item => item.package), ['dsh-mnemon'])
+  assert.deepEqual(compileStackPreview(flow, 'lite', stale, { ...options, includeRecommended: false }).packages.map(item => item.package), ['dsh-openwolf'])
 })
 
 test('Flow install plan opens only when signature, verification, compatibility and platform gates pass', async () => {
   const { flow, registry } = await fixture()
   const trusted = structuredClone(registry.plugins)
-  for (const candidate of trusted.filter(item => ['dsh-mnemon', 'dsh-plugin-writing-guard'].includes(item.package))) {
+  for (const candidate of trusted.filter(item => ['dsh-mnemon', 'dsh-openwolf'].includes(item.package))) {
     candidate.verification.state = 'passed'
     candidate.compatibility.dsh = '>=0.1.0-rc.6 <0.2.0'
     candidate.platforms = ['linux']

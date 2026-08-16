@@ -9,9 +9,9 @@
   "candidates": [
     {
       "source": {
-        "kind": "github-sha",
-        "spec": "github:Anionex/dsh-vision-toolkit#5cd1279d9a5a98bb634093dadcd73ea2a396a74e",
-        "commit": "5cd1279d9a5a98bb634093dadcd73ea2a396a74e"
+        "kind": "npm",
+        "spec": "@anionex/dsh-vision-toolkit@0.1.8",
+        "integrity": "sha512-tBTXTG5uDc0w8g/1FIHEi3ePUUNILLWvrYfVRTh2IluwVPFMphAaBaLfnU3OId9a584BmFD7JOFGIfRWN8o8CQ=="
       },
       "repository": "Anionex/dsh-vision-toolkit",
       "url": "https://github.com/Anionex/dsh-vision-toolkit",
@@ -30,6 +30,30 @@
           "example:ui-restoration:write": "node scripts/run-ui-restoration-example.mjs --write",
           "upstream:manifest": "node scripts/upstream-manifest.mjs --write",
           "upstream:sync": "node scripts/sync-upstream.mjs"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-openwolf@0.9.1",
+        "integrity": "sha512-2Uoubtjsge2rJ4sSNn8S7sXNfnj9xOpvdCTTIUrBkPJ7HgCHjxjP1CPxz5A385zeRBkqTcv4M7f9gn2UJeRUjQ=="
+      },
+      "repository": "hawk2048/dsh-openwolf",
+      "url": "https://www.npmjs.com/package/dsh-openwolf",
+      "stars": null,
+      "license": "MIT",
+      "package": {
+        "name": "dsh-openwolf",
+        "version": "0.9.1",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "build": "tsc -p tsconfig.json",
+          "prepare": "tsc -p tsconfig.json",
+          "typecheck": "tsc -p tsconfig.json --noEmit",
+          "test": "node --test \"test/**/*.test.ts\"",
+          "prepublishOnly": "node scripts/inject-npm-readme.mjs inject",
+          "postpublish": "node scripts/inject-npm-readme.mjs restore"
         }
       }
     },

@@ -44,11 +44,7 @@ try {
     const patch = await readFile(join(root, item.bundlePatch.replace(/^\.\//, '')), 'utf8')
     const entry = await readFile(join(root, item.entry), 'utf8')
     const sourceFiles = [entry]
-    if (item.package === 'dsh-frontend-tools-bridge') {
-      sourceFiles.push(await readFile(join(root, 'src', 'index.ts'), 'utf8'))
-      sourceFiles.push(await readFile(join(root, 'src', 'server.ts'), 'utf8'))
-    }
-    if (item.package === 'dsh-vision-router') sourceFiles.push(await readFile(join(root, 'index.js'), 'utf8'))
+    for (const path of item.inspectFiles ?? []) sourceFiles.push(await readFile(join(root, path), 'utf8'))
     const source = sourceFiles.join('\n')
 
     requireTrue(manifest.name === item.package && manifest.version === item.version, `manifest identity drift:${item.package}`)
@@ -59,7 +55,8 @@ try {
     for (const needle of item.riskEvidence) requireTrue(source.includes(needle), `risk disclosure evidence missing:${item.package}:${needle}`)
     const lifecycleNames = Object.keys(manifest.scripts ?? {}).sort()
     const installScripts = lifecycleNames.filter(name => ['preinstall', 'install', 'postinstall', 'prepare'].includes(name))
-    requireTrue(installScripts.length === 0, `install lifecycle script present:${item.package}:${installScripts.join(',')}`)
+    const allowedInstallLifecycleScripts = [...(item.allowedInstallLifecycleScripts ?? [])].sort()
+    requireTrue(JSON.stringify(installScripts) === JSON.stringify(allowedInstallLifecycleScripts), `install lifecycle disclosure drift:${item.package}:${installScripts.join(',')}`)
 
     results.push({
       package: item.package,
@@ -69,6 +66,7 @@ try {
       manifest: 'passed',
       bundlePatch: 'passed',
       installLifecycleScripts: installScripts,
+      installLifecyclePolicy: installScripts.length === 0 ? 'absent' : 'declared-and-disabled-by-hub',
       capabilityEvidence: 'passed',
       riskDisclosureEvidence: 'passed',
       hostedBootEligible: item.hostedBootEligible,
@@ -76,7 +74,7 @@ try {
     })
   }
 
-  requireTrue(results.length === 5, 'expected five initial Flow dependencies')
+  requireTrue(results.length === 7, 'expected seven corrected Flow dependencies')
   requireTrue(Object.values(policy.flowCapabilityGate).every(gate => gate.passed === false), 'static audit must not close a Flow capability gate')
   await mkdir(resolve(outputPath, '..'), { recursive: true })
   const evidence = {
@@ -87,7 +85,7 @@ try {
     checks: {
       exactArtifactsInspected: results.length,
       integrityPassed: results.every(result => result.integrity === 'passed'),
-      installLifecycleScriptsAbsent: results.every(result => result.installLifecycleScripts.length === 0),
+      installLifecycleScriptsAbsentOrDeclaredAndDisabled: results.every(result => ['absent', 'declared-and-disabled-by-hub'].includes(result.installLifecyclePolicy)),
       capabilityAndRiskEvidenceLocated: results.every(result => result.capabilityEvidence === 'passed' && result.riskDisclosureEvidence === 'passed'),
       thirdPartyRuntimeExecuted: false,
     },

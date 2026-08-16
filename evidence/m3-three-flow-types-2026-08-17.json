@@ -38,9 +38,9 @@
           "profile": "flow-coding-expert-lite",
           "profileTemplate": "headless",
           "packages": [
-            "dsh-mnemon@0.1.6"
+            "dsh-openwolf@0.9.1"
           ],
-          "stackDigest": "sha256:4c3b3f6706857f6917fc568a808ca067648ae321f42890af6dac3a2cf0828988",
+          "stackDigest": "sha256:bc6c16122489c222c66066e92d05fa2b62619abc18c47328a14eb660da84338f",
           "configDigest": "sha256:d34c096a8a8b41848aed791e3eb2f561c602ecaba2aa7211c24003a63e32a4d5",
           "executable": false,
           "blockerKinds": [
@@ -55,9 +55,9 @@
           "profileTemplate": "headless",
           "packages": [
             "dsh-mnemon@0.1.6",
-            "dsh-plugin-writing-guard@0.9.2"
+            "dsh-openwolf@0.9.1"
           ],
-          "stackDigest": "sha256:4c3b3f6706857f6917fc568a808ca067648ae321f42890af6dac3a2cf0828988",
+          "stackDigest": "sha256:bc6c16122489c222c66066e92d05fa2b62619abc18c47328a14eb660da84338f",
           "configDigest": "sha256:046eee1771b3de1bae821d683813aea3066e116fc1468b21a9689d310823e242",
           "executable": false,
           "blockerKinds": [
@@ -72,9 +72,9 @@
           "profileTemplate": "headless",
           "packages": [
             "dsh-mnemon@0.1.6",
-            "dsh-plugin-writing-guard@0.9.2"
+            "dsh-openwolf@0.9.1"
           ],
-          "stackDigest": "sha256:4c3b3f6706857f6917fc568a808ca067648ae321f42890af6dac3a2cf0828988",
+          "stackDigest": "sha256:bc6c16122489c222c66066e92d05fa2b62619abc18c47328a14eb660da84338f",
           "configDigest": "sha256:7c9c0c09d8637f8ee6a2ceb0fa85f3cd248d9a631c2b9ec0d043167634cfc32e",
           "executable": false,
           "blockerKinds": [
@@ -88,10 +88,10 @@
           "profile": "flow-coding-expert-safe",
           "profileTemplate": "headless",
           "packages": [
-            "dsh-plugin-writing-guard@0.9.2"
+            "dsh-openwolf@0.9.1"
           ],
-          "stackDigest": "sha256:4c3b3f6706857f6917fc568a808ca067648ae321f42890af6dac3a2cf0828988",
-          "configDigest": "sha256:5c46b629d21a71ede95ceacd4197305813abb72169f546020a6331d90429c5f4",
+          "stackDigest": "sha256:bc6c16122489c222c66066e92d05fa2b62619abc18c47328a14eb660da84338f",
+          "configDigest": "sha256:bf97ea5033985d6536a9504ceea3a0262e9aea1478a295d5fc07bc564ef9c83e",
           "executable": false,
           "blockerKinds": [
             "plugin-dsh-compatibility-unknown",
@@ -196,10 +196,10 @@
           "profile": "flow-ui-design-studio-lite",
           "profileTemplate": "web",
           "packages": [
-            "dsh-frontend-tools-bridge@0.2.0"
+            "@anionex/dsh-vision-toolkit@0.1.8"
           ],
-          "stackDigest": "sha256:0304d926e0b9e2cee90765ed229e4eff5cf41670d2936c2056a8de721f17a29c",
-          "configDigest": "sha256:c46205a9c0a1485ca9d3b858c79967ab2173b1e6a173b0b4db37fc45cadb3127",
+          "stackDigest": "sha256:b64b91aac678ea4fbe6dd5b042d777fee8c8cd005aa87ef04baf50af830eeece",
+          "configDigest": "sha256:79c1e4ac1a70ae6a3d91ff582f87906157c2f9c7ce83e04af60ab792c4b76829",
           "executable": false,
           "blockerKinds": [
             "plugin-dsh-compatibility-unknown",
@@ -212,11 +212,10 @@
           "profile": "flow-ui-design-studio-standard",
           "profileTemplate": "web",
           "packages": [
-            "dsh-frontend-tools-bridge@0.2.0",
-            "dsh-vision-router@1.3.0"
+            "@anionex/dsh-vision-toolkit@0.1.8"
           ],
-          "stackDigest": "sha256:0304d926e0b9e2cee90765ed229e4eff5cf41670d2936c2056a8de721f17a29c",
-          "configDigest": "sha256:45e4ffbae0de52dd96676fcf4afdc42df98f132c7c042a5831d07a2f3946b7d2",
+          "stackDigest": "sha256:b64b91aac678ea4fbe6dd5b042d777fee8c8cd005aa87ef04baf50af830eeece",
+          "configDigest": "sha256:ac150143eea5d03707186d562b001ad821d545976e87526cac1443cd776e88b0",
           "executable": false,
           "blockerKinds": [
             "plugin-dsh-compatibility-unknown",
@@ -229,11 +228,10 @@
           "profile": "flow-ui-design-studio-local",
           "profileTemplate": "web",
           "packages": [
-            "dsh-frontend-tools-bridge@0.2.0",
-            "dsh-vision-router@1.3.0"
+            "@anionex/dsh-vision-toolkit@0.1.8"
           ],
-          "stackDigest": "sha256:0304d926e0b9e2cee90765ed229e4eff5cf41670d2936c2056a8de721f17a29c",
-          "configDigest": "sha256:2e6202453e7cce2d1c90810a7c14f0d41f3507d03112f5d1b4f3fa27073eaa90",
+          "stackDigest": "sha256:b64b91aac678ea4fbe6dd5b042d777fee8c8cd005aa87ef04baf50af830eeece",
+          "configDigest": "sha256:257a316efebfbddce52acd076e60694affa273000e834b7669efb99a12ade672",
           "executable": false,
           "blockerKinds": [
             "plugin-dsh-compatibility-unknown",
@@ -246,11 +244,10 @@
           "profile": "flow-ui-design-studio-safe",
           "profileTemplate": "web",
           "packages": [
-            "dsh-frontend-tools-bridge@0.2.0",
-            "dsh-plugin-writing-guard@0.9.2"
+            "@anionex/dsh-vision-toolkit@0.1.8"
           ],
-          "stackDigest": "sha256:0304d926e0b9e2cee90765ed229e4eff5cf41670d2936c2056a8de721f17a29c",
-          "configDigest": "sha256:596e5df5dabeadf3df2a0139890ede868ba2f8390fd156bd536a767abdd6a6cb",
+          "stackDigest": "sha256:b64b91aac678ea4fbe6dd5b042d777fee8c8cd005aa87ef04baf50af830eeece",
+          "configDigest": "sha256:9c6c23b24e1a4fe25984797555ade465fad5db9e1d53b2652d67134d52c2ba5f",
           "executable": false,
           "blockerKinds": [
             "plugin-dsh-compatibility-unknown",

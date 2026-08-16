@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "auditedAt": "2026-08-16T10:16:15.591Z",
+  "auditedAt": "2026-08-16T20:47:21.765Z",
   "input": "registry/discovery/github-topic-2026-08-16.json",
-  "candidates": 20,
-  "passed": 20,
+  "candidates": 21,
+  "passed": 21,
   "failed": 0,
   "records": [
     {
       "subject": "@anionex/dsh-vision-toolkit",
-      "source": "github:Anionex/dsh-vision-toolkit#5cd1279d9a5a98bb634093dadcd73ea2a396a74e",
+      "source": "@anionex/dsh-vision-toolkit@0.1.8",
       "status": "passed",
       "checks": [
         {
@@ -35,12 +35,50 @@
         {
           "id": "source-pinned",
           "status": "passed",
-          "detail": "github:Anionex/dsh-vision-toolkit#5cd1279d9a5a98bb634093dadcd73ea2a396a74e"
+          "detail": "@anionex/dsh-vision-toolkit@0.1.8"
         },
         {
           "id": "bundle-entry-exists",
           "status": "passed",
-          "detail": "200 https://raw.githubusercontent.com/Anionex/dsh-vision-toolkit/5cd1279d9a5a98bb634093dadcd73ea2a396a74e/cordis.patch.yml"
+          "detail": "200 https://unpkg.com/@anionex/dsh-vision-toolkit@0.1.8/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-openwolf",
+      "source": "dsh-openwolf@0.9.1",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-openwolf@0.9.1"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-openwolf@0.9.1/cordis.patch.yml"
         }
       ]
     },

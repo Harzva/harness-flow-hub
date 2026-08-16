@@ -35,9 +35,9 @@ test('candidate metadata audit validates manifest, entry, license, scripts and p
   assert.equal(auditCandidateMetadata(candidate).find(item => item.id === 'bundle-entry-declared').status, 'failed')
 })
 
-test('candidate snapshot has 20 pinned/disclosed records from GitHub and npm', async () => {
+test('candidate snapshot has 21 pinned/disclosed records from GitHub and npm', async () => {
   const snapshot = JSON.parse(await readFile(input, 'utf8'))
-  assert.equal(snapshot.candidates.length, 20)
+  assert.equal(snapshot.candidates.length, 21)
   const kinds = new Map()
   for (const candidate of snapshot.candidates) {
     kinds.set(candidate.source.kind, (kinds.get(candidate.source.kind) ?? 0) + 1)

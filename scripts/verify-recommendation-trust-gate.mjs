@@ -9,8 +9,8 @@ const output = resolve(process.argv[2] ?? 'evidence/m2-recommendation-trust-gate
 const registry = JSON.parse(await readFile('registry/generated/registry.json', 'utf8'))
 const flow = parseYaml(await readFile('registry/flows/coding-expert.dsh-flow.yml', 'utf8'))
 const options = { generatedAt: '2026-08-17T00:00:00.000Z', dshVersion: '0.1.0-rc.6', platform: process.platform === 'win32' ? 'win32' : 'linux', arch: process.arch, node: process.version }
-const requiredPackage = 'dsh-mnemon'
-const recommendedPackage = 'dsh-plugin-writing-guard'
+const requiredPackage = 'dsh-openwolf'
+const recommendedPackage = 'dsh-mnemon'
 
 const missingTrust = evaluateRegistryTrust({ registryText: JSON.stringify(registry), now: options.generatedAt })
 assert.equal(missingTrust.allowRecommendations, false)
@@ -25,7 +25,7 @@ for (const candidate of trusted.filter(item => [requiredPackage, recommendedPack
   candidate.platforms = [options.platform]
 }
 const signedPlan = compileFlowInstallPlan(flow, 'lite', trusted, { ...options, registrySignature: 'verified' })
-assert.deepEqual(signedPlan.operations.map(item => item.package), [requiredPackage, recommendedPackage])
+assert.deepEqual(signedPlan.operations.map(item => item.package), [recommendedPackage, requiredPackage])
 assert.equal(signedPlan.executable, true)
 
 const floating = structuredClone(trusted)

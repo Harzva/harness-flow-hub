@@ -108,6 +108,12 @@ async function candidateProbe(item, server) {
     if (response.status !== 405) throw new Error('vision self-update route did not reject GET')
     return 'self-update-get-rejected-without-action'
   }
+  if (item.package === 'dsh-openwolf') return 'process-remained-healthy-without-workspace-tool-action'
+  if (item.package === '@anionex/dsh-vision-toolkit') {
+    const response = await fetch(`${server.origin}/_dsh/vision-toolkit/settings`, { method: 'GET', signal: AbortSignal.timeout(5_000) })
+    if (!response.ok) throw new Error('vision toolkit read-only settings route failed')
+    return 'read-only-settings-route'
+  }
   return 'process-remained-healthy'
 }
 
@@ -165,7 +171,7 @@ const passed = records.filter(record => record.state === 'passed').length
 const evidence = {
   schemaVersion: 1,
   verifiedAt: new Date().toISOString(),
-  subject: 'Five exact initial Flow dependencies on a GitHub-hosted ephemeral runner',
+  subject: `${records.length} exact corrected Flow dependencies on a GitHub-hosted ephemeral runner`,
   environment: { os: process.platform, arch: process.arch, node: process.version, dsh: '0.1.0-rc.6', runner: 'github-hosted-ephemeral' },
   isolation: {
     freshDshHomePerCandidate: true,

@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "auditedAt": "2026-08-16T20:27:21.900Z",
+  "auditedAt": "2026-08-16T20:45:18.675Z",
   "subject": "Static inspection of exact npm artifacts used by the three initial Harness Flows. This is not runtime or security verification.",
   "inputs": [
     "registry/audits/flow-dependency-policy.json",
     "registry/discovery/github-topic-2026-08-16.json"
   ],
   "checks": {
-    "exactArtifactsInspected": 5,
+    "exactArtifactsInspected": 7,
     "integrityPassed": true,
-    "installLifecycleScriptsAbsent": true,
+    "installLifecycleScriptsAbsentOrDeclaredAndDisabled": true,
     "capabilityAndRiskEvidenceLocated": true,
     "thirdPartyRuntimeExecuted": false
   },
@@ -22,6 +22,7 @@
       "manifest": "passed",
       "bundlePatch": "passed",
       "installLifecycleScripts": [],
+      "installLifecyclePolicy": "absent",
       "capabilityEvidence": "passed",
       "riskDisclosureEvidence": "passed",
       "hostedBootEligible": true,
@@ -38,6 +39,7 @@
       "manifest": "passed",
       "bundlePatch": "passed",
       "installLifecycleScripts": [],
+      "installLifecyclePolicy": "absent",
       "capabilityEvidence": "passed",
       "riskDisclosureEvidence": "passed",
       "hostedBootEligible": true,
@@ -55,6 +57,7 @@
       "manifest": "passed",
       "bundlePatch": "passed",
       "installLifecycleScripts": [],
+      "installLifecyclePolicy": "absent",
       "capabilityEvidence": "passed",
       "riskDisclosureEvidence": "passed",
       "hostedBootEligible": true,
@@ -70,6 +73,7 @@
       "manifest": "passed",
       "bundlePatch": "passed",
       "installLifecycleScripts": [],
+      "installLifecyclePolicy": "absent",
       "capabilityEvidence": "passed",
       "riskDisclosureEvidence": "passed",
       "hostedBootEligible": true,
@@ -85,6 +89,41 @@
       "manifest": "passed",
       "bundlePatch": "passed",
       "installLifecycleScripts": [],
+      "installLifecyclePolicy": "absent",
+      "capabilityEvidence": "passed",
+      "riskDisclosureEvidence": "passed",
+      "hostedBootEligible": true,
+      "flowFit": {
+        "ui-design-studio": "primary-match"
+      }
+    },
+    {
+      "package": "dsh-openwolf",
+      "version": "0.9.1",
+      "source": "dsh-openwolf@0.9.1",
+      "integrity": "passed",
+      "manifest": "passed",
+      "bundlePatch": "passed",
+      "installLifecycleScripts": [
+        "prepare"
+      ],
+      "installLifecyclePolicy": "declared-and-disabled-by-hub",
+      "capabilityEvidence": "passed",
+      "riskDisclosureEvidence": "passed",
+      "hostedBootEligible": true,
+      "flowFit": {
+        "coding-expert": "primary-match-with-dsh-core"
+      }
+    },
+    {
+      "package": "@anionex/dsh-vision-toolkit",
+      "version": "0.1.8",
+      "source": "@anionex/dsh-vision-toolkit@0.1.8",
+      "integrity": "passed",
+      "manifest": "passed",
+      "bundlePatch": "passed",
+      "installLifecycleScripts": [],
+      "installLifecyclePolicy": "absent",
       "capabilityEvidence": "passed",
       "riskDisclosureEvidence": "passed",
       "hostedBootEligible": true,
@@ -96,7 +135,7 @@
   "flowCapabilityGate": {
     "coding-expert": {
       "passed": false,
-      "reason": "No required package currently provides a coding, review, repository, or execution capability; memory is supporting-only and writing-guard is a domain mismatch."
+      "reason": "The corrected stack now combines DSH core editing, shell and test execution with required dsh-openwolf repository intelligence, but the exact artifact still needs hosted runtime and a bounded fixture coding workflow before recommendation."
     },
     "research-expert": {
       "passed": false,
@@ -104,7 +143,7 @@
     },
     "ui-design-studio": {
       "passed": false,
-      "reason": "Vision is a primary match, but the bridge is transport-only and requires a separately declared frontend tool provider; outbound-image disclosure and runtime evidence remain open."
+      "reason": "The corrected stack now requires the native @anionex/dsh-vision-toolkit and treats the bridge as optional transport, but local-runtime installation, Web client loading, artifact writes, outbound-image disclosure and a fixture UI-restoration workflow remain open."
     }
   },
   "conclusion": "Static artifact inspection passed. Runtime verification and Flow capability completion remain separate fail-closed gates."
