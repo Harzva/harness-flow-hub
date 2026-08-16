@@ -385,7 +385,10 @@ export async function verifyResearch(home, workspace, options = {}) {
         params: { fixture: 'synthetic' }, seed: 42, inputs: ['data/source.txt'], outputs: ['evidence.json', 'report.md'],
       })
       if (first.status !== 'ok' || first.artifacts.length < 3) {
-        throw new Error(`science workbench initial evidence cell failed:status=${first.status};artifacts=${first.artifacts.length};stdout=${String(first.stdoutTail ?? '').trim() !== ''};stderr=${String(first.stderrTail ?? '').trim() !== ''}`)
+        const safeStderr = String(first.stderrTail ?? '')
+          .replaceAll(/[A-Za-z]:[\\/][^\s;]+|\/(?:home|Users|tmp)\/[^\s;]+/g, '<redacted-path>')
+          .replaceAll(/\s+/g, ' ').trim().slice(0, 180)
+        throw new Error(`science workbench initial evidence cell failed:status=${first.status};artifacts=${first.artifacts.length};stderr=${safeStderr || 'empty'}`)
       }
       const firstFigure = first.artifacts.find(path => path.endsWith('.svg'))
       if (firstFigure === undefined) throw new Error('science workbench did not register the evidence figure')
