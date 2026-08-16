@@ -2,13 +2,6 @@
   "schemaVersion": 1,
   "subject": "anionex--dsh-vision-toolkit",
   "state": "unverified",
-  "verifiedAt": "2026-08-17T00:00:00.000Z",
-  "environment": {
-    "os": "win32",
-    "arch": "x64",
-    "node": "v25.2.0",
-    "dsh": "0.1.0-rc.6"
-  },
   "checks": [
     {
       "id": "exact-artifact-integrity",

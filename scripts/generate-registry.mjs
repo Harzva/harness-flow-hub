@@ -57,11 +57,11 @@ const registryVersion = `${source.source.asOf.replaceAll('-', '.')}-alpha.1`
 const releaseTag = `registry-v${registryVersion}`
 const publicEvidenceBase = `https://github.com/Harzva/harness-flow-hub/blob/${releaseTag}/`
 
-function verificationEvidence(candidateUrl, evidence = []) {
+function verificationEvidence(candidateUrl, evidence = [], publishLocalEvidence = true) {
   const values = [candidateUrl]
   for (const item of evidence) {
     values.push(item)
-    if (!/^https:\/\//.test(item)) values.push(`${publicEvidenceBase}${item.replaceAll('\\', '/')}`)
+    if (publishLocalEvidence && !/^https:\/\//.test(item)) values.push(`${publicEvidenceBase}${item.replaceAll('\\', '/')}`)
   }
   return [...new Set(values)]
 }
@@ -96,7 +96,7 @@ const plugins = source.candidates.map(candidate => {
     dshVersion: result.environment?.dsh,
     platform: result.environment?.os,
     ...(result.environment ? { environment: { os: result.environment.os, arch: result.environment.arch, node: result.environment.node } } : {}),
-    evidence: verificationEvidence(candidate.url, result.evidence),
+    evidence: verificationEvidence(candidate.url, result.evidence, typeof result.verifiedAt === 'string'),
   },
   })
 }).sort((a, b) => a.id.localeCompare(b.id))

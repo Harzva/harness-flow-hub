@@ -4,7 +4,7 @@
   "generatedFrom": {
     "kind": "github-topic+npm-search",
     "asOf": "2026-08-16",
-    "sha256": "583ea8e2e62f73b80cb7904f33c5410dc1938c2a40d47a64dcaaac873f08ac0c"
+    "sha256": "000c1696b313200d3b09866c55fcc4d9eca7db2001fedecd9d795db330fe5d94"
   },
   "plugins": [
     {
@@ -71,18 +71,9 @@
       "credentials": [],
       "verification": {
         "state": "unverified",
-        "verifiedAt": "2026-08-17T00:00:00.000Z",
-        "dshVersion": "0.1.0-rc.6",
-        "platform": "win32",
-        "environment": {
-          "os": "win32",
-          "arch": "x64",
-          "node": "v25.2.0"
-        },
         "evidence": [
           "https://github.com/Anionex/dsh-vision-toolkit",
-          "registry/verifications/anionex--dsh-vision-toolkit.json",
-          "https://github.com/Harzva/harness-flow-hub/blob/registry-v2026.08.16-alpha.1/registry/verifications/anionex--dsh-vision-toolkit.json"
+          "registry/verifications/anionex--dsh-vision-toolkit.json"
         ]
       }
     },
@@ -398,18 +389,9 @@
       "credentials": [],
       "verification": {
         "state": "unverified",
-        "verifiedAt": "2026-08-17T00:00:00.000Z",
-        "dshVersion": "0.1.0-rc.6",
-        "platform": "win32",
-        "environment": {
-          "os": "win32",
-          "arch": "x64",
-          "node": "v25.2.0"
-        },
         "evidence": [
           "https://www.npmjs.com/package/dsh-openwolf",
-          "registry/verifications/dsh-openwolf.json",
-          "https://github.com/Harzva/harness-flow-hub/blob/registry-v2026.08.16-alpha.1/registry/verifications/dsh-openwolf.json"
+          "registry/verifications/dsh-openwolf.json"
         ]
       }
     },

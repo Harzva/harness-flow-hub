@@ -11,6 +11,8 @@ test('third-party runtime verifier is hosted-only, secret-minimized, exact, and 
   assert.match(script, /safeEnvironment/)
   assert.doesNotMatch(script, /env:\s*\{\s*\.\.\.process\.env/)
   assert.match(script, /--ignore-scripts/)
+  assert.match(script, /safePackageSlug/)
+  assert.match(script, /home === undefined/)
   assert.match(script, /--dump-config/)
   assert.match(script, /post-remove-profile-health/)
   assert.match(script, /outboundNetworkBlocked: false/)

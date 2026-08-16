@@ -48,6 +48,16 @@ test('candidate snapshot has 21 pinned/disclosed records from GitHub and npm', a
   assert.ok((kinds.get('npm') ?? 0) > 0)
 })
 
+test('new unverified candidates do not claim immutable runtime evidence before publication', async () => {
+  const registry = JSON.parse(await readFile('registry/generated/registry.json', 'utf8'))
+  for (const packageName of ['dsh-openwolf', '@anionex/dsh-vision-toolkit']) {
+    const plugin = registry.plugins.find(item => item.package === packageName)
+    assert.equal(plugin.verification.state, 'unverified')
+    assert.equal(plugin.verification.verifiedAt, undefined)
+    assert.equal(plugin.verification.evidence.some(item => item.includes('/blob/registry-v')), false)
+  }
+})
+
 test('same discovery input generates byte-identical valid registry', async () => {
   const temp = await mkdtemp(join(tmpdir(), 'flow-hub-registry-'))
   try {

@@ -126,10 +126,12 @@ await mkdir(tempRoot, { recursive: true })
 await mkdir(outputDir, { recursive: true })
 const records = []
 for (const item of policy.packages.filter(candidate => candidate.hostedBootEligible)) {
-  const home = await mkdtemp(join(tempRoot, `${item.package}-`))
+  let home
   let server
   const checks = []
   try {
+    const safePackageSlug = item.package.replaceAll(/[^A-Za-z0-9._-]/g, '-')
+    home = await mkdtemp(join(tempRoot, `${safePackageSlug}-`))
     requireExit(runDsh(home, ['--profile', 'web', '--dump-default-config']), 'profile bootstrap')
     checks.push({ id: 'profile-bootstrap', status: 'passed' })
     requireExit(runDsh(home, ['plugin', '--profile', 'web', 'add', `${item.package}@${item.version}`, '--save-exact', '--ignore-scripts', '--reporter=silent']), 'package install')
@@ -160,6 +162,7 @@ for (const item of policy.packages.filter(candidate => candidate.hostedBootEligi
     records.push({ package: item.package, version: item.version, state: 'failed', checks: [...checks, { id: 'runtime-verification', status: 'failed', detail: publicError(error) }] })
   } finally {
     if (server !== undefined) await stop(server.child)
+    if (home === undefined) continue
     const resolvedHome = resolve(home)
     const guard = `${resolve(tempRoot)}${sep}`
     if (!resolvedHome.startsWith(guard)) throw new Error('refusing to remove runtime verifier path outside guarded root')
