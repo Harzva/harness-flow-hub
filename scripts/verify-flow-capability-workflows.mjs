@@ -363,6 +363,7 @@ async function verifyResearch(home, workspace) {
       const initialized = await execute('bio_init_project', { name: 'evidence_fixture', language: 'python' })
       const projectRoot = assertInside(projectsDir, initialized.root, 'science project root')
       const sourcePath = join(projectRoot, 'data', 'source.txt')
+      await mkdir(dirname(sourcePath), { recursive: true })
       await writeFile(sourcePath, 'claim-alpha\tsynthetic-source\tverified\n', 'utf8')
       const sourceBefore = createHash('sha256').update(await readFile(sourcePath)).digest('hex')
       const initialCode = [
