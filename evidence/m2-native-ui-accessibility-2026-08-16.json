@@ -1,0 +1,39 @@
+{
+  "date": "2026-08-16",
+  "dshVersion": "0.1.0-rc.6",
+  "hubVersion": "0.0.2-m0",
+  "route": "Settings > Plugins > Flow Hub",
+  "packageArtifact": {
+    "file": "harness-flow-dsh-flow-hub-0.0.2-m0.tgz",
+    "sha256": "34f6eadbce15d0233adfae91558e35e1b63e48398682a9d38f1d10841507cd72"
+  },
+  "nativeBrowserChecks": {
+    "structuredPlanReceivesFocus": true,
+    "escapeCancelsInnerPlan": true,
+    "escapeDoesNotCloseDshSettings": true,
+    "focusReturnsToTrigger": "BUTTON:更新",
+    "searchQuery": "vision",
+    "searchResults": 2,
+    "keyboardSelectedDetail": "@anionex/dsh-vision-toolkit",
+    "emptySearchStateVisible": true,
+    "minimumMeasuredControlHeightPx": 44
+  },
+  "implementedContracts": [
+    "semantic current-page navigation",
+    "labelled non-modal plan dialog",
+    "visible focus indicators",
+    "polite asynchronous status",
+    "alert error announcements",
+    "reduced-motion preference",
+    "container responsive layout",
+    "state text in addition to color"
+  ],
+  "automatedTest": {
+    "command": "pnpm check",
+    "tests": 30,
+    "passed": 30,
+    "failed": 0
+  },
+  "writeActionExecuted": false,
+  "result": "passed"
+}

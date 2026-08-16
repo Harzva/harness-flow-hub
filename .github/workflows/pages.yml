@@ -28,9 +28,13 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site
-          cp -R site/. _site/
+          cp site/index.html _site/index.html
+          cp site/styles.css _site/styles.css
+          cp site/app.js _site/app.js
           cp registry/generated/registry.json _site/registry.json
           touch _site/.nojekyll
+      - name: Block public disclosure
+        run: node scripts/audit-public-site.mjs _site
       - uses: actions/configure-pages@v5
         with:
           enablement: true
