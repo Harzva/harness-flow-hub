@@ -149,7 +149,12 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - run: pnpm install --frozen-lockfile
+      - name: Prepare the exact local visual runtime dependency
+        run: python -m pip install --disable-pip-version-check pillow==12.3.0
       - name: Locate the official DSH package
         shell: pwsh
         run: |
@@ -159,9 +164,15 @@ jobs:
         run: pnpm run registry:verify-flow-dependency-runtime
         env:
           DSH_THIRD_PARTY_RUNTIME_ALLOWED: hosted-ephemeral
+      - name: Verify corrected Coding and UI capability workflows
+        run: pnpm run flow:verify-capability-workflows
+        env:
+          DSH_FLOW_WORKFLOW_ALLOWED: hosted-ephemeral
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: flow-dependency-runtime-${{ runner.os }}-${{ github.sha }}
-          path: evidence/flow-dependency-runtime/**/*.json
+          path: |
+            evidence/flow-dependency-runtime/**/*.json
+            evidence/flow-capability-workflows/**/*.json
           if-no-files-found: error

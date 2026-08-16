@@ -82,6 +82,7 @@
     "registry:audit-flow-dependencies": "node scripts/verify-flow-dependency-static-audit.mjs",
     "registry:verify-flow-dependency-runtime": "node scripts/verify-flow-dependency-runtime.mjs",
     "registry:aggregate-flow-dependency-runtime": "node scripts/aggregate-flow-dependency-runtime.mjs",
+    "flow:verify-capability-workflows": "node scripts/verify-flow-capability-workflows.mjs",
     "registry:validate-inputs": "node scripts/validate-registry-inputs.mjs registry/discovery/github-topic-2026-08-16.json registry/verifications",
     "registry:generate": "node scripts/generate-registry.mjs registry/discovery/github-topic-2026-08-16.json registry/generated/registry.json",
     "registry:validate": "node scripts/validate-registry.mjs registry/generated/registry.json",
