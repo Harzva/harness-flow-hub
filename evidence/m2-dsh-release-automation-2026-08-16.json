@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-16",
+  "subject": "Automatic DSH release candidate UI, install and rollback regression",
+  "implementation": {
+    "workflow": ".github/workflows/dsh-compatibility.yml",
+    "matrixResolver": "scripts/resolve-dsh-ci-matrix.mjs",
+    "matrixPolicy": "scripts/dsh-matrix-lib.mjs",
+    "runtimeResolver": "scripts/dsh-cli-lib.mjs",
+    "versionLifecycle": "scripts/verify-transaction-version-lifecycle.mjs",
+    "signals": [
+      "daily npm latest/next poll at 03:23 UTC",
+      "repository_dispatch:dsh-release",
+      "workflow_dispatch:candidate_version"
+    ],
+    "maximumScheduledDetectionDelayHours": 24,
+    "exactPublishedVersionRequired": true
+  },
+  "candidatePolicy": {
+    "verified": "Web and Client Module plus native UI and transaction lifecycles",
+    "inRangeUnverified": "safe-recovery UI plus direct install, update, uninstall and rollback qualification",
+    "incompatible": "safe-recovery UI and HTTP 409 mutation rejection without Profile mutation",
+    "silentlyExtendsCompatibility": false,
+    "unpublishedForcedCandidateRejected": true
+  },
+  "local": {
+    "candidateVersion": "0.1.0-rc.6",
+    "runtime": "isolated exact published DSH package",
+    "commands": [
+      "DSH_CANDIDATE_VERSION=0.1.0-rc.6 pnpm run compatibility:resolve-matrix",
+      "pnpm run pack:fixture",
+      "pnpm run pack:hub",
+      "pnpm run ui:verify-dsh-version-entry",
+      "node scripts/verify-native-ui-lifecycle.mjs <hub.tgz> <fixture.tgz> <output.json>",
+      "node scripts/verify-transaction-lifecycle.mjs <output.json>",
+      "node scripts/verify-transaction-version-lifecycle.mjs <output.json>",
+      "node scripts/verify-rollback-lifecycle.mjs <output.json>",
+      "pnpm check"
+    ],
+    "tests": {
+      "passed": 54,
+      "failed": 0
+    },
+    "checks": {
+      "webAndClient": "passed",
+      "nativeUi": "passed",
+      "install": "passed",
+      "updateAndDowngrade": "passed",
+      "uninstall": "passed",
+      "rollbackAndUndo": "passed",
+      "failureRecovery": "passed"
+    }
+  },
+  "hosted": {
+    "commit": "5e841b2a5887c72f352bc4366676169646ff7794",
+    "candidateRun": "https://github.com/Harzva/harness-flow-hub/actions/runs/31956223529",
+    "baselineMatrixRun": "https://github.com/Harzva/harness-flow-hub/actions/runs/31956214317",
+    "registryRun": "https://github.com/Harzva/harness-flow-hub/actions/runs/31956214205",
+    "result": "passed",
+    "jobs": 8,
+    "platforms": [
+      {
+        "os": "windows-latest",
+        "candidateEvidenceFiles": 5,
+        "webAndClient": "passed",
+        "nativeUi": "passed",
+        "install": "passed",
+        "updateAndDowngrade": "passed",
+        "uninstall": "passed",
+        "rollbackAndUndo": "passed",
+        "failureRecovery": "passed"
+      },
+      {
+        "os": "ubuntu-latest",
+        "candidateEvidenceFiles": 5,
+        "webAndClient": "passed",
+        "nativeUi": "passed",
+        "install": "passed",
+        "updateAndDowngrade": "passed",
+        "uninstall": "passed",
+        "rollbackAndUndo": "passed",
+        "failureRecovery": "passed"
+      }
+    ]
+  },
+  "falseGreenAudit": {
+    "supersededRun": "https://github.com/Harzva/harness-flow-hub/actions/runs/31955845660",
+    "acceptedForClosure": false,
+    "finding": "Ubuntu artifact lacked candidate version lifecycle evidence because a Windows-only pack command failed before a later command returned success",
+    "fix": "prebuilt v1 and v2 tgz fixtures plus explicit native exit-code checks after every candidate verifier",
+    "fixedCommit": "5e841b2a5887c72f352bc4366676169646ff7794"
+  },
+  "trustBoundary": {
+    "userProfileTouched": false,
+    "credentialsCaptured": false,
+    "privatePathMatches": 0,
+    "browserWriteActionPerformed": false
+  },
+  "result": "passed"
+}
