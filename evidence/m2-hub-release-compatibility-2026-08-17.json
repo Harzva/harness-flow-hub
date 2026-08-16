@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "subject": "Hub release declares and enforces its supported DSH range",
+  "packageName": "@harness-flow/dsh-flow-hub",
+  "version": "0.0.2-m0",
+  "dshRange": ">=0.1.0-rc.6 <0.2.0",
+  "verifiedVersions": [
+    "0.1.0-rc.6"
+  ],
+  "discoveryKeywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-flow",
+    "dsh-flow-hub",
+    "dsh-hub",
+    "deepseek-harness"
+  ],
+  "validCandidate": true,
+  "negativeCases": [
+    {
+      "name": "wrong-tag-version",
+      "rejected": true,
+      "reason": "Hub release tag version mismatch:0.0.3:0.0.2-m0"
+    },
+    {
+      "name": "notes-omit-range",
+      "rejected": true,
+      "reason": "Hub release notes omit DSH range"
+    },
+    {
+      "name": "matrix-range-drift",
+      "rejected": true,
+      "reason": "hub-release-dsh-range-mismatch"
+    }
+  ],
+  "privatePathsRecorded": false
+}

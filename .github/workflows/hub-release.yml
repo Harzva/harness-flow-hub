@@ -1,0 +1,84 @@
+name: Hub release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'hub-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - id: metadata
+        name: Resolve and verify Hub release version
+        shell: pwsh
+        run: |
+          $package = Get-Content -LiteralPath package.json -Raw | ConvertFrom-Json
+          "version=$($package.version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          if ('${{ github.ref }}'.StartsWith('refs/tags/hub-v')) {
+            $expected = '${{ github.ref_name }}' -replace '^hub-v', ''
+            if ($expected -ne $package.version) { throw "Hub tag version $expected does not match package $($package.version)" }
+          }
+      - run: pnpm check
+      - run: pnpm run hub:assemble-release
+      - run: pnpm run hub:validate-release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: harness-flow-hub-${{ steps.metadata.outputs.version }}-candidate
+          path: dist/hub/${{ steps.metadata.outputs.version }}/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/hub-v')
+    needs: candidate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: harness-flow-hub-${{ needs.candidate.outputs.version }}-candidate
+          path: release-candidate
+      - name: Publish Hub package with compatibility declaration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${{ github.ref_name }}"
+          release-candidate/packages/*.tgz
+          release-candidate/hub-release.json
+          release-candidate/compatibility/dsh-matrix.json
+          --repo "${{ github.repository }}"
+          --verify-tag
+          --title "Harness Flow Hub ${{ needs.candidate.outputs.version }}"
+          --prerelease
+          --notes-file release-candidate/RELEASE-NOTES.md
+      - name: Verify published release declares the supported DSH range
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          expected="$(node -p "require('./release-candidate/hub-release.json').compatibility.dsh.supportedRange")"
+          body="$(gh release view '${{ github.ref_name }}' --repo '${{ github.repository }}' --json body --jq .body)"
+          printf '%s' "$body" | grep -F "Supported DSH: \`$expected\`"
+          gh release view '${{ github.ref_name }}' --repo '${{ github.repository }}' --json assets --jq '.assets[].name' | grep -Fx 'hub-release.json'

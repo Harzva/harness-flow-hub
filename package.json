@@ -5,6 +5,9 @@
   "keywords": [
     "dsh",
     "dsh-plugin",
+    "dsh-flow",
+    "dsh-flow-hub",
+    "dsh-hub",
     "deepseek-harness",
     "harness-flow",
     "agent-stack",
@@ -50,6 +53,11 @@
     "schemas/*.schema.json"
   ],
   "dsh": {
+    "compatibility": {
+      "dsh": ">=0.1.0-rc.6 <0.2.0",
+      "registrySchema": 1,
+      "flowSchema": 1
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
@@ -86,6 +94,9 @@
     "ui:verify-dsh-version-entry": "pnpm build && node scripts/verify-dsh-version-entry.mjs",
     "compatibility:resolve-matrix": "node scripts/resolve-dsh-ci-matrix.mjs",
     "compatibility:aggregate-matrix": "node scripts/aggregate-dsh-version-matrix.mjs",
+    "hub:assemble-release": "pnpm run pack:hub && node scripts/assemble-hub-release.mjs",
+    "hub:validate-release": "node scripts/validate-hub-release.mjs dist/hub/0.0.2-m0",
+    "hub:verify-release-contract": "node scripts/verify-hub-release-contract.mjs",
     "site:audit": "node scripts/audit-public-site.mjs _site",
     "site:serve": "node scripts/serve-site.mjs",
     "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts && pnpm --dir fixtures/hello-bundle-v2 pack --pack-destination ../../artifacts",
