@@ -9,14 +9,20 @@ import { promisify } from 'node:util'
 const execFileAsync = promisify(execFile)
 
 test('GitHub Pages is a read-only discovery surface with an explicit DSH boundary', async () => {
-  const [html, script, workflow] = await Promise.all([
+  const [html, script, workflow, readme, packageText] = await Promise.all([
     readFile('site/index.html', 'utf8'), readFile('site/app.js', 'utf8'), readFile('.github/workflows/pages.yml', 'utf8'),
+    readFile('README.md', 'utf8'), readFile('package.json', 'utf8'),
   ])
+  const packageJson = JSON.parse(packageText)
+  const requiredAliases = ['dsh', 'dsh-plugin', 'dsh-flow', 'dsh-flow-hub', 'dsh-hub', 'deepseek-harness']
   assert.match(html, /核心安装流程留在 DSH 原生 UI/)
   assert.match(html, /本站不执行远程安装/)
   assert.match(html, /<title>DSH Harness Flow Hub/)
-  assert.match(html, /name="keywords" content="DSH, dsh-plugin, dsh-flow, dsh-flow-hub, dsh-hub, DeepSeek Harness, Harness Flow, Harness Flow Hub, Agent Stack, plugin registry"/)
-  assert.match(html, /开发者搜索别名：DSH Flow Hub · dsh-flow-hub · dsh-plugin · DeepSeek Harness/)
+  for (const alias of requiredAliases) {
+    assert.ok(packageJson.keywords.includes(alias), `package keywords must retain ${alias}`)
+    assert.match(html, new RegExp(`(?:content="[^"]*|开发者搜索别名：[^<]*)${alias}`), `public page must retain ${alias}`)
+    assert.match(readme, new RegExp(alias), `README must retain ${alias}`)
+  }
   assert.match(html, /rel="canonical" href="https:\/\/harzva\.github\.io\/harness-flow-hub\/"/)
   assert.match(html, /NO CREDENTIALS/)
   assert.match(html, /Content-Security-Policy/)
