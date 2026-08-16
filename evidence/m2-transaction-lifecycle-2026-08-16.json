@@ -1,0 +1,140 @@
+{
+  "milestone": "M2-transaction-installer-real-lifecycle",
+  "date": "2026-08-16T10:51:16.875Z",
+  "dshVersion": "0.1.0-rc.6",
+  "fixture": "artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz",
+  "privatePathsRecorded": false,
+  "add": {
+    "ok": true,
+    "phases": [
+      {
+        "phase": "preflight",
+        "status": "passed",
+        "detail": "source=tgz; scripts=disabled"
+      },
+      {
+        "phase": "snapshot",
+        "status": "passed",
+        "detail": "snapshot=d0699d5eead66c09cdef0931"
+      },
+      {
+        "phase": "staging",
+        "status": "passed",
+        "detail": "profile=flow-hub-stage-d0699d5eead66c09cdef0931"
+      },
+      {
+        "phase": "install",
+        "status": "passed"
+      },
+      {
+        "phase": "dump-config",
+        "status": "passed"
+      },
+      {
+        "phase": "commit",
+        "status": "passed",
+        "detail": "backup=d0699d5eead66c09cdef0931"
+      },
+      {
+        "phase": "health",
+        "status": "passed",
+        "detail": "official dump-config passed"
+      },
+      {
+        "phase": "complete",
+        "status": "passed"
+      }
+    ],
+    "backupRetained": true
+  },
+  "injectedFailure": {
+    "at": "health",
+    "ok": false,
+    "phases": [
+      {
+        "phase": "preflight",
+        "status": "passed",
+        "detail": "source=tgz; scripts=disabled"
+      },
+      {
+        "phase": "snapshot",
+        "status": "passed",
+        "detail": "snapshot=66082c8aaabae44b87d52164"
+      },
+      {
+        "phase": "staging",
+        "status": "passed",
+        "detail": "profile=flow-hub-stage-66082c8aaabae44b87d52164"
+      },
+      {
+        "phase": "install",
+        "status": "passed"
+      },
+      {
+        "phase": "dump-config",
+        "status": "passed"
+      },
+      {
+        "phase": "commit",
+        "status": "passed",
+        "detail": "backup=66082c8aaabae44b87d52164"
+      },
+      {
+        "phase": "health",
+        "status": "failed",
+        "detail": "injected-failure:health"
+      },
+      {
+        "phase": "rollback",
+        "status": "passed",
+        "detail": "restored=66082c8aaabae44b87d52164"
+      }
+    ],
+    "manifestRestoredByteForByte": true,
+    "lockfileRestoredByteForByte": true,
+    "officialDumpConfigAfterRollback": "passed"
+  },
+  "remove": {
+    "ok": true,
+    "phases": [
+      {
+        "phase": "preflight",
+        "status": "passed",
+        "detail": "source=tgz; scripts=disabled"
+      },
+      {
+        "phase": "snapshot",
+        "status": "passed",
+        "detail": "snapshot=3b98c7fe16222d74aa23c1e3"
+      },
+      {
+        "phase": "staging",
+        "status": "passed",
+        "detail": "profile=flow-hub-stage-3b98c7fe16222d74aa23c1e3"
+      },
+      {
+        "phase": "install",
+        "status": "passed"
+      },
+      {
+        "phase": "dump-config",
+        "status": "passed"
+      },
+      {
+        "phase": "commit",
+        "status": "passed",
+        "detail": "backup=3b98c7fe16222d74aa23c1e3"
+      },
+      {
+        "phase": "health",
+        "status": "passed",
+        "detail": "official dump-config passed"
+      },
+      {
+        "phase": "complete",
+        "status": "passed"
+      }
+    ],
+    "officialDumpConfigAfterRemove": "passed"
+  }
+}

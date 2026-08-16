@@ -25,6 +25,20 @@
     "verification state",
     "verification environment"
   ],
+  "transactionPlanPreview": {
+    "renderedInNativeSettings": true,
+    "action": "add",
+    "profile": "web",
+    "source": "tgz · configured-tgz",
+    "privatePathRedacted": true,
+    "verification": "trusted-fixture",
+    "lifecycleScripts": "disabled",
+    "permissions": "none declared",
+    "credentials": "none",
+    "phases": ["preflight", "snapshot", "staging", "install", "dump-config", "commit", "health", "complete"],
+    "confirmAndCancelControls": true,
+    "browserExecutionClicked": false
+  },
   "responsive": {
     "containerQuery": true,
     "settingsDialogChecked": true,

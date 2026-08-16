@@ -1,39 +1,28 @@
-import { spawn } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 import { readFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
+import { createInstallPlan, executeInstallPlan, type InstallPlan, type PluginAction, type TransactionResult } from './transaction.js'
 
 export const inject = ['webServer']
 
 export interface Config {
   profile?: string
   fixtureSpec?: string
+  dshHome?: string
 }
 
 type BootstrapState = 'compatible' | 'unknown' | 'incompatible'
-type PluginAction = 'add' | 'update' | 'remove'
-
-interface CommandResult {
-  ok: boolean
-  action: PluginAction
-  code: number | null
-  command: string[]
-  stdout: string
-  stderr: string
-  startedAt: string
-  finishedAt: string
-}
-
-type TaskRecord = Pick<CommandResult, 'ok' | 'action' | 'code' | 'startedAt' | 'finishedAt'>
+type TaskRecord = TransactionResult
 
 const PACKAGE_NAME = '@harness-flow/hello-bundle'
 const API_PATH = '/flow-hub/api'
 const MAX_BODY_BYTES = 16 * 1024
 let activeTransaction = false
 const recentTransactions: TaskRecord[] = []
+const pendingPlans = new Map<string, InstallPlan>()
 
 function json(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, {
@@ -125,49 +114,9 @@ export function classifyVersion(version: string | null): BootstrapState {
   return 'incompatible'
 }
 
-function commandFor(action: PluginAction, profile: string, fixtureSpec: string): string[] {
-  const base = ['plugin', '--profile', profile]
-  if (action === 'add') return [...base, 'add', fixtureSpec, '--save-exact', '--reporter=append-only']
-  if (action === 'update') return [...base, 'update', PACKAGE_NAME, '--latest', '--reporter=append-only']
-  return [...base, 'remove', PACKAGE_NAME, '--reporter=append-only']
-}
-
-async function runDsh(action: PluginAction, profile: string, fixtureSpec: string): Promise<CommandResult> {
-  const args = commandFor(action, profile, fixtureSpec)
-  const cli = resolveDshCli()
-  const command = process.execPath
-  const startedAt = new Date().toISOString()
-  return await new Promise((resolve) => {
-    const child = spawn(command, [cli, ...args], { shell: false, windowsHide: true, env: process.env })
-    let stdout = ''
-    let stderr = ''
-    child.stdout.setEncoding('utf8').on('data', chunk => { stdout += String(chunk) })
-    child.stderr.setEncoding('utf8').on('data', chunk => { stderr += String(chunk) })
-    child.on('error', error => {
-      resolve({
-        ok: false,
-        action,
-        code: null,
-        command: ['dsh', ...args],
-        stdout,
-        stderr: `${stderr}${error.message}`,
-        startedAt,
-        finishedAt: new Date().toISOString(),
-      })
-    })
-    child.on('close', code => {
-      resolve({
-        ok: code === 0,
-        action,
-        code,
-        command: ['dsh', ...args],
-        stdout,
-        stderr,
-        startedAt,
-        finishedAt: new Date().toISOString(),
-      })
-    })
-  })
+function publicPlan(plan: InstallPlan): InstallPlan {
+  if (plan.source.kind === 'npm' || plan.source.kind === 'github-sha') return plan
+  return { ...plan, source: { ...plan.source, spec: `configured-${plan.source.kind}` } }
 }
 
 export function apply(ctx: Context, config: Config = {}): void {
@@ -206,7 +155,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       json(res, 200, { ok: true, active: activeTransaction, tasks: recentTransactions })
       return
     }
-    if (pathname !== `${API_PATH}/plugin` || req.method !== 'POST') {
+    if ((pathname !== `${API_PATH}/plan` && pathname !== `${API_PATH}/plugin`) || req.method !== 'POST') {
       json(res, 404, { ok: false, error: 'not-found' })
       return
     }
@@ -218,7 +167,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       json(res, 409, { ok: false, error: 'fixture-not-configured' })
       return
     }
-    if (activeTransaction) {
+    if (activeTransaction && pathname === `${API_PATH}/plugin`) {
       json(res, 409, { ok: false, error: 'transaction-in-progress' })
       return
     }
@@ -229,21 +178,42 @@ export function apply(ctx: Context, config: Config = {}): void {
       json(res, 400, { ok: false, error: error instanceof Error ? error.message : 'invalid-request' })
       return
     }
-    const action = body.action
-    if (action !== 'add' && action !== 'update' && action !== 'remove') {
-      json(res, 400, { ok: false, error: 'unsupported-action' })
+    if (pathname === `${API_PATH}/plan`) {
+      const action = body.action
+      if (action !== 'add' && action !== 'update' && action !== 'remove') {
+        json(res, 400, { ok: false, error: 'unsupported-action' })
+        return
+      }
+      try {
+        const plan = createInstallPlan({
+          action: action as PluginAction,
+          profile,
+          packageName: PACKAGE_NAME,
+          sourceSpec: fixtureSpec,
+          verification: 'trusted-fixture',
+        })
+        pendingPlans.set(plan.id, plan)
+        json(res, 200, { ok: true, plan: publicPlan(plan) })
+      } catch (error) {
+        json(res, 400, { ok: false, error: error instanceof Error ? error.message : 'invalid-install-plan' })
+      }
       return
     }
+    const planId = body.planId
+    if (typeof planId !== 'string' || !/^[a-f0-9]{24}$/.test(planId)) {
+      json(res, 400, { ok: false, error: 'invalid-plan-id' })
+      return
+    }
+    const plan = pendingPlans.get(planId)
+    if (plan === undefined) {
+      json(res, 409, { ok: false, error: 'install-plan-missing-or-consumed' })
+      return
+    }
+    pendingPlans.delete(planId)
     activeTransaction = true
     try {
-      const result = await runDsh(action, profile, fixtureSpec)
-      recentTransactions.unshift({
-        ok: result.ok,
-        action: result.action,
-        code: result.code,
-        startedAt: result.startedAt,
-        finishedAt: result.finishedAt,
-      })
+      const result = await executeInstallPlan(plan, { dshCli: resolveDshCli(), home: config.dshHome })
+      recentTransactions.unshift(result)
       if (recentTransactions.length > 20) recentTransactions.length = 20
       json(res, result.ok ? 200 : 502, result)
     } finally {

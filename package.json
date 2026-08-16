@@ -20,11 +20,13 @@
   },
   "files": [
     "lib/index.js",
+    "lib/transaction.js",
     "lib/client.js",
     "lib/client.js.map",
     "lib/types/**/*.d.ts",
     "cordis.patch.yml",
-    "registry/generated/registry.json"
+    "registry/generated/registry.json",
+    "schemas/*.schema.json"
   ],
   "dsh": {
     "bundle": {
@@ -52,6 +54,7 @@
     "registry:verify-signature": "node scripts/verify-registry-signature.mjs",
     "registry:verify-install": "node scripts/verify-installations.mjs registry/generated/registry.json registry/verifications 10",
     "registry:verify-trusted-fixture": "node scripts/verify-trusted-fixture-lifecycle.mjs",
+    "transaction:verify-lifecycle": "pnpm build && node scripts/verify-transaction-lifecycle.mjs",
     "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts",
     "pack:hub": "pnpm pack --pack-destination artifacts"
   },

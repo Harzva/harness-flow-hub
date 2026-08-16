@@ -4,8 +4,8 @@ import { build } from 'esbuild'
 await rm('lib', { recursive: true, force: true })
 
 await build({
-  entryPoints: ['src/index.ts'],
-  outfile: 'lib/index.js',
+  entryPoints: ['src/index.ts', 'src/transaction.ts'],
+  outdir: 'lib',
   bundle: false,
   format: 'esm',
   platform: 'node',
@@ -34,4 +34,3 @@ await build({
   },
   footer: { js: 'return module.exports; } });' },
 })
-
