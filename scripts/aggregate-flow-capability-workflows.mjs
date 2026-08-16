@@ -4,8 +4,8 @@ import { dirname, resolve } from 'node:path'
 const windowsPath = resolve(process.argv[2] ?? 'work/ci-capability/windows/m3-flow-capability-workflows-win32-2026-08-17.json')
 const linuxPath = resolve(process.argv[3] ?? 'work/ci-capability/linux/m3-flow-capability-workflows-linux-2026-08-17.json')
 const output = resolve(process.argv[4] ?? 'evidence/m3-flow-capability-workflows-cross-platform-2026-08-17.json')
-const runUrl = process.argv[5] ?? 'https://github.com/Harzva/harness-flow-hub/actions/runs/31973876918'
-const baseCommit = process.argv[6] ?? 'c97a58fdee2b99fd7390b85ad9f97e9645a29f39'
+const runUrl = process.argv[5] ?? 'https://github.com/Harzva/harness-flow-hub/actions/runs/31974818888'
+const baseCommit = process.argv[6] ?? '5eb178fce590fa1769c7dba0862ad261526c6310'
 
 function requireTrue(value, message) {
   if (!value) throw new Error(message)
@@ -26,6 +26,7 @@ for (const input of inputs) {
   requireTrue(input.ui?.canonical?.initialDifferencePct >= 1 && input.ui?.canonical?.finalDifferencePct <= 0.02, `${os} portable UI thresholds failed`)
   requireTrue(input.ui?.currentRunner?.improved === true && input.ui.currentRunner.finalDifferencePct < input.ui.currentRunner.initialDifferencePct, `${os} runner UI workflow did not improve`)
   requireTrue(input.ui?.nativeToolDefinitionsExecuted === true && input.ui?.runtime?.officialToolRuntimePipeline === true, `${os} official UI ToolRuntime workflow incomplete`)
+  requireTrue(input.ui?.runtime?.agentScopedSkillActivation === true && input.ui?.toolsHiddenBeforeSkill === true && input.ui?.activationBootstrapHiddenAfterSkill === true, `${os} UI Agent-scoped Skill lifecycle incomplete`)
   requireTrue(input.ui?.externalVisionApiCalled === false && input.ui?.credentialConfigured === false && input.ui?.userContentUsed === false, `${os} UI isolation contract failed`)
   requireTrue(input.capabilityDecision?.registryVerificationStateChanged === false, `${os} changed Registry trust from partial workflow evidence`)
   platforms[os] = {
@@ -44,6 +45,9 @@ for (const input of inputs) {
       currentRunner: input.ui.currentRunner,
       nativeToolDefinitionsExecuted: true,
       officialToolRuntimePipeline: true,
+      agentScopedSkillActivation: true,
+      toolsHiddenBeforeSkill: true,
+      activationBootstrapHiddenAfterSkill: true,
       externalVisionApiCalled: false,
     },
   }
@@ -68,10 +72,10 @@ const report = {
   },
   capabilityDecision: {
     codingExpert: 'fixture-workflow-passed-cross-platform',
-    uiDesignStudio: 'official-tool-runtime-workflow-passed-cross-platform-agent-scope-pending',
+    uiDesignStudio: 'agent-scoped-skill-and-tool-runtime-workflow-passed-cross-platform',
     registryVerificationStateChanged: false,
     flowExecutableStateChanged: false,
-    reason: 'The exact UI package native tools passed through the official ToolRuntime on Windows and Linux, but Agent-scoped Skill activation remains pending; signed Registry and empty-environment Flow installation gates also remain open.',
+    reason: 'The exact UI package native tools and Agent-scoped Skill activation passed through the official ToolRuntime on Windows and Linux; Research capability, signed Registry, and empty-environment Flow installation gates remain open.',
   },
 }
 

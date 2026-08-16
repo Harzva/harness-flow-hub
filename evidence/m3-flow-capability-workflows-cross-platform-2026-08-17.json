@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "verifiedAt": "2026-08-16T21:36:18.098Z",
+  "verifiedAt": "2026-08-16T21:56:08.801Z",
   "subject": "Cross-platform corrected Coding and UI Flow capability workflows",
-  "baseCommit": "c97a58fdee2b99fd7390b85ad9f97e9645a29f39",
-  "run": "https://github.com/Harzva/harness-flow-hub/actions/runs/31973876918",
+  "baseCommit": "5eb178fce590fa1769c7dba0862ad261526c6310",
+  "run": "https://github.com/Harzva/harness-flow-hub/actions/runs/31974818888",
   "platforms": {
     "win32": {
       "status": "passed",
@@ -27,11 +27,14 @@
       "ui": {
         "package": "@anionex/dsh-vision-toolkit@0.1.8",
         "workflow": [
-          "local-reference",
+          "tools-hidden-before-skill",
+          "vision-tools-skill",
+          "agent-scoped-activation",
           "vision_html_screenshot-initial",
           "vision_pixel_diff-initial",
           "vision_html_screenshot-final",
           "vision_pixel_diff-final",
+          "activation-bootstrap-hidden",
           "numeric-acceptance"
         ],
         "canonical": {
@@ -45,6 +48,9 @@
         },
         "nativeToolDefinitionsExecuted": true,
         "officialToolRuntimePipeline": true,
+        "agentScopedSkillActivation": true,
+        "toolsHiddenBeforeSkill": true,
+        "activationBootstrapHiddenAfterSkill": true,
         "externalVisionApiCalled": false
       }
     },
@@ -70,11 +76,14 @@
       "ui": {
         "package": "@anionex/dsh-vision-toolkit@0.1.8",
         "workflow": [
-          "local-reference",
+          "tools-hidden-before-skill",
+          "vision-tools-skill",
+          "agent-scoped-activation",
           "vision_html_screenshot-initial",
           "vision_pixel_diff-initial",
           "vision_html_screenshot-final",
           "vision_pixel_diff-final",
+          "activation-bootstrap-hidden",
           "numeric-acceptance"
         ],
         "canonical": {
@@ -88,6 +97,9 @@
         },
         "nativeToolDefinitionsExecuted": true,
         "officialToolRuntimePipeline": true,
+        "agentScopedSkillActivation": true,
+        "toolsHiddenBeforeSkill": true,
+        "activationBootstrapHiddenAfterSkill": true,
         "externalVisionApiCalled": false
       }
     }
@@ -106,9 +118,9 @@
   },
   "capabilityDecision": {
     "codingExpert": "fixture-workflow-passed-cross-platform",
-    "uiDesignStudio": "official-tool-runtime-workflow-passed-cross-platform-agent-scope-pending",
+    "uiDesignStudio": "agent-scoped-skill-and-tool-runtime-workflow-passed-cross-platform",
     "registryVerificationStateChanged": false,
     "flowExecutableStateChanged": false,
-    "reason": "The exact UI package native tools passed through the official ToolRuntime on Windows and Linux, but Agent-scoped Skill activation remains pending; signed Registry and empty-environment Flow installation gates also remain open."
+    "reason": "The exact UI package native tools and Agent-scoped Skill activation passed through the official ToolRuntime on Windows and Linux; Research capability, signed Registry, and empty-environment Flow installation gates remain open."
   }
 }
