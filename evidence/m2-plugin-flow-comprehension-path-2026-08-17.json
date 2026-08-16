@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-17",
+  "subject": "DSH native Plugin versus Flow comprehension path",
+  "environment": {
+    "dsh": "0.1.0-rc.6",
+    "surface": "DSH Web Settings > Plugins > Flow Hub",
+    "profile": "isolated-temporary-web"
+  },
+  "implementation": {
+    "source": "src/client/index.tsx",
+    "test": "tests/concept-path.test.mjs",
+    "choices": [
+      "Plugin: add one capability to an existing Profile",
+      "Flow: create an isolated expert workspace with a deterministic Stack lock"
+    ],
+    "flowComponentsDisclosed": [
+      "role-and-boundaries",
+      "skills",
+      "plugins",
+      "memory",
+      "workflow",
+      "permissions",
+      "defaults",
+      "validation-tasks"
+    ],
+    "previewOnly": true,
+    "externalNavigation": false
+  },
+  "commands": [
+    "node --test tests/concept-path.test.mjs tests/native-ui-accessibility.test.mjs tests/site.test.mjs",
+    "pnpm check",
+    "pnpm run m2:verify-core",
+    "pnpm run site:audit",
+    "pnpm run ui:prepare-spike -- <isolated-dsh-home>"
+  ],
+  "automated": {
+    "focused": {
+      "passed": 5,
+      "failed": 0
+    },
+    "full": {
+      "passed": 80,
+      "failed": 0
+    },
+    "m2Components": {
+      "passed": 7,
+      "failed": 0
+    },
+    "publicDisclosureRules": {
+      "passed": 13,
+      "failed": 0
+    }
+  },
+  "browser": {
+    "pluginChoice": {
+      "targetHeading": "Plugin Registry",
+      "visible": true,
+      "operationPlanCount": 0
+    },
+    "flowChoice": {
+      "targetHeading": "Harness Flows",
+      "visible": true,
+      "operationPlanCount": 0
+    },
+    "viewport390x844": {
+      "documentScrollWidth": 390,
+      "shellWidth": 358,
+      "chooserWidth": 316,
+      "choiceColumnWidth": 278,
+      "closeControlRemainsVisible": true,
+      "darkBackground": "verified",
+      "darkForeground": "verified"
+    }
+  },
+  "privacy": {
+    "userProfileTouched": false,
+    "credentialConfigured": false,
+    "credentialCaptured": false,
+    "privatePathsRecorded": false
+  },
+  "humanTimedGate": {
+    "status": "not-run",
+    "roadmapCheckboxMustRemainOpen": true,
+    "reason": "Automated wording and navigation checks cannot prove a new user understands the distinction within 30 seconds."
+  },
+  "result": "passed-with-human-gate-open"
+}

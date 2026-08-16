@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { createInstallPlan, executeInstallPlan, listRecoveryPoints } from '../lib/transaction.js'
 
-const configuredHome = process.argv[2]
+const configuredHome = process.argv[2] === '--' ? process.argv[3] : process.argv[2]
 if (typeof configuredHome !== 'string' || configuredHome.trim() === '') throw new Error('usage: node scripts/prepare-native-ui-spike.mjs <isolated-dsh-home>')
 const dshHome = resolve(configuredHome)
 const require = createRequire(import.meta.url)

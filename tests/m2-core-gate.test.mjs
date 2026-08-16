@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 
 test('M2 core gate combines native UI, Bootstrap, transactions, recovery and offline management', async () => {
   const gate = await readFile('scripts/verify-m2-core-gate.mjs', 'utf8')
+  const prepareSpike = await readFile('scripts/prepare-native-ui-spike.mjs', 'utf8')
   const workflow = await readFile('.github/workflows/registry.yml', 'utf8')
   for (const evidence of [
     'm2-bootstrap-recovery-modes-2026-08-16.json',
@@ -22,4 +23,5 @@ test('M2 core gate combines native UI, Bootstrap, transactions, recovery and off
   assert.match(workflow, /transaction:verify-hub-update-recovery/)
   assert.match(workflow, /pnpm run m2:verify-core/)
   assert.match(workflow, /m2-native-ui-bootstrap-transaction-core-2026-08-17\.json/)
+  assert.match(prepareSpike, /process\.argv\[2\] === '--' \? process\.argv\[3\] : process\.argv\[2\]/)
 })
