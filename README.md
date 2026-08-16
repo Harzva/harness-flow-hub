@@ -2,6 +2,8 @@
 
 Harness Flow Hub is an independent, community-built plugin Registry and Agent Stack workspace for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It contributes a native **Flow Hub** tab under **DSH Web → Settings → Plugins**, while its public GitHub Pages site remains a read-only discovery surface.
 
+**Public explorer:** [harzva.github.io/harness-flow-hub](https://harzva.github.io/harness-flow-hub/)
+
 > Alpha status: the transaction engine and native UI are real, but the public catalog is evidence-first. A discovered plugin is not automatically trusted, and no community candidate is currently labeled `verified`.
 
 ## What works today

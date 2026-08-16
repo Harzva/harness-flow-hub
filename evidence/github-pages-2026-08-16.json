@@ -1,0 +1,34 @@
+{
+  "date": "2026-08-16",
+  "url": "https://harzva.github.io/harness-flow-hub/",
+  "commit": "4e8d0d0fd1c43f73ce59cf230706a05e6ebd8b87",
+  "deployment": {
+    "workflowRun": "https://github.com/Harzva/harness-flow-hub/actions/runs/31945619041",
+    "status": "success",
+    "httpsEnforced": true
+  },
+  "liveChecks": {
+    "pageHttp": 200,
+    "registryHttp": 200,
+    "title": "Harness Flow Hub · Agent Stack Observatory",
+    "registryVersion": "2026.08.16-alpha.1",
+    "registryRecords": 20,
+    "searchQuery": "vision",
+    "searchResults": 2,
+    "mobile": {
+      "width": 390,
+      "horizontalOverflow": false
+    },
+    "desktop": {
+      "width": 1440,
+      "horizontalOverflow": false
+    }
+  },
+  "trustBoundary": {
+    "surface": "read-only-discovery",
+    "credentialsAccepted": false,
+    "installActionsAvailable": false,
+    "mutationsRemainIn": "local DSH Web UI"
+  },
+  "result": "passed"
+}
