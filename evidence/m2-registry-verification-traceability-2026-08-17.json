@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-16T18:03:45.537Z",
+  "subject": "Registry verification result traceability",
+  "registryVersion": "2026.08.16-alpha.1",
+  "releaseTag": "registry-v2026.08.16-alpha.1",
+  "checks": {
+    "plugins": 20,
+    "runtimeRecords": 18,
+    "recordsWithoutRuntimeClaims": 2,
+    "timestampComplete": 18,
+    "environmentComplete": 18,
+    "dshVersionComplete": 18,
+    "packagedEvidenceComplete": 18,
+    "publicEvidenceComplete": 18,
+    "publicEvidenceReachable": 18
+  },
+  "publicEvidence": {
+    "scheme": "https",
+    "immutableTag": "registry-v2026.08.16-alpha.1",
+    "checkedOnline": true
+  },
+  "privacy": {
+    "credentialsCaptured": false,
+    "privatePathsRecorded": false,
+    "userContentCaptured": false
+  },
+  "result": "passed"
+}

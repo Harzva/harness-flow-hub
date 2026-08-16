@@ -59,7 +59,9 @@ function renderInspector(plugin) {
   const list = element('dl', 'inspector-grid')
   const rows = [
     ['版本', plugin.version], ['验证', labels[plugin.verification?.state] ?? '未知'],
-    ['环境', [plugin.verification?.platform, plugin.verification?.dshVersion].filter(Boolean).join(' · ') || '尚无运行证据'],
+    ['验证时间', plugin.verification?.verifiedAt ?? '尚无运行证据'],
+    ['环境', plugin.verification?.environment ? [plugin.verification.environment.os, plugin.verification.environment.arch, plugin.verification.environment.node].join(' · ') : '尚无运行证据'],
+    ['DSH 版本', plugin.verification?.dshVersion ?? '尚无运行证据'],
     ['来源', publicSource(plugin)], ['许可证', plugin.license ?? '未披露'],
     ['脚本', Object.keys(plugin.lifecycleScripts ?? {}).join('、') || '无披露脚本'],
     ['权限', (plugin.permissions ?? []).join('、') || '未声明额外权限'],
@@ -68,11 +70,20 @@ function renderInspector(plugin) {
   for (const [term, description] of rows) { list.append(element('dt', '', term), element('dd', '', description)) }
   inspector.append(list)
   const url = sourceUrl(plugin)
-  if (url) {
+  const evidenceUrl = plugin.verification?.evidence?.find(item => /^https:\/\/github\.com\/Harzva\/harness-flow-hub\/blob\/registry-v/.test(item))
+  if (url || evidenceUrl) {
     const actions = element('div', 'inspector-actions')
-    const link = element('a', '', '查看源码 ↗')
-    link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'
-    actions.append(link); inspector.append(actions)
+    if (evidenceUrl) {
+      const evidenceLink = element('a', '', '查看验证证据 ↗')
+      evidenceLink.href = evidenceUrl; evidenceLink.target = '_blank'; evidenceLink.rel = 'noopener noreferrer'
+      actions.append(evidenceLink)
+    }
+    if (url) {
+      const link = element('a', '', '查看源码 ↗')
+      link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'
+      actions.append(link)
+    }
+    inspector.append(actions)
   }
 }
 

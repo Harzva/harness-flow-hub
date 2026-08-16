@@ -55,9 +55,30 @@
       "properties": {
         "state": { "enum": ["unknown", "unverified", "passed", "failed", "stale"] },
         "verifiedAt": { "type": "string", "format": "date-time" },
-        "dshVersion": { "type": "string" },
-        "platform": { "type": "string" },
-        "evidence": { "type": "array", "items": { "type": "string" } }
+        "dshVersion": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "environment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["os", "arch", "node"],
+          "properties": {
+            "os": { "enum": ["win32", "linux", "darwin"] },
+            "arch": { "type": "string", "minLength": 1 },
+            "node": { "type": "string", "minLength": 1 }
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "contains": { "type": "string", "format": "uri", "pattern": "^https://" }
+        }
+      },
+      "if": { "properties": { "verifiedAt": true }, "required": ["verifiedAt"] },
+      "then": {
+        "properties": { "dshVersion": true, "environment": true, "evidence": true },
+        "required": ["dshVersion", "environment", "evidence"]
       }
     }
   }

@@ -53,6 +53,19 @@ function idOf(value) {
   return value.toLowerCase().replace('/', '--').replaceAll(/[^a-z0-9._-]/g, '-').replace(/^[^a-z0-9]+/, '')
 }
 
+const registryVersion = `${source.source.asOf.replaceAll('-', '.')}-alpha.1`
+const releaseTag = `registry-v${registryVersion}`
+const publicEvidenceBase = `https://github.com/Harzva/harness-flow-hub/blob/${releaseTag}/`
+
+function verificationEvidence(candidateUrl, evidence = []) {
+  const values = [candidateUrl]
+  for (const item of evidence) {
+    values.push(item)
+    if (!/^https:\/\//.test(item)) values.push(`${publicEvidenceBase}${item.replaceAll('\\', '/')}`)
+  }
+  return [...new Set(values)]
+}
+
 const plugins = source.candidates.map(candidate => {
   const id = idOf(candidate.package.name)
   const result = verificationBySubject.get(id)
@@ -82,7 +95,8 @@ const plugins = source.candidates.map(candidate => {
     ...(result.verifiedAt ? { verifiedAt: result.verifiedAt } : {}),
     dshVersion: result.environment?.dsh,
     platform: result.environment?.os,
-    evidence: [candidate.url, ...result.evidence],
+    ...(result.environment ? { environment: { os: result.environment.os, arch: result.environment.arch, node: result.environment.node } } : {}),
+    evidence: verificationEvidence(candidate.url, result.evidence),
   },
   })
 }).sort((a, b) => a.id.localeCompare(b.id))
@@ -105,7 +119,7 @@ const flows = flowInputs.map(({ path, flow }) => ({
 
 const registry = {
   schemaVersion: 1,
-  registryVersion: `${source.source.asOf.replaceAll('-', '.')}-alpha.1`,
+  registryVersion,
   generatedFrom: { kind: source.source.kind, asOf: source.source.asOf, sha256 },
   plugins,
   flows,

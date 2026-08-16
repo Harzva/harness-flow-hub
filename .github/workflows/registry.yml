@@ -25,6 +25,7 @@ jobs:
       - run: pnpm run registry:audit-candidates
       - run: pnpm run registry:generate
       - run: pnpm run registry:validate
+      - run: pnpm run registry:verify-traceability
       - run: pnpm check
       - run: pnpm run registry:assemble-release
       - run: pnpm run registry:validate-release-candidate
@@ -55,6 +56,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run registry:validate-inputs
+      - name: Verify Registry result traceability
+        run: pnpm run registry:verify-traceability
       - name: Locate the official DSH package
         shell: pwsh
         run: |
@@ -96,4 +99,5 @@ jobs:
             evidence/m2-registry-offline-resilience-2026-08-17.json
             evidence/m2-flow-transaction-lifecycle-2026-08-16.json
             evidence/m2-hub-update-recovery-2026-08-17.json
+            evidence/m2-registry-verification-traceability-2026-08-17.json
             evidence/m2-native-ui-bootstrap-transaction-core-2026-08-17.json

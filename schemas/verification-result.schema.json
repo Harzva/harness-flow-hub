@@ -34,6 +34,8 @@
         }
       }
     },
-    "evidence": { "type": "array", "items": { "type": "string" } }
-  }
+    "evidence": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+  },
+  "if": { "properties": { "verifiedAt": true }, "required": ["verifiedAt"] },
+  "then": { "properties": { "environment": true }, "required": ["environment"] }
 }
