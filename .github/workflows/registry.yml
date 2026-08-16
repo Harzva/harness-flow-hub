@@ -164,7 +164,7 @@ jobs:
         run: pnpm run registry:verify-flow-dependency-runtime
         env:
           DSH_THIRD_PARTY_RUNTIME_ALLOWED: hosted-ephemeral
-      - name: Verify corrected Coding and UI capability workflows
+      - name: Verify corrected Coding, Research, and UI capability workflows
         run: pnpm run flow:verify-capability-workflows
         env:
           DSH_FLOW_WORKFLOW_ALLOWED: hosted-ephemeral

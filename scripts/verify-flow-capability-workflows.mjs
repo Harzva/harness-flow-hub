@@ -1,6 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process'
-import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises'
-import { basename, join, resolve, sep } from 'node:path'
+import { createHash } from 'node:crypto'
+import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises'
+import { basename, dirname, join, resolve, sep } from 'node:path'
 import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
 import { dshCliPath } from './dsh-cli-lib.mjs'
@@ -105,7 +106,7 @@ function openwolfConfig() {
   }
 }
 
-function workflowContext() {
+function workflowContext(services = {}) {
   const definitions = new Map()
   const cleanups = []
   return {
@@ -124,8 +125,56 @@ function workflowContext() {
         if (typeof cleanup === 'function') cleanups.push(cleanup)
         return cleanup
       },
-      get() { return undefined },
+      get(name) { return services[name] },
       on() { return () => {} },
+    },
+  }
+}
+
+function assertInside(root, candidate, label) {
+  const base = resolve(root)
+  const target = resolve(candidate)
+  if (target !== base && !target.startsWith(`${base}${sep}`)) throw new Error(`${label} escaped the synthetic workspace`)
+  return target
+}
+
+function boundedFileService(workspace) {
+  return {
+    resolve: async path => assertInside(workspace, path, 'science file path'),
+    readText: async path => readFile(assertInside(workspace, path, 'science read'), 'utf8'),
+    writeText: async (path, content) => {
+      const target = assertInside(workspace, path, 'science write')
+      await mkdir(dirname(target), { recursive: true })
+      await writeFile(target, content, 'utf8')
+    },
+    listDir: async path => (await readdir(assertInside(workspace, path, 'science list'), { withFileTypes: true }))
+      .map(entry => ({ name: entry.name, type: entry.isDirectory() ? 'directory' : entry.isFile() ? 'file' : 'other' })),
+    readBytes: async (path, _offset, maxBytes) => {
+      const bytes = await readFile(assertInside(workspace, path, 'science bytes'))
+      if (maxBytes !== undefined && bytes.byteLength > maxBytes) throw new Error('science artifact exceeded the fixture byte cap')
+      return bytes
+    },
+  }
+}
+
+function boundedScienceShell(home, workspace) {
+  return {
+    resolve(spec) {
+      assertInside(workspace, spec.workdir, 'science shell cwd')
+      return spec
+    },
+    async run(spec) {
+      const cwd = assertInside(workspace, spec.workdir, 'science shell run cwd')
+      const command = process.platform === 'win32' ? 'powershell.exe' : '/bin/bash'
+      const args = process.platform === 'win32'
+        ? ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', spec.command]
+        : ['-lc', spec.command]
+      const result = run(command, args, { cwd, env: safeEnvironment(home), timeout: spec.timeoutMs ?? 300_000 })
+      return {
+        exitCode: result.status ?? 1,
+        stdout: { text: result.stdout ?? '', lossy: false },
+        stderr: { text: result.stderr ?? '', lossy: false },
+      }
     },
   }
 }
@@ -221,6 +270,33 @@ async function officialAgentToolPipeline(packageRoot, createDefinitions, workspa
   }
 }
 
+async function officialGlobalToolPipeline(packageRoot, definitions, workspace, action) {
+  const packageRequire = createRequire(join(packageRoot, 'package.json'))
+  const [{ Context }, { SystemPrompt }, { ToolRuntime }] = await Promise.all([
+    import(pathToFileURL(packageRequire.resolve('@deepseek-ai/cordis')).href),
+    import(pathToFileURL(packageRequire.resolve('@deepseek-ai/dsh-system-prompt')).href),
+    import(pathToFileURL(packageRequire.resolve('@deepseek-ai/dsh-tools')).href),
+  ])
+  const root = new Context()
+  const previousCwd = process.cwd()
+  await root.plugin(SystemPrompt)
+  await root.plugin(ToolRuntime, { mode: 'native' })
+  for (const definition of definitions) root.tools.register(definition)
+  process.chdir(workspace)
+  try {
+    return await action(async (name, args) => {
+      const result = await root.tools.execute({
+        callId: `fixture-${name}`, name, arguments: args, signal: new AbortController().signal,
+      })
+      if (result.isError) throw new Error(`${name}: ${result.error.message}`)
+      return result.value
+    })
+  } finally {
+    process.chdir(previousCwd)
+    await root.fiber.dispose()
+  }
+}
+
 async function verifyCoding(home, workspace) {
   await installExact(home, 'dsh-openwolf', '0.9.1')
   await mkdir(join(workspace, 'src'), { recursive: true })
@@ -259,6 +335,80 @@ async function verifyCoding(home, workspace) {
       mappedFilesAfter: refreshedAfter.totalFiles, finalTestsPassed: finalTest.status === 0,
       writesConfinedToSyntheticWorkspace: true, userContentUsed: false,
     }
+  } finally {
+    for (const cleanup of harness.cleanups.reverse()) await cleanup()
+  }
+}
+
+async function verifyResearch(home, workspace) {
+  await installExact(home, 'dsh-science-workbench', '0.1.1')
+  await mkdir(workspace, { recursive: true })
+  const packageRoot = await realpath(join(home, 'profiles', 'web', 'node_modules', 'dsh-science-workbench'))
+  const services = {
+    fs: boundedFileService(workspace),
+    shell: boundedScienceShell(home, workspace),
+    sandboxPolicy: { workspaceRoot: workspace },
+  }
+  const plugin = await import(pathToFileURL(join(packageRoot, 'lib', 'index.js')).href)
+  const harness = workflowContext(services)
+  const dispose = plugin.apply(harness.ctx)
+  if (typeof dispose === 'function') harness.cleanups.push(dispose)
+  const requiredTools = ['bio_set_projects_dir', 'bio_init_project', 'bio_run_cell', 'bio_add_feedback', 'bio_rerun_cell', 'bio_get_project']
+  if (!requiredTools.every(name => harness.definitions.has(name))) throw new Error('science workbench did not register the required research tools')
+
+  try {
+    return await officialGlobalToolPipeline(packageRoot, [...harness.definitions.values()], workspace, async execute => {
+      const projectsDir = join(workspace, 'research-projects')
+      await execute('bio_set_projects_dir', { dir: projectsDir })
+      const initialized = await execute('bio_init_project', { name: 'evidence_fixture', language: 'python' })
+      const projectRoot = assertInside(projectsDir, initialized.root, 'science project root')
+      const sourcePath = join(projectRoot, 'data', 'source.txt')
+      await writeFile(sourcePath, 'claim-alpha\tsynthetic-source\tverified\n', 'utf8')
+      const sourceBefore = createHash('sha256').update(await readFile(sourcePath)).digest('hex')
+      const initialCode = [
+        'from pathlib import Path',
+        'import json',
+        "source = Path('data/source.txt').read_text(encoding='utf-8').strip()",
+        "Path('evidence.json').write_text(json.dumps({'source': source, 'citationStatus': 'verified', 'limitations': ['synthetic fixture only']}, indent=2), encoding='utf-8')",
+        "Path('report.md').write_text('# Research fixture\\n\\nFact: claim-alpha.\\n\\nInference: none.\\n\\nLimitation: synthetic fixture only.\\n', encoding='utf-8')",
+        "Path('figures/evidence.svg').write_text('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"320\" height=\"120\"><rect width=\"320\" height=\"120\" fill=\"#eef2ff\"/><text x=\"20\" y=\"68\">verified evidence</text></svg>', encoding='utf-8')",
+      ].join('\n')
+      const first = await execute('bio_run_cell', {
+        name: 'evidence_fixture', title: 'Evidence trace', code: initialCode, language: 'python',
+        params: { fixture: 'synthetic' }, seed: 42, inputs: ['data/source.txt'], outputs: ['evidence.json', 'report.md'],
+      })
+      if (first.status !== 'ok' || first.artifacts.length < 3) throw new Error('science workbench initial evidence cell failed')
+      const firstFigure = first.artifacts.find(path => path.endsWith('.svg'))
+      if (firstFigure === undefined) throw new Error('science workbench did not register the evidence figure')
+      const feedback = await execute('bio_add_feedback', {
+        name: 'evidence_fixture', artifactPath: firstFigure, text: 'Make the evidence status visually explicit.',
+      })
+      if (feedback.feedbackCount !== 1) throw new Error('science workbench feedback lineage failed')
+      const revisedCode = initialCode.replace('verified evidence', 'verified evidence - revised').replace('#eef2ff', '#dcfce7')
+      const rerun = await execute('bio_rerun_cell', { name: 'evidence_fixture', cellId: first.cellId, editedCode: revisedCode })
+      if (rerun.status !== 'ok' || rerun.derivedFrom !== first.cellId || rerun.artifacts.length < 1) throw new Error('science workbench derived rerun failed')
+      const project = await execute('bio_get_project', { name: 'evidence_fixture' })
+      const manifest = project.current?.manifest
+      if (manifest?.cells?.length !== 2 || manifest?.artifacts?.length < 4) throw new Error('science workbench manifest lineage incomplete')
+      if (!manifest.artifacts.every(artifact => typeof artifact.outputHash === 'string' && artifact.outputHash.length === 64)) throw new Error('science workbench artifact provenance hashes incomplete')
+      const sourceAfter = createHash('sha256').update(await readFile(sourcePath)).digest('hex')
+      if (sourceAfter !== sourceBefore) throw new Error('science workbench modified the synthetic source')
+      const commits = requireExit(run('git', ['rev-list', '--count', 'HEAD'], { cwd: projectRoot, env: safeEnvironment(home) }), 'science workbench git history')
+      const commitCount = Number.parseInt(commits.stdout.trim(), 10)
+      if (!Number.isInteger(commitCount) || commitCount < 3) throw new Error('science workbench provenance commits incomplete')
+
+      return {
+        state: 'passed', package: 'dsh-science-workbench', version: '0.1.1',
+        exactProfileInstall: true, lifecycleScriptsDisabled: true,
+        workflow: ['bio_set_projects_dir', 'bio_init_project', 'bio_run_cell', 'bio_add_feedback', 'bio_rerun_cell', 'bio_get_project'],
+        officialToolRuntimePipeline: true, registeredTools: requiredTools,
+        initialCellPassed: true, derivedRerunPassed: true,
+        cells: manifest.cells.length, artifacts: manifest.artifacts.length, provenanceCommits: commitCount,
+        artifactHashesComplete: true, feedbackLineageRecorded: true, sourcePreserved: true,
+        syntheticWorkspaceOnly: true, userContentUsed: false, networkCalled: false,
+        limitation: 'The exact Science Workbench workflow executed on a synthetic local fixture; memory plugins, external retrieval, signed Registry, and full Flow installation remain separate gates.',
+      }
+    })
   } finally {
     for (const cleanup of harness.cleanups.reverse()) await cleanup()
   }
@@ -325,7 +475,7 @@ async function verifyUi(home, workspace) {
     nativeToolDefinitionsExecuted: true,
     toolsHiddenBeforeSkill: pipeline.toolsHiddenBeforeSkill,
     activationBootstrapHiddenAfterSkill: pipeline.activationBootstrapHiddenAfterSkill,
-    limitation: 'The exact package native tool definitions, official ToolRuntime pipeline, and Agent-scoped Skill activation executed; Research capability and full Flow installation remain separate gates.',
+    limitation: 'The exact package native tool definitions, official ToolRuntime pipeline, and Agent-scoped Skill activation executed; signed Registry and full Flow installation remain separate gates.',
   }
 }
 
@@ -335,26 +485,30 @@ const root = await mkdtemp(join(verifierRoot, 'run-'))
 let result
 try {
   const codingHome = join(root, 'coding-home')
+  const researchHome = join(root, 'research-home')
   const uiHome = join(root, 'ui-home')
   await mkdir(codingHome, { recursive: true })
+  await mkdir(researchHome, { recursive: true })
   await mkdir(uiHome, { recursive: true })
   const coding = await verifyCoding(codingHome, join(root, 'coding-workspace'))
+  const research = await verifyResearch(researchHome, join(root, 'research-workspace'))
   const ui = await verifyUi(uiHome, join(root, 'ui-workspace'))
   result = {
     schemaVersion: 1, verifiedAt: new Date().toISOString(),
-    subject: 'Corrected Coding and UI Flow capability workflows on exact npm artifacts',
+    subject: 'Corrected Coding, Research, and UI Flow capability workflows on exact npm artifacts',
     environment: { os: process.platform, arch: process.arch, node: process.version, dsh: '0.1.0-rc.6', runner: 'github-hosted-ephemeral' },
     isolation: { freshDshHomePerFlow: true, childEnvironmentAllowlisted: true, repositorySecretsForwarded: false, privatePathsRecorded: false },
-    coding, ui, result: 'passed',
+    coding, research, ui, result: 'passed',
     capabilityDecision: {
       codingExpert: 'fixture-workflow-passed',
+      researchExpert: 'science-workbench-fixture-workflow-passed',
       uiDesignStudio: 'agent-scoped-skill-and-tool-runtime-workflow-passed',
       registryVerificationStateChanged: false,
     },
   }
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error)
-  result = { schemaVersion: 1, verifiedAt: new Date().toISOString(), subject: 'Corrected Coding and UI Flow capability workflows on exact npm artifacts', environment: { os: process.platform, arch: process.arch, node: process.version, dsh: '0.1.0-rc.6', runner: 'github-hosted-ephemeral' }, result: 'failed', error: message.replaceAll(/[A-Za-z]:[\\/][^\s;]+|\/(?:home|Users|tmp)\/[^\s;]+/g, '<redacted-path>').slice(0, 300) }
+  result = { schemaVersion: 1, verifiedAt: new Date().toISOString(), subject: 'Corrected Coding, Research, and UI Flow capability workflows on exact npm artifacts', environment: { os: process.platform, arch: process.arch, node: process.version, dsh: '0.1.0-rc.6', runner: 'github-hosted-ephemeral' }, result: 'failed', error: message.replaceAll(/[A-Za-z]:[\\/][^\s;]+|\/(?:home|Users|tmp)\/[^\s;]+/g, '<redacted-path>').slice(0, 300) }
 } finally {
   const resolvedRoot = resolve(root)
   if (!resolvedRoot.startsWith(`${resolve(verifierRoot)}${sep}`)) throw new Error('refusing to remove capability verifier path outside guarded root')

@@ -10,6 +10,7 @@ test('capability workflow verifier stays hosted, keyless, synthetic and exact', 
   assert.match(script, /GITHUB_ACTIONS !== 'true'/)
   assert.match(script, /DSH_FLOW_WORKFLOW_ALLOWED !== 'hosted-ephemeral'/)
   assert.match(script, /dsh-openwolf', '0\.9\.1'/)
+  assert.match(script, /dsh-science-workbench', '0\.1\.1'/)
   assert.match(script, /@anionex\/dsh-vision-toolkit', '0\.1\.8'/)
   assert.match(script, /--ignore-scripts/)
   assert.match(script, /userContentUsed: false/)
@@ -24,6 +25,18 @@ test('coding fixture calls exact openwolf tools before correction and tests', ()
   assert.match(script, /left - right/)
   assert.match(script, /left \+ right/)
   assert.match(script, /node-test-pass/)
+})
+
+test('Research fixture executes a provenance workflow without user data or network', () => {
+  for (const name of ['bio_set_projects_dir', 'bio_init_project', 'bio_run_cell', 'bio_add_feedback', 'bio_rerun_cell', 'bio_get_project']) {
+    assert.match(script, new RegExp(`'${name}'`))
+  }
+  assert.match(script, /officialGlobalToolPipeline/)
+  assert.match(script, /artifactHashesComplete: true/)
+  assert.match(script, /feedbackLineageRecorded: true/)
+  assert.match(script, /sourcePreserved: true/)
+  assert.match(script, /science-workbench-fixture-workflow-passed/)
+  assert.match(script, /networkCalled: false/)
 })
 
 test('UI fixture renders local HTML and enforces pixel-backed improvement', () => {
@@ -52,7 +65,7 @@ test('Registry hosted matrix runs and retains capability workflow evidence', () 
   assert.equal(packageJson.scripts['flow:verify-capability-workflows'], 'node scripts/verify-flow-capability-workflows.mjs')
   assert.match(workflow, /actions\/setup-python@v5/)
   assert.match(workflow, /pillow==12\.3\.0 numpy==2\.4\.6 vtracer==0\.6\.15/)
-  assert.match(workflow, /Verify corrected Coding and UI capability workflows/)
+  assert.match(workflow, /Verify corrected Coding, Research, and UI capability workflows/)
   assert.match(workflow, /DSH_FLOW_WORKFLOW_ALLOWED: hosted-ephemeral/)
   assert.match(workflow, /evidence\/flow-capability-workflows\/\*\*\/\*\.json/)
 })
