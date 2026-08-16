@@ -2,6 +2,14 @@
   "name": "@harness-flow/dsh-flow-hub",
   "version": "0.0.2-m0",
   "description": "Native in-DSH Flow Hub bootstrap and plugin transaction spike",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "harness-flow",
+    "agent-stack",
+    "plugin-registry"
+  ],
   "type": "module",
   "private": true,
   "main": "lib/index.js",
