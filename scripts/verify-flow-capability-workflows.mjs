@@ -386,8 +386,8 @@ export async function verifyResearch(home, workspace, options = {}) {
       })
       if (first.status !== 'ok' || first.artifacts.length < 3) {
         const safeStderr = String(first.stderrTail ?? '')
-          .replaceAll(/[A-Za-z]:[\\/][^\s;]+|\/(?:home|Users|tmp)\/[^\s;]+/g, '<redacted-path>')
-          .replaceAll(/\s+/g, ' ').trim().slice(0, 180)
+          .replaceAll(/(?<![A-Za-z])[A-Za-z]:[\\/][^\s;]+|\/(?:home|Users|tmp)\/[^\s;]+/g, '<redacted-path>')
+          .replaceAll(/\s+/g, ' ').trim().slice(-220)
         throw new Error(`science workbench initial evidence cell failed:status=${first.status};artifacts=${first.artifacts.length};stderr=${safeStderr || 'empty'}`)
       }
       const firstFigure = first.artifacts.find(path => path.endsWith('.svg'))
