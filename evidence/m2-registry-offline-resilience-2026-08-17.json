@@ -1,0 +1,83 @@
+{
+  "date": "2026-08-16T16:36:29.746Z",
+  "subject": "Installed DSH Profile and local management remain available while configured upstream Registry is unreachable",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0",
+    "dsh": "0.1.0-rc.6",
+    "profile": "isolated web"
+  },
+  "commands": [
+    "pnpm run ui:verify-registry-offline",
+    "dsh plugin --profile web add <trusted-tgz>",
+    "dsh --profile web --dump-config"
+  ],
+  "artifacts": {
+    "hub": {
+      "file": "artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz",
+      "sha256": "12da02547d9e867e7a0d27ee98abc3c67e87a7ee58d653f447820dfd66dc027c"
+    },
+    "fixture": {
+      "file": "artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz",
+      "sha256": "a62d6cca7c7ec0bfd436d559bd296c445b74d7fcc914e331d1d5f68972d09578"
+    }
+  },
+  "checks": {
+    "bootstrap": {
+      "status": "passed",
+      "compatibility": "compatible"
+    },
+    "upstreamRegistry": {
+      "status": "unreachable",
+      "addressRecorded": false
+    },
+    "bundledRegistryFallback": {
+      "status": "passed",
+      "offlineReady": true,
+      "pluginCount": 20
+    },
+    "installedProfileInventory": {
+      "status": "passed",
+      "installed": true
+    },
+    "localTasks": {
+      "status": "passed",
+      "http": 200
+    },
+    "bundledFlows": {
+      "status": "passed",
+      "count": 1
+    },
+    "localUpdate": {
+      "status": "passed",
+      "http": 200,
+      "phases": [
+        "preflight",
+        "snapshot",
+        "staging",
+        "install",
+        "dump-config",
+        "commit",
+        "relink",
+        "health",
+        "complete"
+      ]
+    },
+    "clientModule": {
+      "status": "passed",
+      "independentReads": true
+    },
+    "dumpConfig": {
+      "status": "passed",
+      "exitCode": 0
+    }
+  },
+  "privacy": {
+    "userProfileTouched": false,
+    "credentialsCaptured": false,
+    "privatePathsRecorded": false,
+    "registryAddressRecorded": false
+  },
+  "result": "passed"
+}

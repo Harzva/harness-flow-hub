@@ -13,6 +13,7 @@ Harness Flow Hub is an independent, community-built plugin Registry and Agent St
 - Structured install and rollback plans; the browser cannot submit arbitrary package names or shell commands.
 - Preflight checks for platform, DSH version, disk, network, credentials, and Registry signature.
 - Transactional Profile snapshot, staging, official `dsh plugin` execution, config validation, atomic commit, final-path relink, health check, recovery points, and rollback.
+- Offline-safe reads: an unreachable configured upstream Registry falls back to the versioned snapshot bundled with the Hub, while installed Profiles, recovery points, tasks, and local management remain independent.
 - Exact npm version, `.tgz`, GitHub commit SHA, and local-directory source adapters.
 - Real DSH lifecycle evidence for install, update, downgrade, remove, startup recovery, rollback, rollback undo, and injected failure recovery.
 - Signed immutable Registry prerelease and Windows/Linux CI evidence. macOS remains explicitly uncovered.

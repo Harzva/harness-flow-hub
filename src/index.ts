@@ -18,6 +18,7 @@ export const inject = ['webServer']
 export interface Config {
   profile?: string
   fixtureSpec?: string
+  registryUrl?: string
   dshHome?: string
   testFailAt?: string
   testDshVersion?: string
@@ -108,6 +109,30 @@ function resolveRegistry(): unknown {
   const hub = resolveHubPackage()
   if (hub.root === null) throw new Error('hub-package-unavailable')
   return JSON.parse(readFileSync(resolve(hub.root, 'registry/generated/registry.json'), 'utf8')) as unknown
+}
+
+type RegistryUpstreamState = 'not-configured' | 'reachable' | 'unreachable'
+
+export async function probeRegistryUpstream(value?: string): Promise<{ state: RegistryUpstreamState, checked: boolean }> {
+  const configured = value?.trim()
+  if (configured === undefined || configured === '') return { state: 'not-configured', checked: false }
+  let url: URL
+  try {
+    url = new URL(configured)
+  } catch {
+    return { state: 'unreachable', checked: true }
+  }
+  if (url.protocol !== 'https:' || url.username !== '' || url.password !== '') return { state: 'unreachable', checked: true }
+  try {
+    const response = await fetch(url, {
+      method: 'HEAD',
+      redirect: 'error',
+      signal: AbortSignal.timeout(2_500),
+    })
+    return { state: response.ok ? 'reachable' : 'unreachable', checked: true }
+  } catch {
+    return { state: 'unreachable', checked: true }
+  }
 }
 
 function resolveCompatibilitySnapshot(dshVersionOverride: string | null = null): CompatibilitySnapshot {
@@ -278,10 +303,23 @@ export function apply(ctx: Context, config: Config = {}): void {
       return
     }
     if (pathname === `${API_PATH}/registry` && req.method === 'GET') {
+      const upstream = await probeRegistryUpstream(config.registryUrl)
       try {
-        json(res, 200, { ok: true, registry: resolveRegistry() })
-      } catch (error) {
-        json(res, 503, { ok: false, error: error instanceof Error ? error.message : 'registry-unavailable' })
+        json(res, 200, {
+          ok: true,
+          registry: resolveRegistry(),
+          availability: {
+            catalog: 'bundled-snapshot',
+            upstream: upstream.state,
+            offlineReady: true,
+          },
+        })
+      } catch {
+        json(res, 503, {
+          ok: false,
+          error: 'registry-unavailable',
+          availability: { catalog: 'unavailable', upstream: upstream.state, offlineReady: false },
+        })
       }
       return
     }

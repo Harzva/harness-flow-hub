@@ -71,6 +71,8 @@ jobs:
         run: pnpm run ui:verify-bootstrap-compatibility
       - name: Verify native UI lifecycle and failed-transaction recovery
         run: pnpm run ui:verify-lifecycle
+      - name: Verify installed Profiles remain manageable while upstream Registry is unreachable
+        run: pnpm run ui:verify-registry-offline
       - name: Verify aggregate Flow transaction and deterministic Stack lock
         run: pnpm run transaction:verify-flow
       - uses: actions/upload-artifact@v4
@@ -81,4 +83,5 @@ jobs:
             registry/verifications-ci/${{ runner.os }}/*.json
             evidence/m2-bootstrap-recovery-modes-2026-08-16.json
             evidence/m2-native-ui-lifecycle-2026-08-16.json
+            evidence/m2-registry-offline-resilience-2026-08-17.json
             evidence/m2-flow-transaction-lifecycle-2026-08-16.json
