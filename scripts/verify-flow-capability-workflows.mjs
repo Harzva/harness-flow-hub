@@ -140,29 +140,83 @@ async function executeDefinition(definitions, name, args, workspace) {
   })
 }
 
-async function officialToolPipeline(packageRoot, definitions, workspace, action) {
+async function officialAgentToolPipeline(packageRoot, createDefinitions, workspace, action) {
   const packageRequire = createRequire(join(packageRoot, 'package.json'))
-  const [{ Context }, { SystemPrompt }, { ToolRuntime }] = await Promise.all([
+  const [{ Context }, { createScope }, { AgentRegistry }, { SystemPrompt }, { ToolRuntime, defineTool }, { VisionToolExposure }, skill] = await Promise.all([
     import(pathToFileURL(packageRequire.resolve('@deepseek-ai/cordis')).href),
+    import(pathToFileURL(packageRequire.resolve('@deepseek-ai/dsh-scope')).href),
+    import(pathToFileURL(packageRequire.resolve('@deepseek-ai/dsh-agent')).href),
     import(pathToFileURL(packageRequire.resolve('@deepseek-ai/dsh-system-prompt')).href),
     import(pathToFileURL(packageRequire.resolve('@deepseek-ai/dsh-tools')).href),
+    import(pathToFileURL(join(packageRoot, 'lib', 'exposure.js')).href),
+    import(pathToFileURL(join(packageRoot, 'lib', 'skill.js')).href),
   ])
   const root = new Context()
   const previousCwd = process.cwd()
+  await root.plugin(AgentRegistry)
   await root.plugin(SystemPrompt)
   await root.plugin(ToolRuntime, { mode: 'native' })
-  for (const definition of definitions) root.tools.register(definition)
+  function visionToolkitFixturePlugin() {}
+  visionToolkitFixturePlugin.inject = ['tools', 'agents']
+  const pluginFiber = root.plugin(visionToolkitFixturePlugin)
+  const pluginCtx = pluginFiber.ctx
+  const agent = {
+    id: 'fixture-vision-agent', status: 'idle', options: {},
+    session: { id: 'fixture-vision-agent', events: [], header: { id: 'fixture-vision-agent', cwd: workspace } },
+  }
+  const scope = createScope(pluginCtx, agent)
+  agent.ctx = scope.ctx.extend({ agent })
+  const exposure = new VisionToolExposure(pluginCtx, createDefinitions)
+  const disposeActivation = pluginCtx.tools.register(exposure.activationTool)
+  const disposeSkill = pluginCtx.tools.register(defineTool({
+    name: 'skill', description: 'Synthetic hosted fixture for exact bundled Skill activation.',
+    parameters: { name: { type: 'string', required: true } },
+    output: {
+      schema: {
+        type: 'object', additionalProperties: false,
+        properties: { name: { type: 'string', required: true }, content: { type: 'string', required: true } },
+      },
+      render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+    execute: args => {
+      if (args.name !== skill.VISION_TOOLS_SKILL_NAME) throw new Error('unexpected fixture Skill')
+      return { name: skill.VISION_TOOLS_SKILL_NAME, content: skill.VISION_TOOLS_SKILL_CONTENT }
+    },
+  }))
+  const disposeExposure = exposure.install()
+  const disposeAgent = pluginCtx.agents.register(agent)
   process.chdir(workspace)
   try {
-    return await action(async (name, args) => {
+    const execute = async (name, args) => {
       const result = await root.tools.execute({
         callId: `fixture-${name}`, name, arguments: args, signal: new AbortController().signal,
+        agent,
       })
       if (result.isError) throw new Error(`${name}: ${result.error.message}`)
       return result.value
+    }
+    const beforeActivation = await root.tools.execute({
+      callId: 'fixture-before-skill', name: 'vision_html_screenshot', arguments: {},
+      signal: new AbortController().signal, agent,
     })
+    if (!beforeActivation.isError) throw new Error('Agent-scoped visual tools were visible before Skill activation')
+    const loaded = await execute('skill', { name: skill.VISION_TOOLS_SKILL_NAME })
+    if (loaded.name !== skill.VISION_TOOLS_SKILL_NAME || loaded.content !== skill.VISION_TOOLS_SKILL_CONTENT) throw new Error('bundled vision Skill result drifted')
+    const value = await action(execute)
+    const hiddenActivation = await root.tools.execute({
+      callId: 'fixture-activation-hidden', name: 'vision_toolkit_activate', arguments: {},
+      signal: new AbortController().signal, agent,
+    })
+    if (!hiddenActivation.isError) throw new Error('activation bootstrap stayed visible after Agent-scoped activation')
+    return { value, agentScopedSkillActivation: true, toolsHiddenBeforeSkill: true, activationBootstrapHiddenAfterSkill: true }
   } finally {
     process.chdir(previousCwd)
+    disposeAgent()
+    disposeExposure()
+    disposeSkill()
+    disposeActivation()
+    await scope.dispose()
+    await pluginFiber.dispose()
     await root.fiber.dispose()
   }
 }
@@ -239,8 +293,7 @@ async function verifyUi(home, workspace) {
   const adapter = new UpstreamAdapter(runtimeCtx, config)
   await adapter.prepare()
   const runtime = new VisionToolkitRuntime(runtimeCtx, config, adapter)
-  const definitions = createVisionTools(runtime)
-  const pipeline = await officialToolPipeline(packageRoot, definitions, workspace, async execute => {
+  const pipeline = await officialAgentToolPipeline(packageRoot, () => createVisionTools(runtime), workspace, async execute => {
     const renderedInitial = await execute('vision_html_screenshot', { source: 'initial.html', width: 1200, height: 720, scale: 1, output: 'runner-initial.png' })
     const renderedFinal = await execute('vision_html_screenshot', { source: 'implementation.html', width: 1200, height: 720, scale: 1, output: 'runner-final.png' })
     const renderedInitialDiff = await execute('vision_pixel_diff', { original: 'reference.png', rebuilt: renderedInitial.artifact.path, grid: 8, top: 6, runName: 'runner-initial-diff' })
@@ -250,7 +303,7 @@ async function verifyUi(home, workspace) {
     return { renderedInitial, renderedFinal, renderedInitialDiff, renderedFinalDiff, canonicalInitialDiff, canonicalFinalDiff }
   })
 
-  const { renderedInitial, renderedFinal, renderedInitialDiff, renderedFinalDiff, canonicalInitialDiff, canonicalFinalDiff } = pipeline
+  const { renderedInitial, renderedFinal, renderedInitialDiff, renderedFinalDiff, canonicalInitialDiff, canonicalFinalDiff } = pipeline.value
 
   const runnerInitial = renderedInitialDiff.overallDifferencePct
   const runnerFinal = renderedFinalDiff.overallDifferencePct
@@ -263,14 +316,16 @@ async function verifyUi(home, workspace) {
   return {
     state: 'passed', package: '@anionex/dsh-vision-toolkit', version: '0.1.8',
     exactProfileInstall: true, lifecycleScriptsDisabled: true,
-    workflow: ['local-reference', 'vision_html_screenshot-initial', 'vision_pixel_diff-initial', 'vision_html_screenshot-final', 'vision_pixel_diff-final', 'numeric-acceptance'],
-    runtime: { python: 'available', dependencies, chromeFamily: 'available', nativeDefinitions: ['vision_html_screenshot', 'vision_pixel_diff'], officialToolRuntimePipeline: true },
+    workflow: ['tools-hidden-before-skill', 'vision-tools-skill', 'agent-scoped-activation', 'vision_html_screenshot-initial', 'vision_pixel_diff-initial', 'vision_html_screenshot-final', 'vision_pixel_diff-final', 'activation-bootstrap-hidden', 'numeric-acceptance'],
+    runtime: { python: 'available', dependencies, chromeFamily: 'available', nativeDefinitions: ['vision_html_screenshot', 'vision_pixel_diff'], officialToolRuntimePipeline: true, agentScopedSkillActivation: pipeline.agentScopedSkillActivation },
     canonical: { initialDifferencePct: canonicalInitial, finalDifferencePct: canonicalFinal },
     currentRunner: { initialDifferencePct: runnerInitial, finalDifferencePct: runnerFinal, improved: true },
     localOnly: true, externalVisionApiCalled: false, credentialConfigured: false,
     artifactsWrittenInsideSyntheticWorkspace: true, userContentUsed: false,
     nativeToolDefinitionsExecuted: true,
-    limitation: 'The exact package native tool definitions and official ToolRuntime pipeline executed; Agent-scoped Skill activation remains a separate gate.',
+    toolsHiddenBeforeSkill: pipeline.toolsHiddenBeforeSkill,
+    activationBootstrapHiddenAfterSkill: pipeline.activationBootstrapHiddenAfterSkill,
+    limitation: 'The exact package native tool definitions, official ToolRuntime pipeline, and Agent-scoped Skill activation executed; Research capability and full Flow installation remain separate gates.',
   }
 }
 
@@ -293,7 +348,7 @@ try {
     coding, ui, result: 'passed',
     capabilityDecision: {
       codingExpert: 'fixture-workflow-passed',
-      uiDesignStudio: 'native-tool-definition-workflow-passed-agent-scope-pending',
+      uiDesignStudio: 'agent-scoped-skill-and-tool-runtime-workflow-passed',
       registryVerificationStateChanged: false,
     },
   }
