@@ -103,6 +103,38 @@ test('Flow transaction creates one isolated headless Profile and writes the dete
   }
 })
 
+test('Flow transaction binds all post-install validation tasks into the committed Stack lock', async () => {
+  const fx = await fixture()
+  try {
+    const validations = fx.plan.stack.validations.map(item => ({ id: item.id, status: 'passed', evidence: `hosted-fixture:${item.id}` }))
+    const result = await executeFlowInstallPlan(fx.plan, options(fx, { validateFlow: async () => validations }))
+    assert.equal(result.ok, true)
+    assert.match(result.steps.find(item => item.step === 'boot-smoke')?.detail ?? '', /validation-tasks=/)
+    const lock = JSON.parse(await readFile(join(fx.home, 'profiles', fx.plan.profile.name, 'coding-expert.stack.lock.json'), 'utf8'))
+    assert.deepEqual(lock.validations, validations)
+  } finally {
+    await rm(fx.home, { recursive: true, force: true })
+  }
+})
+
+test('Flow transaction rolls back before commit when validation tasks fail or leak private paths', async () => {
+  for (const validations of [
+    [{ id: 'profile-dump-config', status: 'failed', evidence: 'fixture failure' }],
+    (await fixturePlan()).stack.validations.map(item => ({ id: item.id, status: 'passed', evidence: 'C:\\private\\evidence.json' })),
+  ]) {
+    const fx = await fixture()
+    try {
+      const result = await executeFlowInstallPlan(fx.plan, options(fx, { validateFlow: async () => validations }))
+      assert.equal(result.ok, false)
+      assert.match(result.error, /flow-validation-task-(?:set-mismatch|failed)|flow-validation-evidence-private-path/)
+      assert.equal(await exists(join(fx.home, 'profiles', fx.plan.profile.name)), false)
+      assert.equal(result.steps.find(item => item.step === 'rollback')?.status, 'passed')
+    } finally {
+      await rm(fx.home, { recursive: true, force: true })
+    }
+  }
+})
+
 test('Flow transaction failure injection at every stage leaves no target Profile', async () => {
   const plan = await fixturePlan()
   for (const step of plan.steps) {

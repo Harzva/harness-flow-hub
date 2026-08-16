@@ -168,6 +168,10 @@ jobs:
         run: pnpm run flow:verify-capability-workflows
         env:
           DSH_FLOW_WORKFLOW_ALLOWED: hosted-ephemeral
+      - name: Verify three signed Flow plans install from empty environments and pass their smoke workflows
+        run: pnpm run flow:verify-empty-environment
+        env:
+          DSH_FLOW_EMPTY_ENV_ALLOWED: hosted-ephemeral
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -175,4 +179,5 @@ jobs:
           path: |
             evidence/flow-dependency-runtime/**/*.json
             evidence/flow-capability-workflows/**/*.json
+            evidence/flow-empty-environment/**/*.json
           if-no-files-found: error

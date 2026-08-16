@@ -114,6 +114,7 @@ export interface FlowTransactionResult {
 export interface FlowTransactionOptions extends Omit<TransactionOptions, 'failAt'> {
   failAt?: FlowInstallPlan['steps'][number]
   bootSmoke: (profile: string, env: NodeJS.ProcessEnv) => Promise<CommandResult>
+  validateFlow?: (profile: string, env: NodeJS.ProcessEnv) => Promise<StackLock['validations']>
 }
 
 interface TransactionJournal {
@@ -664,6 +665,7 @@ export async function executeFlowInstallPlan(plan: FlowInstallPlan, options: Flo
   const run = options.run ?? ((args, env) => defaultRun(options.dshCli, args, env))
   let locked = false
   let committed = false
+  let completedStack = plan.stack
   const pass = (step: FlowInstallPlan['steps'][number], detail?: string): void => { steps.push({ step, status: 'passed', ...(detail ? { detail } : {}) }) }
   const failPoint = (step: FlowInstallPlan['steps'][number]): void => { if (options.failAt === step) throw new Error(`injected-failure:${step}`) }
   try {
@@ -720,7 +722,17 @@ export async function executeFlowInstallPlan(plan: FlowInstallPlan, options: Flo
 
     const smoke = await options.bootSmoke(stageProfile, { ...process.env, DSH_HOME: home })
     if (smoke.code !== 0) throw new Error(`flow-boot-smoke-failed:${smoke.code ?? 'spawn'}`)
-    failPoint('boot-smoke'); pass('boot-smoke')
+    if (options.validateFlow !== undefined) {
+      const validations = await options.validateFlow(stageProfile, { ...process.env, DSH_HOME: home })
+      const expectedIds = plan.stack.validations.map(item => item.id).sort()
+      const actualIds = validations.map(item => item.id).sort()
+      if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) throw new Error('flow-validation-task-set-mismatch')
+      if (validations.some(item => item.status !== 'passed' || item.evidence.trim() === '')) throw new Error('flow-validation-task-failed')
+      const serialized = JSON.stringify(validations)
+      if (/[A-Za-z]:[\\/]|\/(?:home|Users|tmp)\//.test(serialized)) throw new Error('flow-validation-evidence-private-path')
+      completedStack = { ...plan.stack, validations }
+    }
+    failPoint('boot-smoke'); pass('boot-smoke', options.validateFlow === undefined ? undefined : `validation-tasks=${completedStack.validations.length}`)
 
     await rm(join(stageDir, 'node_modules'), { recursive: true, force: true })
     await mkdir(profilesRoot, { recursive: true })
@@ -737,7 +749,7 @@ export async function executeFlowInstallPlan(plan: FlowInstallPlan, options: Flo
     if (finalSmoke.code !== 0) throw new Error(`flow-committed-profile-boot-failed:${finalSmoke.code ?? 'spawn'}`)
     failPoint('health'); pass('health', 'dump-config-and-boot-smoke-passed')
 
-    await atomicJson(stackLockPath, plan.stack satisfies StackLock)
+    await atomicJson(stackLockPath, completedStack satisfies StackLock)
     failPoint('write-stack-lock'); pass('write-stack-lock', `${plan.flow.id}.stack.lock.json`)
     await atomicJson(journalPath, flowJournal(plan, 'complete', options.now?.() ?? new Date()))
     return { ok: true, planId: plan.id, action: 'install-flow', profile: profileName, steps, stackLockPath, startedAt, finishedAt: (options.now?.() ?? new Date()).toISOString() }

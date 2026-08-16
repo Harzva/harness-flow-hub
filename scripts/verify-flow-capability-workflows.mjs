@@ -3,12 +3,8 @@ import { createHash } from 'node:crypto'
 import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve, sep } from 'node:path'
 import { createRequire } from 'node:module'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dshCliPath } from './dsh-cli-lib.mjs'
-
-if (process.env.GITHUB_ACTIONS !== 'true' || process.env.DSH_FLOW_WORKFLOW_ALLOWED !== 'hosted-ephemeral') {
-  throw new Error('Flow capability workflows are restricted to an explicitly enabled GitHub-hosted ephemeral runner')
-}
 
 const outputDir = resolve(process.argv[2] ?? `evidence/flow-capability-workflows/${process.platform}`)
 const runnerTemp = resolve(process.env.RUNNER_TEMP ?? '')
@@ -16,7 +12,7 @@ if (runnerTemp === resolve('')) throw new Error('RUNNER_TEMP is required')
 const verifierRoot = join(runnerTemp, 'harness-flow-capability-workflows')
 const cli = dshCliPath()
 
-function safeEnvironment(home) {
+export function safeEnvironment(home) {
   const allowed = [
     'PATH', 'Path', 'PATHEXT', 'SystemRoot', 'WINDIR', 'COMSPEC', 'TEMP', 'TMP', 'TMPDIR',
     'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'PROGRAMFILES', 'ProgramFiles', 'PROGRAMFILES(X86)',
@@ -86,12 +82,18 @@ function subprocessRuntime(home) {
   }
 }
 
-async function installExact(home, packageName, version) {
-  requireExit(runDsh(home, ['--profile', 'web', '--dump-default-config']), 'profile bootstrap')
-  requireExit(runDsh(home, ['plugin', '--profile', 'web', 'add', `${packageName}@${version}`, '--save-exact', '--ignore-scripts', '--reporter=silent']), `${packageName} install`)
-  const manifest = JSON.parse(await readFile(join(home, 'profiles', 'web', 'package.json'), 'utf8'))
+async function installExact(home, packageName, version, profile = 'web') {
+  requireExit(runDsh(home, ['--profile', profile, '--dump-default-config']), 'profile bootstrap')
+  requireExit(runDsh(home, ['plugin', '--profile', profile, 'add', `${packageName}@${version}`, '--save-exact', '--ignore-scripts', '--reporter=silent']), `${packageName} install`)
+  const manifest = JSON.parse(await readFile(join(home, 'profiles', profile, 'package.json'), 'utf8'))
   if (manifest.dependencies?.[packageName] !== version) throw new Error(`${packageName} exact dependency missing`)
-  requireExit(runDsh(home, ['--profile', 'web', '--dump-config']), `${packageName} dump-config`)
+  requireExit(runDsh(home, ['--profile', profile, '--dump-config']), `${packageName} dump-config`)
+}
+
+async function assertExactProfileInstall(home, profile, packageName, version) {
+  const manifest = JSON.parse(await readFile(join(home, 'profiles', profile, 'package.json'), 'utf8'))
+  if (manifest.dependencies?.[packageName] !== version) throw new Error(`${packageName} exact Flow dependency missing`)
+  requireExit(runDsh(home, ['--profile', profile, '--dump-config']), `${packageName} Flow dump-config`)
 }
 
 function openwolfConfig() {
@@ -297,8 +299,10 @@ async function officialGlobalToolPipeline(packageRoot, definitions, workspace, a
   }
 }
 
-async function verifyCoding(home, workspace) {
-  await installExact(home, 'dsh-openwolf', '0.9.1')
+export async function verifyCoding(home, workspace, options = {}) {
+  const profile = options.profile ?? 'web'
+  if (options.install === false) await assertExactProfileInstall(home, profile, 'dsh-openwolf', '0.9.1')
+  else await installExact(home, 'dsh-openwolf', '0.9.1', profile)
   await mkdir(join(workspace, 'src'), { recursive: true })
   await mkdir(join(workspace, 'test'), { recursive: true })
   await writeFile(join(workspace, 'package.json'), '{"name":"coding-flow-fixture","type":"module","scripts":{"test":"node --test"}}\n')
@@ -308,7 +312,7 @@ async function verifyCoding(home, workspace) {
   const initialTest = run(process.execPath, ['--test'], { cwd: workspace, env: safeEnvironment(home) })
   if (initialTest.status === 0) throw new Error('coding fixture must prove the initial defect')
 
-  const packageRoot = await realpath(join(home, 'profiles', 'web', 'node_modules', 'dsh-openwolf'))
+  const packageRoot = await realpath(join(home, 'profiles', profile, 'node_modules', 'dsh-openwolf'))
   const plugin = await import(pathToFileURL(join(packageRoot, 'lib', 'index.js')).href)
   const harness = workflowContext()
   const dispose = plugin.apply(harness.ctx, openwolfConfig())
@@ -328,7 +332,7 @@ async function verifyCoding(home, workspace) {
 
     return {
       state: 'passed', package: 'dsh-openwolf', version: '0.9.1',
-      exactProfileInstall: true, lifecycleScriptsDisabled: true,
+      exactProfileInstall: true, installedByFlowTransaction: options.install === false, lifecycleScriptsDisabled: true,
       workflow: ['initial-test-failure', 'wolf_refresh', 'wolf_map', 'wolf_file', 'bounded-source-correction', 'wolf_refresh', 'node-test-pass'],
       registeredTools: ['wolf_refresh', 'wolf_map', 'wolf_file'].every(name => harness.definitions.has(name)),
       initialDefectDetected: true, mappedFilesBefore: refreshedBefore.totalFiles,
@@ -340,10 +344,12 @@ async function verifyCoding(home, workspace) {
   }
 }
 
-async function verifyResearch(home, workspace) {
-  await installExact(home, 'dsh-science-workbench', '0.1.1')
+export async function verifyResearch(home, workspace, options = {}) {
+  const profile = options.profile ?? 'web'
+  if (options.install === false) await assertExactProfileInstall(home, profile, 'dsh-science-workbench', '0.1.1')
+  else await installExact(home, 'dsh-science-workbench', '0.1.1', profile)
   await mkdir(workspace, { recursive: true })
-  const packageRoot = await realpath(join(home, 'profiles', 'web', 'node_modules', 'dsh-science-workbench'))
+  const packageRoot = await realpath(join(home, 'profiles', profile, 'node_modules', 'dsh-science-workbench'))
   const services = {
     fs: boundedFileService(workspace),
     shell: boundedScienceShell(home, workspace),
@@ -400,7 +406,7 @@ async function verifyResearch(home, workspace) {
 
       return {
         state: 'passed', package: 'dsh-science-workbench', version: '0.1.1',
-        exactProfileInstall: true, lifecycleScriptsDisabled: true,
+        exactProfileInstall: true, installedByFlowTransaction: options.install === false, lifecycleScriptsDisabled: true,
         workflow: ['bio_set_projects_dir', 'bio_init_project', 'bio_run_cell', 'bio_add_feedback', 'bio_rerun_cell', 'bio_get_project'],
         officialToolRuntimePipeline: true, registeredTools: requiredTools,
         initialCellPassed: true, derivedRerunPassed: true,
@@ -415,9 +421,11 @@ async function verifyResearch(home, workspace) {
   }
 }
 
-async function verifyUi(home, workspace) {
-  await installExact(home, '@anionex/dsh-vision-toolkit', '0.1.8')
-  const packageRoot = await realpath(join(home, 'profiles', 'web', 'node_modules', '@anionex', 'dsh-vision-toolkit'))
+export async function verifyUi(home, workspace, options = {}) {
+  const profile = options.profile ?? 'web'
+  if (options.install === false) await assertExactProfileInstall(home, profile, '@anionex/dsh-vision-toolkit', '0.1.8')
+  else await installExact(home, '@anionex/dsh-vision-toolkit', '0.1.8', profile)
+  const packageRoot = await realpath(join(home, 'profiles', profile, 'node_modules', '@anionex', 'dsh-vision-toolkit'))
   const example = join(packageRoot, 'examples', 'ui-restoration')
   const packagedUpstreamRoot = join(packageRoot, 'vendor', 'agent-vision-toolkit')
   await mkdir(workspace, { recursive: true })
@@ -466,7 +474,7 @@ async function verifyUi(home, workspace) {
 
   return {
     state: 'passed', package: '@anionex/dsh-vision-toolkit', version: '0.1.8',
-    exactProfileInstall: true, lifecycleScriptsDisabled: true,
+    exactProfileInstall: true, installedByFlowTransaction: options.install === false, lifecycleScriptsDisabled: true,
     workflow: ['tools-hidden-before-skill', 'vision-tools-skill', 'agent-scoped-activation', 'vision_html_screenshot-initial', 'vision_pixel_diff-initial', 'vision_html_screenshot-final', 'vision_pixel_diff-final', 'activation-bootstrap-hidden', 'numeric-acceptance'],
     runtime: { python: 'available', dependencies, chromeFamily: 'available', nativeDefinitions: ['vision_html_screenshot', 'vision_pixel_diff'], officialToolRuntimePipeline: true, agentScopedSkillActivation: pipeline.agentScopedSkillActivation },
     canonical: { initialDifferencePct: canonicalInitial, finalDifferencePct: canonicalFinal },
@@ -480,43 +488,50 @@ async function verifyUi(home, workspace) {
   }
 }
 
-await mkdir(verifierRoot, { recursive: true })
-await mkdir(outputDir, { recursive: true })
-const root = await mkdtemp(join(verifierRoot, 'run-'))
-let result
-try {
-  const codingHome = join(root, 'coding-home')
-  const researchHome = join(root, 'research-home')
-  const uiHome = join(root, 'ui-home')
-  await mkdir(codingHome, { recursive: true })
-  await mkdir(researchHome, { recursive: true })
-  await mkdir(uiHome, { recursive: true })
-  const coding = await verifyCoding(codingHome, join(root, 'coding-workspace'))
-  const research = await verifyResearch(researchHome, join(root, 'research-workspace'))
-  const ui = await verifyUi(uiHome, join(root, 'ui-workspace'))
-  result = {
-    schemaVersion: 1, verifiedAt: new Date().toISOString(),
-    subject: 'Corrected Coding, Research, and UI Flow capability workflows on exact npm artifacts',
-    environment: { os: process.platform, arch: process.arch, node: process.version, dsh: '0.1.0-rc.6', runner: 'github-hosted-ephemeral' },
-    isolation: { freshDshHomePerFlow: true, childEnvironmentAllowlisted: true, repositorySecretsForwarded: false, privatePathsRecorded: false },
-    coding, research, ui, result: 'passed',
-    capabilityDecision: {
-      codingExpert: 'fixture-workflow-passed',
-      researchExpert: 'science-workbench-fixture-workflow-passed',
-      uiDesignStudio: 'agent-scoped-skill-and-tool-runtime-workflow-passed',
-      registryVerificationStateChanged: false,
-    },
+async function main() {
+  if (process.env.GITHUB_ACTIONS !== 'true' || process.env.DSH_FLOW_WORKFLOW_ALLOWED !== 'hosted-ephemeral') {
+    throw new Error('Flow capability workflows are restricted to an explicitly enabled GitHub-hosted ephemeral runner')
   }
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error)
-  result = { schemaVersion: 1, verifiedAt: new Date().toISOString(), subject: 'Corrected Coding, Research, and UI Flow capability workflows on exact npm artifacts', environment: { os: process.platform, arch: process.arch, node: process.version, dsh: '0.1.0-rc.6', runner: 'github-hosted-ephemeral' }, result: 'failed', error: message.replaceAll(/[A-Za-z]:[\\/][^\s;]+|\/(?:home|Users|tmp)\/[^\s;]+/g, '<redacted-path>').slice(0, 300) }
-} finally {
-  const resolvedRoot = resolve(root)
-  if (!resolvedRoot.startsWith(`${resolve(verifierRoot)}${sep}`)) throw new Error('refusing to remove capability verifier path outside guarded root')
-  await rm(resolvedRoot, { recursive: true, force: true, maxRetries: 8, retryDelay: 250 })
+  await mkdir(verifierRoot, { recursive: true })
+  await mkdir(outputDir, { recursive: true })
+  const root = await mkdtemp(join(verifierRoot, 'run-'))
+  let result
+  try {
+    const codingHome = join(root, 'coding-home')
+    const researchHome = join(root, 'research-home')
+    const uiHome = join(root, 'ui-home')
+    await mkdir(codingHome, { recursive: true })
+    await mkdir(researchHome, { recursive: true })
+    await mkdir(uiHome, { recursive: true })
+    const coding = await verifyCoding(codingHome, join(root, 'coding-workspace'))
+    const research = await verifyResearch(researchHome, join(root, 'research-workspace'))
+    const ui = await verifyUi(uiHome, join(root, 'ui-workspace'))
+    result = {
+      schemaVersion: 1, verifiedAt: new Date().toISOString(),
+      subject: 'Corrected Coding, Research, and UI Flow capability workflows on exact npm artifacts',
+      environment: { os: process.platform, arch: process.arch, node: process.version, dsh: '0.1.0-rc.6', runner: 'github-hosted-ephemeral' },
+      isolation: { freshDshHomePerFlow: true, childEnvironmentAllowlisted: true, repositorySecretsForwarded: false, privatePathsRecorded: false },
+      coding, research, ui, result: 'passed',
+      capabilityDecision: {
+        codingExpert: 'fixture-workflow-passed',
+        researchExpert: 'science-workbench-fixture-workflow-passed',
+        uiDesignStudio: 'agent-scoped-skill-and-tool-runtime-workflow-passed',
+        registryVerificationStateChanged: false,
+      },
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    result = { schemaVersion: 1, verifiedAt: new Date().toISOString(), subject: 'Corrected Coding, Research, and UI Flow capability workflows on exact npm artifacts', environment: { os: process.platform, arch: process.arch, node: process.version, dsh: '0.1.0-rc.6', runner: 'github-hosted-ephemeral' }, result: 'failed', error: message.replaceAll(/[A-Za-z]:[\\/][^\s;]+|\/(?:home|Users|tmp)\/[^\s;]+/g, '<redacted-path>').slice(0, 300) }
+  } finally {
+    const resolvedRoot = resolve(root)
+    if (!resolvedRoot.startsWith(`${resolve(verifierRoot)}${sep}`)) throw new Error('refusing to remove capability verifier path outside guarded root')
+    await rm(resolvedRoot, { recursive: true, force: true, maxRetries: 8, retryDelay: 250 })
+  }
+
+  const output = join(outputDir, `m3-flow-capability-workflows-${process.platform}-2026-08-17.json`)
+  await writeFile(output, `${JSON.stringify(result, null, 2)}\n`, 'utf8')
+  process.stdout.write(`${JSON.stringify({ ok: result.result === 'passed', output: basename(output) })}\n`)
+  if (result.result !== 'passed') process.exitCode = 1
 }
 
-const output = join(outputDir, `m3-flow-capability-workflows-${process.platform}-2026-08-17.json`)
-await writeFile(output, `${JSON.stringify(result, null, 2)}\n`, 'utf8')
-process.stdout.write(`${JSON.stringify({ ok: result.result === 'passed', output: basename(output) })}\n`)
-if (result.result !== 'passed') process.exitCode = 1
+if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === resolve(process.argv[1])) await main()

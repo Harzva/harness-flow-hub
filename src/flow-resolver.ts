@@ -62,7 +62,7 @@ export interface StackLock {
   flow: { id: string, version: string, variant: FlowVariantName, digest: string }
   packages: Array<{ package: string, version: string, source: string, integrity: string, commit?: string }>
   configDigest: string
-  validations: Array<{ id: string, status: 'skipped', evidence: string }>
+  validations: Array<{ id: string, status: 'passed' | 'failed' | 'skipped', evidence: string }>
 }
 
 export interface FlowInstallPlan {
