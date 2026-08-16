@@ -1,6 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process'
 import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises'
 import { basename, join, resolve, sep } from 'node:path'
+import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
 import { dshCliPath } from './dsh-cli-lib.mjs'
 
@@ -139,14 +140,31 @@ async function executeDefinition(definitions, name, args, workspace) {
   })
 }
 
-async function executeNativeDefinition(definition, args, workspace) {
-  if (definition === undefined) throw new Error('native visual tool definition is missing')
-  return definition.execute(args, {
-    callId: `fixture-${definition.name}`, name: definition.name, arguments: args,
-    signal: new AbortController().signal,
-    agent: { session: { header: { id: 'fixture-vision-session', cwd: workspace } } },
-    deferContext() {},
-  })
+async function officialToolPipeline(packageRoot, definitions, workspace, action) {
+  const packageRequire = createRequire(join(packageRoot, 'package.json'))
+  const [{ Context }, { SystemPrompt }, { ToolRuntime }] = await Promise.all([
+    import(pathToFileURL(packageRequire.resolve('@deepseek-ai/cordis')).href),
+    import(pathToFileURL(packageRequire.resolve('@deepseek-ai/dsh-system-prompt')).href),
+    import(pathToFileURL(packageRequire.resolve('@deepseek-ai/dsh-tools')).href),
+  ])
+  const root = new Context()
+  const previousCwd = process.cwd()
+  await root.plugin(SystemPrompt)
+  await root.plugin(ToolRuntime, { mode: 'native' })
+  for (const definition of definitions) root.tools.register(definition)
+  process.chdir(workspace)
+  try {
+    return await action(async (name, args) => {
+      const result = await root.tools.execute({
+        callId: `fixture-${name}`, name, arguments: args, signal: new AbortController().signal,
+      })
+      if (result.isError) throw new Error(`${name}: ${result.error.message}`)
+      return result.value
+    })
+  } finally {
+    process.chdir(previousCwd)
+    await root.fiber.dispose()
+  }
 }
 
 async function verifyCoding(home, workspace) {
@@ -221,15 +239,18 @@ async function verifyUi(home, workspace) {
   const adapter = new UpstreamAdapter(runtimeCtx, config)
   await adapter.prepare()
   const runtime = new VisionToolkitRuntime(runtimeCtx, config, adapter)
-  const definitions = new Map(createVisionTools(runtime).map(definition => [definition.name, definition]))
-  const htmlScreenshot = definitions.get('vision_html_screenshot')
-  const pixelDiff = definitions.get('vision_pixel_diff')
-  const renderedInitial = await executeNativeDefinition(htmlScreenshot, { source: 'initial.html', width: 1200, height: 720, scale: 1, output: 'runner-initial.png' }, workspace)
-  const renderedFinal = await executeNativeDefinition(htmlScreenshot, { source: 'implementation.html', width: 1200, height: 720, scale: 1, output: 'runner-final.png' }, workspace)
-  const renderedInitialDiff = await executeNativeDefinition(pixelDiff, { original: 'reference.png', rebuilt: renderedInitial.artifact.path, grid: 8, top: 6, runName: 'runner-initial-diff' }, workspace)
-  const renderedFinalDiff = await executeNativeDefinition(pixelDiff, { original: 'reference.png', rebuilt: renderedFinal.artifact.path, grid: 8, top: 6, runName: 'runner-final-diff' }, workspace)
-  const canonicalInitialDiff = await executeNativeDefinition(pixelDiff, { original: 'reference.png', rebuilt: 'initial.png', grid: 8, top: 6, runName: 'canonical-initial-diff' }, workspace)
-  const canonicalFinalDiff = await executeNativeDefinition(pixelDiff, { original: 'reference.png', rebuilt: 'implementation.png', grid: 8, top: 6, runName: 'canonical-final-diff' }, workspace)
+  const definitions = createVisionTools(runtime)
+  const pipeline = await officialToolPipeline(packageRoot, definitions, workspace, async execute => {
+    const renderedInitial = await execute('vision_html_screenshot', { source: 'initial.html', width: 1200, height: 720, scale: 1, output: 'runner-initial.png' })
+    const renderedFinal = await execute('vision_html_screenshot', { source: 'implementation.html', width: 1200, height: 720, scale: 1, output: 'runner-final.png' })
+    const renderedInitialDiff = await execute('vision_pixel_diff', { original: 'reference.png', rebuilt: renderedInitial.artifact.path, grid: 8, top: 6, runName: 'runner-initial-diff' })
+    const renderedFinalDiff = await execute('vision_pixel_diff', { original: 'reference.png', rebuilt: renderedFinal.artifact.path, grid: 8, top: 6, runName: 'runner-final-diff' })
+    const canonicalInitialDiff = await execute('vision_pixel_diff', { original: 'reference.png', rebuilt: 'initial.png', grid: 8, top: 6, runName: 'canonical-initial-diff' })
+    const canonicalFinalDiff = await execute('vision_pixel_diff', { original: 'reference.png', rebuilt: 'implementation.png', grid: 8, top: 6, runName: 'canonical-final-diff' })
+    return { renderedInitial, renderedFinal, renderedInitialDiff, renderedFinalDiff, canonicalInitialDiff, canonicalFinalDiff }
+  })
+
+  const { renderedInitial, renderedFinal, renderedInitialDiff, renderedFinalDiff, canonicalInitialDiff, canonicalFinalDiff } = pipeline
 
   const runnerInitial = renderedInitialDiff.overallDifferencePct
   const runnerFinal = renderedFinalDiff.overallDifferencePct
@@ -243,13 +264,13 @@ async function verifyUi(home, workspace) {
     state: 'passed', package: '@anionex/dsh-vision-toolkit', version: '0.1.8',
     exactProfileInstall: true, lifecycleScriptsDisabled: true,
     workflow: ['local-reference', 'vision_html_screenshot-initial', 'vision_pixel_diff-initial', 'vision_html_screenshot-final', 'vision_pixel_diff-final', 'numeric-acceptance'],
-    runtime: { python: 'available', dependencies, chromeFamily: 'available', nativeDefinitions: ['vision_html_screenshot', 'vision_pixel_diff'] },
+    runtime: { python: 'available', dependencies, chromeFamily: 'available', nativeDefinitions: ['vision_html_screenshot', 'vision_pixel_diff'], officialToolRuntimePipeline: true },
     canonical: { initialDifferencePct: canonicalInitial, finalDifferencePct: canonicalFinal },
     currentRunner: { initialDifferencePct: runnerInitial, finalDifferencePct: runnerFinal, improved: true },
     localOnly: true, externalVisionApiCalled: false, credentialConfigured: false,
     artifactsWrittenInsideSyntheticWorkspace: true, userContentUsed: false,
     nativeToolDefinitionsExecuted: true,
-    limitation: 'The exact package native tool definitions and runtime executed; Agent-scoped Skill activation through the official ToolRuntime pipeline remains a separate gate.',
+    limitation: 'The exact package native tool definitions and official ToolRuntime pipeline executed; Agent-scoped Skill activation remains a separate gate.',
   }
 }
 

@@ -32,9 +32,13 @@ test('UI fixture renders local HTML and enforces pixel-backed improvement', () =
   assert.match(script, /new UpstreamAdapter/)
   assert.match(script, /new VisionToolkitRuntime/)
   assert.match(script, /createVisionTools\(runtime\)/)
+  assert.match(script, /root\.plugin\(ToolRuntime/)
+  assert.match(script, /officialToolPipeline/)
+  assert.match(script, /root\.tools\.execute/)
+  assert.match(script, /officialToolRuntimePipeline: true/)
   assert.match(script, /canonicalInitial < 1 \|\| canonicalFinal > 0\.02/)
   assert.match(script, /runnerFinal < runnerInitial/)
-  assert.match(script, /Agent-scoped Skill activation through the official ToolRuntime pipeline remains a separate gate/)
+  assert.match(script, /Agent-scoped Skill activation remains a separate gate/)
 })
 
 test('Registry hosted matrix runs and retains capability workflow evidence', () => {
