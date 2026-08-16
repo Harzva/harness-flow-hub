@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness-flow.dev/schemas/registry-revocations.schema.json",
+  "title": "Harness Flow Hub Registry Revocations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "updatedAt", "revokedKeyIds", "revokedRegistryVersions"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "revokedKeyIds": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "revokedRegistryVersions": { "type": "array", "uniqueItems": true, "items": { "type": "string" } }
+  }
+}

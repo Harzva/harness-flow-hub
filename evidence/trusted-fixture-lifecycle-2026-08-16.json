@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "subject": "@harness-flow/hello-bundle",
+  "state": "passed",
+  "verifiedAt": "2026-08-16T09:45:36.215Z",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0",
+    "dsh": "0.1.0-rc.6"
+  },
+  "checks": [
+    {
+      "id": "profile-bootstrap",
+      "status": "passed"
+    },
+    {
+      "id": "install",
+      "status": "passed"
+    },
+    {
+      "id": "dump-config",
+      "status": "passed"
+    },
+    {
+      "id": "boot-and-health",
+      "status": "passed",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "uninstall",
+      "status": "passed"
+    },
+    {
+      "id": "snapshot-recovery",
+      "status": "passed",
+      "detail": "package.json and pnpm-lock.yaml restored byte-for-byte"
+    }
+  ],
+  "evidence": [
+    "evidence/trusted-fixture-lifecycle-2026-08-16.json"
+  ]
+}

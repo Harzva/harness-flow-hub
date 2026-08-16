@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "subject": "anionex--dsh-vision-toolkit",
+  "state": "failed",
+  "verifiedAt": "2026-08-16T09:30:11.991Z",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0",
+    "dsh": "0.1.0-rc.6"
+  },
+  "checks": [
+    {
+      "id": "profile-bootstrap",
+      "status": "passed"
+    },
+    {
+      "id": "package-installation-flow",
+      "status": "failed",
+      "detail": "package installation failed"
+    }
+  ],
+  "evidence": [
+    "registry/verifications/anionex--dsh-vision-toolkit.json"
+  ]
+}

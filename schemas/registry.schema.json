@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness-flow.dev/schemas/registry.schema.json",
+  "title": "Harness Flow Hub Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "registryVersion", "generatedFrom", "plugins", "flows"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registryVersion": { "type": "string", "pattern": "^[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}-alpha\\.[0-9]+$" },
+    "generatedFrom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "asOf", "sha256"],
+      "properties": {
+        "kind": { "type": "string" },
+        "asOf": { "type": "string", "format": "date" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "plugins": {
+      "type": "array",
+      "items": { "$ref": "plugin-record.schema.json" }
+    },
+    "flows": {
+      "type": "array",
+      "items": { "$ref": "flow-record.schema.json" }
+    }
+  }
+}

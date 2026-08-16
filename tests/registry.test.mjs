@@ -1,0 +1,119 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { execFileSync, spawnSync } from 'node:child_process'
+import { generateKeyPairSync } from 'node:crypto'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+import { auditCandidateMetadata, entryUrl } from '../scripts/candidate-audit-lib.mjs'
+import { signRegistry, verifyRegistrySignature } from '../scripts/registry-signature-lib.mjs'
+import { resolveVerificationState, VERIFICATION_STATES } from '../scripts/verification-state-lib.mjs'
+
+const input = resolve('registry/discovery/github-topic-2026-08-16.json')
+
+test('candidate metadata audit validates manifest, entry, license, scripts and pinned source', () => {
+  const candidate = {
+    source: {
+      kind: 'github-sha',
+      spec: 'github:owner/repo#0123456789abcdef0123456789abcdef01234567',
+      commit: '0123456789abcdef0123456789abcdef01234567',
+    },
+    repository: 'owner/repo',
+    license: 'MIT',
+    package: {
+      name: '@owner/plugin',
+      version: '1.2.3',
+      bundlePatch: './cordis.patch.yml',
+      scripts: { build: 'tsc' },
+    },
+  }
+  assert.equal(auditCandidateMetadata(candidate).every(item => item.status === 'passed'), true)
+  assert.equal(entryUrl(candidate), 'https://raw.githubusercontent.com/owner/repo/0123456789abcdef0123456789abcdef01234567/cordis.patch.yml')
+  candidate.package.bundlePatch = '../outside.yml'
+  assert.equal(auditCandidateMetadata(candidate).find(item => item.id === 'bundle-entry-declared').status, 'failed')
+})
+
+test('candidate snapshot has 20 pinned/disclosed records from GitHub and npm', async () => {
+  const snapshot = JSON.parse(await readFile(input, 'utf8'))
+  assert.equal(snapshot.candidates.length, 20)
+  const kinds = new Map()
+  for (const candidate of snapshot.candidates) {
+    kinds.set(candidate.source.kind, (kinds.get(candidate.source.kind) ?? 0) + 1)
+    if (candidate.source.kind === 'github-sha') assert.match(candidate.source.commit, /^[a-f0-9]{40}$/)
+    if (candidate.source.kind === 'npm') assert.match(candidate.source.integrity, /^sha512-/)
+  }
+  assert.ok((kinds.get('github-sha') ?? 0) > 0)
+  assert.ok((kinds.get('npm') ?? 0) > 0)
+})
+
+test('same discovery input generates byte-identical valid registry', async () => {
+  const temp = await mkdtemp(join(tmpdir(), 'flow-hub-registry-'))
+  try {
+    const one = join(temp, 'one.json')
+    const two = join(temp, 'two.json')
+    execFileSync(process.execPath, ['scripts/generate-registry.mjs', input, one])
+    execFileSync(process.execPath, ['scripts/generate-registry.mjs', input, two])
+    assert.deepEqual(await readFile(one), await readFile(two))
+    execFileSync(process.execPath, ['scripts/validate-registry.mjs', one])
+  } finally {
+    await rm(temp, { recursive: true, force: true })
+  }
+})
+
+test('invalid verification state is blocked from registry publication', async () => {
+  const temp = await mkdtemp(join(tmpdir(), 'flow-hub-invalid-registry-'))
+  try {
+    const target = join(temp, 'invalid.json')
+    const registry = JSON.parse(await readFile(resolve('registry/generated/registry.json'), 'utf8'))
+    registry.plugins[0].verification.state = 'trusted'
+    await writeFile(target, JSON.stringify(registry), 'utf8')
+    const result = spawnSync(process.execPath, ['scripts/validate-registry.mjs', target], { encoding: 'utf8' })
+    assert.notEqual(result.status, 0)
+    assert.match(result.stderr, /must be equal to one of the allowed values/)
+  } finally {
+    await rm(temp, { recursive: true, force: true })
+  }
+})
+
+test('verification schema exposes exactly five explicit trust states', async () => {
+  const schema = JSON.parse(await readFile(resolve('schemas/verification-result.schema.json'), 'utf8'))
+  assert.deepEqual(schema.properties.state.enum, ['unknown', 'unverified', 'passed', 'failed', 'stale'])
+})
+
+test('verification states are operational and stale derivation is deterministic', () => {
+  assert.deepEqual(VERIFICATION_STATES, ['unknown', 'unverified', 'passed', 'failed', 'stale'])
+  assert.equal(resolveVerificationState(undefined, { asOf: '2026-08-16' }), 'unverified')
+  assert.equal(resolveVerificationState({ state: 'unknown' }, { asOf: '2026-08-16' }), 'unknown')
+  assert.equal(resolveVerificationState({ state: 'failed' }, { asOf: '2026-08-16' }), 'failed')
+  assert.equal(resolveVerificationState({ state: 'passed', verifiedAt: '2026-08-10T00:00:00.000Z' }, { asOf: '2026-08-16' }), 'passed')
+  assert.equal(resolveVerificationState({ state: 'passed', verifiedAt: '2026-06-01T00:00:00.000Z' }, { asOf: '2026-08-16' }), 'stale')
+  assert.throws(() => resolveVerificationState({ state: 'trusted' }, { asOf: '2026-08-16' }), /invalid verification state/)
+})
+
+test('platform matrix configures Windows and Linux while disclosing macOS as uncovered', async () => {
+  const support = JSON.parse(await readFile(resolve('registry/platform-support.json'), 'utf8'))
+  assert.equal(support.platforms.win32.worker, 'implemented')
+  assert.equal(support.platforms.linux.worker, 'configured')
+  assert.equal(support.platforms.darwin.worker, 'not-covered')
+  assert.equal(support.platforms.linux.currentEvidence, null)
+  assert.equal(support.platforms.darwin.currentEvidence, null)
+})
+
+test('detached registry signature fails closed for tampering, expiry and revocation', async () => {
+  const registryText = await readFile(resolve('registry/generated/registry.json'), 'utf8')
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519')
+  const envelope = signRegistry(registryText, privateKey, {
+    keyId: 'alpha-test-key',
+    createdAt: '2026-08-16T00:00:00.000Z',
+    expiresAt: '2026-08-17T00:00:00.000Z',
+  })
+  const options = { now: '2026-08-16T12:00:00.000Z', revocations: { revokedKeyIds: [], revokedRegistryVersions: [] } }
+  assert.deepEqual(verifyRegistrySignature(registryText, envelope, publicKey, options), { ok: true, reason: 'verified' })
+  assert.equal(verifyRegistrySignature(`${registryText} `, envelope, publicKey, options).reason, 'hash-mismatch')
+  assert.equal(verifyRegistrySignature(registryText, envelope, publicKey, { ...options, now: '2026-08-18T00:00:00.000Z' }).reason, 'expired')
+  assert.equal(verifyRegistrySignature(registryText, { ...envelope, expiresAt: 'invalid' }, publicKey, options).reason, 'invalid-validity-window')
+  assert.equal(verifyRegistrySignature(registryText, envelope, publicKey, {
+    ...options,
+    revocations: { revokedKeyIds: ['alpha-test-key'], revokedRegistryVersions: [] },
+  }).reason, 'key-revoked')
+})

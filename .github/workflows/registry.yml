@@ -1,0 +1,60 @@
+name: Registry contract
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run registry:audit-candidates
+      - run: pnpm run registry:generate
+      - run: pnpm run registry:validate
+      - run: pnpm check
+      - name: Generated registry must be committed and deterministic
+        shell: pwsh
+        run: git diff --exit-code -- registry/generated/registry.json
+
+  install-transaction:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm add --global @deepseek-ai/dsh@0.1.0-rc.6
+      - name: Locate the official DSH package
+        shell: pwsh
+        run: |
+          $root = pnpm root --global
+          "DSH_PACKAGE_ROOT=$root/@deepseek-ai/dsh" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "DSH_VERSION=0.1.0-rc.6" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Verify one package transaction without running third-party code
+        run: node scripts/verify-installations.mjs registry/generated/registry.json registry/verifications-ci/${{ runner.os }} 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: registry-install-transaction-${{ runner.os }}
+          path: registry/verifications-ci/${{ runner.os }}/*.json

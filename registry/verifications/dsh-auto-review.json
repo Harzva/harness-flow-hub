@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "subject": "dsh-auto-review",
+  "state": "failed",
+  "verifiedAt": "2026-08-16T09:25:34.032Z",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0",
+    "dsh": "0.1.0-rc.6"
+  },
+  "checks": [
+    {
+      "id": "profile-bootstrap",
+      "status": "passed"
+    },
+    {
+      "id": "package-install",
+      "status": "passed",
+      "detail": "lifecycle scripts disabled"
+    },
+    {
+      "id": "dependency-recorded",
+      "status": "passed"
+    },
+    {
+      "id": "package-installation-flow",
+      "status": "failed",
+      "detail": "package removal failed"
+    }
+  ],
+  "evidence": [
+    "registry/verifications/dsh-auto-review.json"
+  ]
+}

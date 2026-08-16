@@ -1,0 +1,99 @@
+{
+  "milestone": "M1-partial",
+  "date": "2026-08-16",
+  "registryVersion": "2026.08.16-alpha.1",
+  "discovery": {
+    "candidates": 20,
+    "githubSha": 10,
+    "npmExact": 10,
+    "snapshot": "registry/discovery/github-topic-2026-08-16.json",
+    "discoveryIsTrust": false
+  },
+  "windowsInstallationWorker": {
+    "attempted": 18,
+    "installAndRemovePassed": 10,
+    "failed": 8,
+    "lifecycleScriptsDisabled": true,
+    "thirdPartyBootExecuted": false,
+    "bootSkipReason": "No OS-level sandbox was available; successful package transactions remain unverified.",
+    "passedSubjects": [
+      "dsh-any-background",
+      "dsh-frontend-tools-bridge",
+      "dsh-mnemon",
+      "dsh-plug-manager",
+      "dsh-plugin-writing-guard",
+      "dsh-pocket",
+      "dsh-science-workbench",
+      "dsh-vision-router",
+      "dshmarket",
+      "liustack--modlens"
+    ]
+  },
+  "candidateAudit": {
+    "report": "registry/audits/candidates-2026-08-16.json",
+    "candidates": 20,
+    "passed": 20,
+    "failed": 0,
+    "checks": [
+      "manifest-name",
+      "manifest-version",
+      "bundle-entry-declared",
+      "bundle-entry-exists",
+      "license-disclosed",
+      "lifecycle-scripts-disclosed",
+      "source-pinned"
+    ]
+  },
+  "platformMatrix": {
+    "win32": "implemented-with-current-local-evidence",
+    "linux": "configured-in-hosted-ci-without-current-run-evidence",
+    "darwin": "not-covered",
+    "manifest": "registry/platform-support.json"
+  },
+  "signatureProtocol": {
+    "algorithm": "Ed25519",
+    "format": "detached",
+    "expiryFailClosed": true,
+    "keyRevocationFailClosed": true,
+    "registryVersionRevocationFailClosed": true,
+    "productionKeyCreated": false,
+    "publishedSignature": false
+  },
+  "trustedFixtureLifecycle": {
+    "subject": "@harness-flow/hello-bundle",
+    "install": "passed",
+    "dumpConfig": "passed",
+    "bootAndHealth": "HTTP 200",
+    "uninstall": "passed",
+    "snapshotRecovery": "package.json and pnpm-lock.yaml restored byte-for-byte",
+    "evidence": "evidence/trusted-fixture-lifecycle-2026-08-16.json"
+  },
+  "generatedRegistry": {
+    "path": "registry/generated/registry.json",
+    "plugins": 20,
+    "states": {
+      "unverified": 12,
+      "failed": 8
+    },
+    "sourceCompositeSha256": "17bc6972758ff57f93e40f890d5b43e7158ba70a8ee675b8be943abc5bf21fbc",
+    "fileSha256": "b7ebdbfe0b82c6df20fa5315aa07e76ebb71fdf6d2bc2d0cf460123c2ddba3ff",
+    "secondGenerationFileSha256": "b7ebdbfe0b82c6df20fa5315aa07e76ebb71fdf6d2bc2d0cf460123c2ddba3ff",
+    "deterministic": true
+  },
+  "quality": {
+    "tests": 11,
+    "passed": 11,
+    "failed": 0,
+    "invalidVerificationStateBlocked": true,
+    "staleStateDerivedDeterministically": true,
+    "fiveTrustStates": ["unknown", "unverified", "passed", "failed", "stale"],
+    "ciWorkflowDefined": ".github/workflows/registry.yml",
+    "ciRunCompleted": false
+  },
+  "openGates": [
+    "Publish and sign the versioned Registry.",
+    "Run the workflow on a hosted CI system.",
+    "Add Linux evidence and declare macOS coverage explicitly.",
+    "Run third-party dump-config, boot, health, uninstall and recovery only inside an OS-level sandbox."
+  ]
+}

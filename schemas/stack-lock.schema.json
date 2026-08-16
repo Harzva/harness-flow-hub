@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness-flow.dev/schemas/stack-lock.schema.json",
+  "title": "Harness Flow Stack Lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "dshVersion", "platform", "profile", "flow", "packages", "configDigest", "validations"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "dshVersion": { "type": "string", "minLength": 1 },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "arch", "node"],
+      "properties": {
+        "os": { "enum": ["win32", "linux", "darwin"] },
+        "arch": { "type": "string" },
+        "node": { "type": "string" }
+      }
+    },
+    "profile": { "type": "string", "minLength": 1 },
+    "flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "variant"],
+      "properties": {
+        "id": { "type": "string" },
+        "version": { "type": "string" },
+        "variant": { "enum": ["lite", "standard", "local"] }
+      }
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["package", "version", "source", "integrity"],
+        "properties": {
+          "package": { "type": "string" },
+          "version": { "type": "string" },
+          "source": { "type": "string" },
+          "integrity": { "type": "string" },
+          "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" }
+        }
+      }
+    },
+    "configDigest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "validations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "enum": ["passed", "failed", "skipped"] },
+          "evidence": { "type": "string" }
+        }
+      }
+    }
+  }
+}

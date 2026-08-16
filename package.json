@@ -1,0 +1,81 @@
+{
+  "name": "@harness-flow/dsh-flow-hub",
+  "version": "0.0.2-m0",
+  "description": "Native in-DSH Flow Hub bootstrap and plugin transaction spike",
+  "type": "module",
+  "private": true,
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "types": "./lib/types/client/index.d.ts",
+      "default": "./lib/client.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "lib/client.js.map",
+    "lib/types/**/*.d.ts",
+    "cordis.patch.yml",
+    "registry/generated/registry.json"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ],
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs && tsc --emitDeclarationOnly",
+    "check": "pnpm build && node --test tests/*.test.mjs",
+    "registry:discover": "node scripts/discover-github.mjs registry/discovery/github-topic-2026-08-16.json 20 10",
+    "registry:audit-candidates": "node scripts/audit-candidates.mjs registry/discovery/github-topic-2026-08-16.json registry/audits/candidates-2026-08-16.json",
+    "registry:generate": "node scripts/generate-registry.mjs registry/discovery/github-topic-2026-08-16.json registry/generated/registry.json",
+    "registry:validate": "node scripts/validate-registry.mjs registry/generated/registry.json",
+    "registry:sign": "node scripts/sign-registry.mjs",
+    "registry:verify-signature": "node scripts/verify-registry-signature.mjs",
+    "registry:verify-install": "node scripts/verify-installations.mjs registry/generated/registry.json registry/verifications 10",
+    "registry:verify-trusted-fixture": "node scripts/verify-trusted-fixture-lifecycle.mjs",
+    "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts",
+    "pack:hub": "pnpm pack --pack-destination artifacts"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-settings": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-host-webserver": "^0.1.0-rc.6",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-settings": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-host-webserver": "^0.1.0-rc.6",
+    "@types/node": "^24.0.0",
+    "@types/react": "~18.3.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "esbuild": "^0.25.0",
+    "react": "^18.2.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@11.19.0"
+}

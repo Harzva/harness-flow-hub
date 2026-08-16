@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness-flow.dev/schemas/plugin-record.schema.json",
+  "title": "Harness Flow Hub Plugin Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "package", "version", "source", "compatibility", "platforms", "license", "lifecycleScripts", "permissions", "credentials", "verification"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "package": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "spec"],
+      "properties": {
+        "kind": { "enum": ["npm", "tgz", "github-sha", "local-directory"] },
+        "spec": { "type": "string", "minLength": 1 },
+        "integrity": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "github-sha" } } },
+          "then": {
+            "properties": { "commit": true },
+            "required": ["commit"]
+          }
+        }
+      ]
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dsh"],
+      "properties": { "dsh": { "type": "string", "minLength": 1 } }
+    },
+    "platforms": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["win32", "linux", "darwin"] }
+    },
+    "license": { "type": ["string", "null"] },
+    "lifecycleScripts": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "permissions": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "credentials": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state"],
+      "properties": {
+        "state": { "enum": ["unknown", "unverified", "passed", "failed", "stale"] },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "dshVersion": { "type": "string" },
+        "platform": { "type": "string" },
+        "evidence": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

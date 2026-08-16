@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "subject": "dshmarket",
+  "state": "unverified",
+  "verifiedAt": "2026-08-16T09:26:20.288Z",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0",
+    "dsh": "0.1.0-rc.6"
+  },
+  "checks": [
+    {
+      "id": "profile-bootstrap",
+      "status": "passed"
+    },
+    {
+      "id": "package-install",
+      "status": "passed",
+      "detail": "lifecycle scripts disabled"
+    },
+    {
+      "id": "dependency-recorded",
+      "status": "passed"
+    },
+    {
+      "id": "package-remove",
+      "status": "passed"
+    },
+    {
+      "id": "plugin-boot",
+      "status": "skipped",
+      "detail": "no OS sandbox available; third-party code was not executed"
+    }
+  ],
+  "evidence": [
+    "registry/verifications/dshmarket.json"
+  ]
+}

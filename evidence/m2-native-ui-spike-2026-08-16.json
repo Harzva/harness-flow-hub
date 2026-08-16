@@ -1,0 +1,47 @@
+{
+  "milestone": "M2-partial",
+  "date": "2026-08-16",
+  "environment": {
+    "dsh": "0.1.0-rc.6",
+    "hub": "0.0.2-m0",
+    "profile": "web",
+    "route": "Settings > Plugins > Flow Hub"
+  },
+  "areas": {
+    "home": "rendered",
+    "plugins": "rendered-with-20-registry-records",
+    "flows": "rendered-empty-state",
+    "profiles": "rendered-with-current-profile",
+    "installTasks": "rendered-with-local-task-history"
+  },
+  "pluginDetails": [
+    "pinned source",
+    "version",
+    "integrity or commit",
+    "license",
+    "lifecycle scripts",
+    "permissions",
+    "credential requirements",
+    "verification state",
+    "verification environment"
+  ],
+  "responsive": {
+    "containerQuery": true,
+    "settingsDialogChecked": true,
+    "narrowNavigation": "horizontal",
+    "pluginListAndDetail": "stacked"
+  },
+  "accessibility": {
+    "semanticNavigation": true,
+    "labelledSearch": true,
+    "buttonControls": true,
+    "reducedMotionPreference": true
+  },
+  "visualInspection": "passed-in-in-app-browser",
+  "openGates": [
+    "Install arbitrary Registry plugins through a transaction plan.",
+    "Implement Flow cards and variants.",
+    "Implement Profile clone, launch and recovery-point actions.",
+    "Persist task history across process restarts."
+  ]
+}

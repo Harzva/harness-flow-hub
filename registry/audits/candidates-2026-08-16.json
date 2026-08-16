@@ -1,0 +1,770 @@
+{
+  "schemaVersion": 1,
+  "auditedAt": "2026-08-16T09:37:26.897Z",
+  "input": "registry/discovery/github-topic-2026-08-16.json",
+  "candidates": 20,
+  "passed": 20,
+  "failed": 0,
+  "records": [
+    {
+      "subject": "@anionex/dsh-vision-toolkit",
+      "source": "github:Anionex/dsh-vision-toolkit#5cd1279d9a5a98bb634093dadcd73ea2a396a74e",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:Anionex/dsh-vision-toolkit#5cd1279d9a5a98bb634093dadcd73ea2a396a74e"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/Anionex/dsh-vision-toolkit/5cd1279d9a5a98bb634093dadcd73ea2a396a74e/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "@deepseek-harness-tui/dsh-tui",
+      "source": "github:ccch1mneyyy/dsh-TUI#b3baa5eb5efa0297011e82d52f1e2437b1760363",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:ccch1mneyyy/dsh-TUI#b3baa5eb5efa0297011e82d52f1e2437b1760363"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/ccch1mneyyy/dsh-TUI/b3baa5eb5efa0297011e82d52f1e2437b1760363/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "@dsh-external/dsh-ads",
+      "source": "github:Nagi-ovo/dsh-ads#fbd58579e4f3601b2c38ccbf3f7f854c9f3a9cd6",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:Nagi-ovo/dsh-ads#fbd58579e4f3601b2c38ccbf3f7f854c9f3a9cd6"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/Nagi-ovo/dsh-ads/fbd58579e4f3601b2c38ccbf3f7f854c9f3a9cd6/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "@liustack/modlens",
+      "source": "github:liustack/modlens#90379748534c886b11a4df814507abb677fc8f28",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:liustack/modlens#90379748534c886b11a4df814507abb677fc8f28"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/liustack/modlens/90379748534c886b11a4df814507abb677fc8f28/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "@mnemon-dev/dsh-mnemon",
+      "source": "github:mnemon-dev/mnemon#2dc6304ac21550aca93659751f682045a05bba8d",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:mnemon-dev/mnemon#2dc6304ac21550aca93659751f682045a05bba8d"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/mnemon-dev/mnemon/2dc6304ac21550aca93659751f682045a05bba8d/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "aegis",
+      "source": "github:GanyuanRan/Aegis#c8483d63f5b3826bebf30ec6cf84d76cdab03907",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./extensions/dsh/cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:GanyuanRan/Aegis#c8483d63f5b3826bebf30ec6cf84d76cdab03907"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/GanyuanRan/Aegis/c8483d63f5b3826bebf30ec6cf84d76cdab03907/extensions/dsh/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-any-background",
+      "source": "dsh-any-background@0.1.5",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-any-background@0.1.5"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-any-background@0.1.5/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-auto-review",
+      "source": "dsh-auto-review@0.4.1",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-auto-review@0.4.1"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-auto-review@0.4.1/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-better-sidebar",
+      "source": "github:omdsh-dev/DSH-better-sidebar#3c196fffc3274bb30367a8fff77f46eff5005d2c",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:omdsh-dev/DSH-better-sidebar#3c196fffc3274bb30367a8fff77f46eff5005d2c"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/omdsh-dev/DSH-better-sidebar/3c196fffc3274bb30367a8fff77f46eff5005d2c/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-frontend-tools-bridge",
+      "source": "dsh-frontend-tools-bridge@0.2.0",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-frontend-tools-bridge@0.2.0"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-frontend-tools-bridge@0.2.0/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-mnemon",
+      "source": "dsh-mnemon@0.1.6",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-mnemon@0.1.6"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-mnemon@0.1.6/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-plug-manager",
+      "source": "dsh-plug-manager@0.6.3",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-plug-manager@0.6.3"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-plug-manager@0.6.3/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-plugin-writing-guard",
+      "source": "dsh-plugin-writing-guard@0.9.2",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-plugin-writing-guard@0.9.2"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-plugin-writing-guard@0.9.2/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-pocket",
+      "source": "dsh-pocket@1.4.3",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-pocket@1.4.3"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-pocket@1.4.3/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-science-workbench",
+      "source": "dsh-science-workbench@0.1.1",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-science-workbench@0.1.1"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-science-workbench@0.1.1/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dsh-vision-router",
+      "source": "dsh-vision-router@1.3.0",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dsh-vision-router@1.3.0"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dsh-vision-router@1.3.0/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "dshmarket",
+      "source": "dshmarket@1.9.0",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "dshmarket@1.9.0"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://unpkg.com/dshmarket@1.9.0/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "graph-memory",
+      "source": "github:adoresever/graph-memory#dbd72ccf2ea0a8a2f18a4ed384b55d2161347c80",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:adoresever/graph-memory#dbd72ccf2ea0a8a2f18a4ed384b55d2161347c80"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/adoresever/graph-memory/dbd72ccf2ea0a8a2f18a4ed384b55d2161347c80/cordis.patch.yml"
+        }
+      ]
+    },
+    {
+      "subject": "managed-agents",
+      "source": "github:sandbaseai/sandbase-harness#96707965931897d7f5489754700036dac8e4382e",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./examples/deepseek-harness/cordis.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:sandbaseai/sandbase-harness#96707965931897d7f5489754700036dac8e4382e"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/sandbaseai/sandbase-harness/96707965931897d7f5489754700036dac8e4382e/examples/deepseek-harness/cordis.yml"
+        }
+      ]
+    },
+    {
+      "subject": "treg-dsh",
+      "source": "github:superdesigndev/treg#29902e09040d4d01e10ecebaba60a3d00163307d",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "manifest-name",
+          "status": "passed"
+        },
+        {
+          "id": "manifest-version",
+          "status": "passed"
+        },
+        {
+          "id": "bundle-entry-declared",
+          "status": "passed",
+          "detail": "./dsh/cordis.patch.yml"
+        },
+        {
+          "id": "license-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "lifecycle-scripts-disclosed",
+          "status": "passed"
+        },
+        {
+          "id": "source-pinned",
+          "status": "passed",
+          "detail": "github:superdesigndev/treg#29902e09040d4d01e10ecebaba60a3d00163307d"
+        },
+        {
+          "id": "bundle-entry-exists",
+          "status": "passed",
+          "detail": "200 https://raw.githubusercontent.com/superdesigndev/treg/29902e09040d4d01e10ecebaba60a3d00163307d/dsh/cordis.patch.yml"
+        }
+      ]
+    }
+  ]
+}

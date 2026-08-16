@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-08-16",
+  "platforms": {
+    "win32": {
+      "worker": "implemented",
+      "currentEvidence": "evidence/m1-registry-alpha-2026-08-16.json"
+    },
+    "linux": {
+      "worker": "configured",
+      "currentEvidence": null,
+      "note": "Hosted CI job is defined but has not run in a published repository."
+    },
+    "darwin": {
+      "worker": "not-covered",
+      "currentEvidence": null,
+      "note": "macOS is explicitly outside the Alpha verification matrix."
+    }
+  }
+}

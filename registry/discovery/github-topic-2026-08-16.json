@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "kind": "github-topic+npm-search",
+    "topic": "dsh-plugin",
+    "npmQuery": "keywords:dsh",
+    "asOf": "2026-08-16"
+  },
+  "candidates": [
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:Anionex/dsh-vision-toolkit#5cd1279d9a5a98bb634093dadcd73ea2a396a74e",
+        "commit": "5cd1279d9a5a98bb634093dadcd73ea2a396a74e"
+      },
+      "repository": "Anionex/dsh-vision-toolkit",
+      "url": "https://github.com/Anionex/dsh-vision-toolkit",
+      "stars": 476,
+      "license": "MIT",
+      "package": {
+        "name": "@anionex/dsh-vision-toolkit",
+        "version": "0.1.8",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "build": "node scripts/upstream-manifest.mjs && node scripts/clean-build.mjs && tsc -p tsconfig.json && tsc -p tsconfig.client.json && tsc -p tsconfig.client.public.json && node scripts/build-client.mjs",
+          "prepack": "npm run build",
+          "test": "vitest run tests",
+          "verify:portable": "node scripts/upstream-manifest.mjs && node scripts/verify-portable.mjs",
+          "example:ui-restoration": "node scripts/run-ui-restoration-example.mjs --check",
+          "example:ui-restoration:write": "node scripts/run-ui-restoration-example.mjs --write",
+          "upstream:manifest": "node scripts/upstream-manifest.mjs --write",
+          "upstream:sync": "node scripts/sync-upstream.mjs"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:ccch1mneyyy/dsh-TUI#b3baa5eb5efa0297011e82d52f1e2437b1760363",
+        "commit": "b3baa5eb5efa0297011e82d52f1e2437b1760363"
+      },
+      "repository": "ccch1mneyyy/dsh-TUI",
+      "url": "https://github.com/ccch1mneyyy/dsh-TUI",
+      "stars": 1402,
+      "license": "MIT",
+      "package": {
+        "name": "@deepseek-harness-tui/dsh-tui",
+        "version": "0.7.1",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "clean": "node scripts/clean-lib.mjs",
+          "compile": "npm run clean && tsc -p tsconfig.json",
+          "prepare": "npm run compile",
+          "build": "npm run compile && npm run verify:build",
+          "tui": "node --import tsx/esm scripts/run.ts",
+          "smoke": "node --import tsx/esm scripts/smoke.tsx",
+          "verify:build": "npm run verify:boundary && npm run verify:contract && npm run verify:patch-surface",
+          "verify:boundary": "node --import tsx/esm scripts/verify-adapter-boundary.ts",
+          "verify:contract": "node --import tsx/esm scripts/verify-upstream-contract.ts",
+          "verify:patch-surface": "node --import tsx/esm scripts/verify-patch-surface.ts",
+          "verify:package": "npm pack --dry-run --json --ignore-scripts | node scripts/verify-package.mjs",
+          "verify:clipboard-image": "node --import tsx/esm scripts/verify-clipboard-image.ts"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:Nagi-ovo/dsh-ads#fbd58579e4f3601b2c38ccbf3f7f854c9f3a9cd6",
+        "commit": "fbd58579e4f3601b2c38ccbf3f7f854c9f3a9cd6"
+      },
+      "repository": "Nagi-ovo/dsh-ads",
+      "url": "https://github.com/Nagi-ovo/dsh-ads",
+      "stars": 437,
+      "license": "BSD-3-Clause",
+      "package": {
+        "name": "@dsh-external/dsh-ads",
+        "version": "0.1.0",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "assets": "node scripts/build-english-artwork.mjs && node scripts/build-assets.mjs && node scripts/build-contrib.mjs",
+          "build": "tsdown",
+          "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.client.json",
+          "test": "vitest run",
+          "check": "pnpm run typecheck && pnpm run test && pnpm run build",
+          "catalog": "node scripts/build-catalog.mjs"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:liustack/modlens#90379748534c886b11a4df814507abb677fc8f28",
+        "commit": "90379748534c886b11a4df814507abb677fc8f28"
+      },
+      "repository": "liustack/modlens",
+      "url": "https://github.com/liustack/modlens",
+      "stars": 2127,
+      "license": "MIT",
+      "package": {
+        "name": "@liustack/modlens",
+        "version": "3.17.2",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "dev": "vite build --watch",
+          "build": "vite build",
+          "typecheck": "tsc --noEmit",
+          "test": "vitest run",
+          "coverage": "vitest run --coverage",
+          "lint": "biome check src scripts dsh",
+          "format": "biome check --write src scripts",
+          "eval": "node evals/run.mjs",
+          "release": "node scripts/release.mjs",
+          "prepublishOnly": "pnpm build",
+          "docs:list": "node scripts/docs-list.js"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:mnemon-dev/mnemon#2dc6304ac21550aca93659751f682045a05bba8d",
+        "commit": "2dc6304ac21550aca93659751f682045a05bba8d"
+      },
+      "repository": "mnemon-dev/mnemon",
+      "url": "https://github.com/mnemon-dev/mnemon",
+      "stars": 456,
+      "license": "Apache-2.0",
+      "package": {
+        "name": "@mnemon-dev/dsh-mnemon",
+        "version": "0.1.0",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {}
+      }
+    },
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:GanyuanRan/Aegis#c8483d63f5b3826bebf30ec6cf84d76cdab03907",
+        "commit": "c8483d63f5b3826bebf30ec6cf84d76cdab03907"
+      },
+      "repository": "GanyuanRan/Aegis",
+      "url": "https://github.com/GanyuanRan/Aegis",
+      "stars": 1020,
+      "license": "MIT",
+      "package": {
+        "name": "aegis",
+        "version": "2.8.1",
+        "bundlePatch": "./extensions/dsh/cordis.patch.yml",
+        "scripts": {}
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-any-background@0.1.5",
+        "integrity": "sha512-bvpAHho7Xz/FfwKcXb+NrIc/BXiNyeIWxVB6Bgi0PcO5zW2DjH1mI3qByhqbAIAhi4MFEYOul583I6miggl8Mg=="
+      },
+      "repository": "git+https://github.com/Tkingxiao/dsh-any-background.git",
+      "url": "https://www.npmjs.com/package/dsh-any-background",
+      "stars": null,
+      "license": "MIT",
+      "package": {
+        "name": "dsh-any-background",
+        "version": "0.1.5",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "watch": "tsdown --watch",
+          "bundle": "tsdown"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-auto-review@0.4.1",
+        "integrity": "sha512-6no+JH0brlW6Pq/QWcI3RVJ20KaV3Zw9fcyqbg2XIWBtVyH1OrHWuCDoC20axAKt5qPiYTxTaB4DpuEKjo+2TQ=="
+      },
+      "repository": "git+https://github.com/PerryLink/dsh-auto-review.git",
+      "url": "https://www.npmjs.com/package/dsh-auto-review",
+      "stars": null,
+      "license": "Apache-2.0",
+      "package": {
+        "name": "dsh-auto-review",
+        "version": "0.4.1",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "test": "vitest run",
+          "build": "node scripts/prepare.mjs",
+          "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+          "verify:self-contained": "node scripts/verify-self-contained.mjs"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:omdsh-dev/DSH-better-sidebar#3c196fffc3274bb30367a8fff77f46eff5005d2c",
+        "commit": "3c196fffc3274bb30367a8fff77f46eff5005d2c"
+      },
+      "repository": "omdsh-dev/DSH-better-sidebar",
+      "url": "https://github.com/omdsh-dev/DSH-better-sidebar",
+      "stars": 1440,
+      "license": "MIT",
+      "package": {
+        "name": "dsh-better-sidebar",
+        "version": "0.12.2",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "build": "rm -rf lib && tsc -p tsconfig.build.json && tsdown",
+          "prepublishOnly": "pnpm build",
+          "typecheck": "tsc --noEmit",
+          "bundle": "tsdown",
+          "watch": "tsdown --watch",
+          "prepare": "tsdown",
+          "test": "vitest run",
+          "test:mount": "bash scripts/e2e-mount.sh",
+          "check:consumer-types": "bash scripts/check-consumer-types.sh"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-frontend-tools-bridge@0.2.0",
+        "integrity": "sha512-67wkrwM2oHmpzJxngjBcMg+b9OyuH8eKV6F0l2GrPYf9Cs5nGrlz/fg3u4S51mPT3+Nb/w3h1bc6Uyl+0ZTzlA=="
+      },
+      "repository": "git+https://github.com/lukaiwuyi/dsh-frontend-tools.git",
+      "url": "https://www.npmjs.com/package/dsh-frontend-tools-bridge",
+      "stars": null,
+      "license": "MIT",
+      "package": {
+        "name": "dsh-frontend-tools-bridge",
+        "version": "0.2.0",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "build": "tsdown src/index.ts src/invariant.ts --format esm --dts --out-dir lib --clean"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-mnemon@0.1.6",
+        "integrity": "sha512-vE4y1b0jFKR8dYDlMBGfiacUXX+IiAwSvMyoR/VJZEIiCs8GWoUy25GmlDKUZPik5YiYsock28PGbgGZ7PcIXw=="
+      },
+      "repository": "git+https://github.com/omdsh-dev/dsh-mnemon.git",
+      "url": "https://www.npmjs.com/package/dsh-mnemon",
+      "stars": null,
+      "license": "MIT",
+      "package": {
+        "name": "dsh-mnemon",
+        "version": "0.1.6",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "test": "vitest run",
+          "build": "tsdown && tsc -p tsconfig.types.json",
+          "bundle": "tsdown",
+          "verify": "pnpm run typecheck && pnpm run test && pnpm run verify:build && pnpm run verify:package",
+          "typecheck": "tsc -p tsconfig.json --noEmit",
+          "lint:package": "publint --strict && attw --pack . --profile esm-only --quiet",
+          "verify:build": "node scripts/verify-deterministic-build.mjs",
+          "prepublishOnly": "pnpm run verify",
+          "verify:package": "node scripts/verify-package-contents.mjs && pnpm run lint:package"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-plug-manager@0.6.3",
+        "integrity": "sha512-CDOdXE0yxHPiw3rbi7QlFZC3RpFCZStbzqrcrL4ohX/XLQUhrKtJ1dvRjV2CScpbqZDGw7WjEepu0pMr8sDwmA=="
+      },
+      "repository": "git+https://github.com/Casually/deepseek-harness-plugs-manage.git",
+      "url": "https://www.npmjs.com/package/dsh-plug-manager",
+      "stars": null,
+      "license": "MIT",
+      "package": {
+        "name": "dsh-plug-manager",
+        "version": "0.6.3",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {}
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-plugin-writing-guard@0.9.2",
+        "integrity": "sha512-jdKds69V8uScKwOG+nP++/OCiwYFEWZxtExUgsRY/4+Wvv/BHzU3dEtuSAX1dxgEJeLEPb4BYL2m8xZ+cZgpqg=="
+      },
+      "repository": "git+https://github.com/xmutfyh/dsh-plugin-writing-guard.git",
+      "url": "https://www.npmjs.com/package/dsh-plugin-writing-guard",
+      "stars": null,
+      "license": "MIT",
+      "package": {
+        "name": "dsh-plugin-writing-guard",
+        "version": "0.9.2",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "test": "node tests/run-tests.mjs",
+          "build": "tsc",
+          "pretest": "npm run build"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-pocket@1.4.3",
+        "integrity": "sha512-bCEFlIpUtw5sA9SpW1jmr4eE5lvcJkKRaBvxCzUcG/c12A4DKEXjVjnIKCmLBQbQcev8sZh0+1/tOc6tqWDfPQ=="
+      },
+      "repository": "git+https://github.com/shaobeichen/dsh-pocket.git",
+      "url": "https://www.npmjs.com/package/dsh-pocket",
+      "stars": null,
+      "license": "GPL-2.0",
+      "package": {
+        "name": "dsh-pocket",
+        "version": "1.4.3",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "test": "node --test --test-timeout=30000 \"test/*.test.js\"",
+          "build:client": "node client/build.mjs"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-science-workbench@0.1.1",
+        "integrity": "sha512-IcPQBG7e8MpJiuVZEOSmW4uK4C6IJYKKDqI0gxDArM8GNUfzy2dz8q8IN78f+OgaE0mDiGDU6GAN9OZthyMjvg=="
+      },
+      "repository": "git+https://github.com/poplarity/dsh-science-workbench.git",
+      "url": "https://www.npmjs.com/package/dsh-science-workbench",
+      "stars": null,
+      "license": "MIT",
+      "package": {
+        "name": "dsh-science-workbench",
+        "version": "0.1.1",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "lint": "node --check lib/index.js"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dsh-vision-router@1.3.0",
+        "integrity": "sha512-U5jrcdFTTRTmougScqxbY0hqddWiWK+UIO0gguRoFX7c2vobH/28mj6OLauCV2fclkjArwR0OtH4YwGfmo6rnQ=="
+      },
+      "repository": "git+https://github.com/ysr666/dsh-vision-router.git",
+      "url": "https://www.npmjs.com/package/dsh-vision-router",
+      "stars": null,
+      "license": "MIT",
+      "package": {
+        "name": "dsh-vision-router",
+        "version": "1.3.0",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "test": "node --test tests/core.test.js tests/client.test.js tests/http-compat.test.js tests/update-check.test.js tests/self-update.test.js tests/doctor.test.js tests/bundle-defaults.test.js tests/file-logger.test.js tests/logging-ui.test.js tests/manifest-dependencies.test.js"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "npm",
+        "spec": "dshmarket@1.9.0",
+        "integrity": "sha512-WUeo31GkItN1V2P3Uo8IwMqLzApws7Sk7Q8/1zPMy5tgDCJG3SmZlfSNeG/2uzfygPmnAOI4hjZ6MAqC2k+IVw=="
+      },
+      "repository": "git+https://github.com/dsh-market/dsh-market.git",
+      "url": "https://www.npmjs.com/package/dshmarket",
+      "stars": null,
+      "license": "MIT",
+      "package": {
+        "name": "dshmarket",
+        "version": "1.9.0",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "test": "vitest run",
+          "build": "tsc -p tsconfig.json && npm run build:client",
+          "check": "npm run typecheck && npm run build && node scripts/restart-smoke.mjs",
+          "prepack": "npm run build && node scripts/preflight.mjs",
+          "prepare": "npm run build",
+          "snapshot": "curl -sf https://awesome-dsh-plugin.com/plugins.json -o data/registry-snapshot.json",
+          "test:web": "vitest run --config vitest.web.config.ts",
+          "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit",
+          "test:compat": "vitest run --config vitest.compat.config.ts",
+          "build:client": "tsdown && node scripts/normalize-client-banner.mjs",
+          "validate:registry": "node scripts/validate-registry.mjs"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:adoresever/graph-memory#dbd72ccf2ea0a8a2f18a4ed384b55d2161347c80",
+        "commit": "dbd72ccf2ea0a8a2f18a4ed384b55d2161347c80"
+      },
+      "repository": "adoresever/graph-memory",
+      "url": "https://github.com/adoresever/graph-memory",
+      "stars": 522,
+      "license": "MIT",
+      "package": {
+        "name": "graph-memory",
+        "version": "1.6.0-beta.1",
+        "bundlePatch": "./cordis.patch.yml",
+        "scripts": {
+          "build": "tsc",
+          "prepare": "npm run build",
+          "prepack": "npm run build",
+          "test": "vitest run",
+          "test:watch": "vitest"
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:sandbaseai/sandbase-harness#96707965931897d7f5489754700036dac8e4382e",
+        "commit": "96707965931897d7f5489754700036dac8e4382e"
+      },
+      "repository": "sandbaseai/sandbase-harness",
+      "url": "https://github.com/sandbaseai/sandbase-harness",
+      "stars": 597,
+      "license": "Apache-2.0",
+      "package": {
+        "name": "managed-agents",
+        "version": "0.3.2",
+        "bundlePatch": "./examples/deepseek-harness/cordis.yml",
+        "scripts": {
+          "dev": "tsx src/index.ts",
+          "dev:console": "vite --host 0.0.0.0 --config apps/console/vite.config.ts",
+          "build": "npm run build:runtime && npm run build:console",
+          "build:runtime": "tsup",
+          "build:console": "vite build --config apps/console/vite.config.ts",
+          "start": "node dist/index.js",
+          "test": "vitest run",
+          "test:watch": "vitest",
+          "test:property": "vitest run tests/property",
+          "lint": "npm run typecheck",
+          "typecheck": "npm run typecheck:src && npm run typecheck:tests",
+          "typecheck:src": "tsc --noEmit",
+          "typecheck:tests": "tsc --noEmit -p tsconfig.tests.json",
+          "package:check": "npm pack --dry-run",
+          "smoke:release": "node scripts/smoke-release.mjs",
+          "release:check": "npm run typecheck && npm test && npm run build && npm run package:check && npm run smoke:release",
+          "format": "node -e \"console.log('No formatter configured yet.')\"",
+          "format:check": "node -e \"console.log('No formatter configured yet.')\""
+        }
+      }
+    },
+    {
+      "source": {
+        "kind": "github-sha",
+        "spec": "github:superdesigndev/treg#29902e09040d4d01e10ecebaba60a3d00163307d",
+        "commit": "29902e09040d4d01e10ecebaba60a3d00163307d"
+      },
+      "repository": "superdesigndev/treg",
+      "url": "https://github.com/superdesigndev/treg",
+      "stars": 423,
+      "license": "NOASSERTION",
+      "package": {
+        "name": "treg-dsh",
+        "version": "0.11.0",
+        "bundlePatch": "./dsh/cordis.patch.yml",
+        "scripts": {}
+      }
+    }
+  ]
+}

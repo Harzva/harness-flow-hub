@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness-flow.dev/schemas/verification-result.schema.json",
+  "title": "Harness Flow Hub Verification Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "subject", "state", "checks", "evidence"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "subject": { "type": "string", "minLength": 1 },
+    "state": { "enum": ["unknown", "unverified", "passed", "failed", "stale"] },
+    "verifiedAt": { "type": ["string", "null"], "format": "date-time" },
+    "environment": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["os", "arch", "node", "dsh"],
+      "properties": {
+        "os": { "enum": ["win32", "linux", "darwin"] },
+        "arch": { "type": "string" },
+        "node": { "type": "string" },
+        "dsh": { "type": "string" }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "enum": ["passed", "failed", "skipped"] },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "evidence": { "type": "array", "items": { "type": "string" } }
+  }
+}
