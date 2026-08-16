@@ -4,8 +4,8 @@ import { dirname, resolve } from 'node:path'
 const windowsPath = resolve(process.argv[2] ?? 'work/ci-empty/windows/m3-flow-empty-environment-win32-2026-08-17.json')
 const linuxPath = resolve(process.argv[3] ?? 'work/ci-empty/linux/m3-flow-empty-environment-linux-2026-08-17.json')
 const output = resolve(process.argv[4] ?? 'evidence/m3-flow-empty-environment-cross-platform-2026-08-17.json')
-const runUrl = process.argv[5] ?? 'https://github.com/Harzva/harness-flow-hub/actions/runs/31978376581'
-const baseCommit = process.argv[6] ?? '75aef03434f8e73463dfdab6d9c1e59ed8b06358'
+const runUrl = process.argv[5] ?? 'https://github.com/Harzva/harness-flow-hub/actions/runs/31979524263'
+const baseCommit = process.argv[6] ?? '31b799f1149600414790fd1b8ada6447c47b019a'
 
 const expectedFlows = new Map([
   ['coding-expert', { category: 'task-expert', template: 'headless', packages: ['dsh-openwolf@0.9.1'] }],

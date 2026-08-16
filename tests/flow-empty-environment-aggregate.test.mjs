@@ -10,8 +10,8 @@ const expected = new Map([
 ])
 
 test('cross-platform empty-environment evidence proves three signed test Flow transactions without changing public state', () => {
-  assert.equal(evidence.baseCommit, '75aef03434f8e73463dfdab6d9c1e59ed8b06358')
-  assert.match(evidence.run, /actions\/runs\/31978376581$/)
+  assert.equal(evidence.baseCommit, '31b799f1149600414790fd1b8ada6447c47b019a')
+  assert.match(evidence.run, /actions\/runs\/31979524263$/)
   for (const os of ['win32', 'linux']) {
     const platform = evidence.platforms[os]
     assert.equal(platform.status, 'passed')
