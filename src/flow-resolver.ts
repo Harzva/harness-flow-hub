@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import { maxSatisfying, satisfies, valid, validRange } from 'semver'
+import { credentialNames } from './privacy.js'
 
 export type FlowVariantName = 'lite' | 'standard' | 'local' | 'safe'
 
@@ -212,7 +213,7 @@ export function compileStackPreview(flow: HarnessFlow, variantName: FlowVariantN
     permissionsPreset: variant.permissionsPreset,
     uiExtensions: variant.uiExtensions,
     defaults: variant.defaults,
-    credentials: variant.credentials,
+    credentials: credentialNames(variant.credentials),
   }
   return {
     schemaVersion: 1,
@@ -263,7 +264,7 @@ export function compileFlowInstallPlan(flow: HarnessFlow, variantName: FlowVaria
       verification: candidate.verification.state,
       lifecycleScripts: Object.keys(candidate.lifecycleScripts ?? {}).sort(),
       permissions: [...(candidate.permissions ?? [])].sort(),
-      credentials: [...(candidate.credentials ?? [])].sort(),
+      credentials: credentialNames(candidate.credentials ?? []),
     }
   })
   const signature = options.registrySignature ?? 'unverified'
@@ -277,7 +278,7 @@ export function compileFlowInstallPlan(flow: HarnessFlow, variantName: FlowVaria
     if (!(candidate?.platforms ?? []).includes(options.platform)) blockers.add(`plugin-platform-unverified:${operation.package}:${options.platform}`)
   }
   const permissions = [...new Set(operations.flatMap(item => item.permissions))].sort()
-  const credentials = [...new Set([...variant.credentials, ...operations.flatMap(item => item.credentials)])].sort()
+  const credentials = credentialNames([...variant.credentials, ...operations.flatMap(item => item.credentials)])
   const body = {
     schemaVersion: 1 as const,
     createdAt: stack.generatedAt,

@@ -5,6 +5,7 @@ import { cp, mkdir, readFile, readdir, rename, rm, stat, statfs, writeFile } fro
 import { arch, homedir, platform } from 'node:os'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import type { FlowInstallPlan, StackLock } from './flow-resolver.js'
+import { credentialNames } from './privacy.js'
 
 export type PluginAction = 'add' | 'update' | 'remove'
 export type TransactionAction = PluginAction | 'rollback'
@@ -185,7 +186,7 @@ export function createInstallPlan(input: {
     risk: {
       lifecycleScriptsDisabled: true as const,
       permissions: [...(input.permissions ?? [])],
-      credentials: [...(input.credentials ?? [])],
+      credentials: credentialNames(input.credentials ?? []),
       verification: input.verification ?? 'unverified',
       signature: input.signature ?? 'unverified',
     },

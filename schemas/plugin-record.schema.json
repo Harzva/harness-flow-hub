@@ -50,7 +50,7 @@
       "additionalProperties": { "type": "string" }
     },
     "permissions": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
-    "credentials": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "credentials": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" } },
     "verification": {
       "type": "object",
       "additionalProperties": false,

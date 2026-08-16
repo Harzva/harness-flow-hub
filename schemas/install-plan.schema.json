@@ -57,7 +57,7 @@
       "properties": {
         "lifecycleScriptsDisabled": { "const": true },
         "permissions": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "credentials": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "credentials": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" }, "uniqueItems": true },
         "verification": { "type": "string", "minLength": 1 },
         "signature": { "enum": ["verified", "not-applicable-trusted-fixture", "unverified"] }
       }

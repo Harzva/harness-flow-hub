@@ -28,6 +28,7 @@ jobs:
       - run: pnpm run registry:verify-traceability
       - run: pnpm run registry:verify-source-policy
       - run: pnpm run registry:verify-signature-runtime-gate
+      - run: pnpm run security:verify-credential-privacy
       - run: pnpm check
       - run: pnpm run registry:assemble-release
       - run: pnpm run registry:validate-release-candidate
@@ -64,6 +65,8 @@ jobs:
         run: pnpm run registry:verify-source-policy
       - name: Verify Registry signature failures block plans and DSH writes
         run: pnpm run registry:verify-signature-runtime-gate
+      - name: Verify credential values stay out of Registry, logs, Stack locks and telemetry
+        run: pnpm run security:verify-credential-privacy
       - name: Locate the official DSH package
         shell: pwsh
         run: |
@@ -108,4 +111,5 @@ jobs:
             evidence/m2-registry-verification-traceability-2026-08-17.json
             evidence/m2-remote-source-pinning-2026-08-17.json
             evidence/m2-registry-signature-runtime-gate-2026-08-17.json
+            evidence/m2-credential-privacy-gate-2026-08-17.json
             evidence/m2-native-ui-bootstrap-transaction-core-2026-08-17.json

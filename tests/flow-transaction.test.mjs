@@ -142,9 +142,11 @@ test('Flow transaction refuses blocked plans and existing targets before package
 
 test('Flow transaction persists credential names but never credential values', async () => {
   const fx = await fixture()
+  const previous = process.env.FLOW_TOKEN
   try {
     fx.plan = { ...fx.plan, risk: { ...fx.plan.risk, credentials: ['FLOW_TOKEN'] } }
     const secretValue = 'never-write-this-secret-value'
+    process.env.FLOW_TOKEN = secretValue
     const result = await executeFlowInstallPlan(fx.plan, options(fx, { availableCredentials: ['FLOW_TOKEN'] }))
     assert.equal(result.ok, true)
     const files = []
@@ -160,6 +162,8 @@ test('Flow transaction persists credential names but never credential values', a
     assert.doesNotMatch(persisted, new RegExp(secretValue))
     assert.match(persisted, /FLOW_TOKEN/)
   } finally {
+    if (previous === undefined) delete process.env.FLOW_TOKEN
+    else process.env.FLOW_TOKEN = previous
     await rm(fx.home, { recursive: true, force: true })
   }
 })
