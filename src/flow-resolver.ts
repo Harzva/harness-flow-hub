@@ -184,6 +184,9 @@ function exactSource(candidate: RegistryPlugin): boolean {
     const commit = candidate.source.commit ?? ''
     return /^[a-f0-9]{40}$/.test(commit) && candidate.source.spec.endsWith(`#${commit}`)
   }
+  if (candidate.source.kind === 'tgz') {
+    return /\.tgz$/i.test(candidate.source.spec) && /^(?:sha512-[A-Za-z0-9+/=]+|sha512:[a-f0-9]{128})$/.test(candidate.source.integrity ?? '')
+  }
   return false
 }
 
