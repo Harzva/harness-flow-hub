@@ -69,6 +69,7 @@
     "pack:hub": "pnpm build && pnpm pack --pack-destination artifacts"
   },
   "dependencies": {
+    "semver": "7.8.5",
     "yaml": "2.9.0"
   },
   "peerDependencies": {
@@ -88,6 +89,7 @@
     "@deepseek-ai/dsh-host-webserver": "^0.1.0-rc.6",
     "@types/node": "^24.0.0",
     "@types/react": "~18.3.1",
+    "@types/semver": "7.8.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "esbuild": "^0.25.0",

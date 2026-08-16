@@ -1,0 +1,45 @@
+{
+  "date": "2026-08-16",
+  "dshVersion": "0.1.0-rc.6",
+  "implementation": {
+    "resolver": "src/flow-resolver.ts",
+    "migrationSchema": "schemas/flow-migration-preview.schema.json",
+    "semver": "7.8.5"
+  },
+  "versionSolver": {
+    "strategy": "highest eligible version satisfying the declared semver range",
+    "relationships": ["required", "recommended", "alternative", "conflict"],
+    "verifiedCases": [
+      "range ^0.1.0 selects 0.1.7 over 0.1.5",
+      "failed 0.1.8 is excluded",
+      "out-of-range 0.2.0 is excluded",
+      "candidate input order does not change the Stack lock",
+      "invalid range fails closed",
+      "only failed or stale matching candidates fail closed",
+      "duplicate records for the selected package version fail as ambiguous"
+    ]
+  },
+  "migrationPreview": {
+    "action": "preview-flow-update",
+    "deterministic": true,
+    "requiresConfirmation": true,
+    "mutatesProfile": false,
+    "changeKinds": ["added", "removed", "updated", "relocked", "configChanged"],
+    "verifiedSummary": {
+      "added": 1,
+      "removed": 1,
+      "updated": 1,
+      "relocked": 0,
+      "configChanged": true
+    },
+    "currentStackUnchanged": true,
+    "credentialValuesOrPrivatePathsPresent": false
+  },
+  "automatedTest": {
+    "command": "pnpm check",
+    "tests": 43,
+    "passed": 43,
+    "failed": 0
+  },
+  "result": "passed"
+}

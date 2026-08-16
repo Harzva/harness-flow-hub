@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { maxSatisfying, satisfies, valid, validRange } from 'semver'
 
 export type FlowVariantName = 'lite' | 'standard' | 'local' | 'safe'
 
@@ -94,6 +95,26 @@ export interface FlowInstallPlan {
   blockers: string[]
 }
 
+export interface FlowMigrationPreview {
+  schemaVersion: 1
+  id: string
+  createdAt: string
+  action: 'preview-flow-update'
+  profile: string
+  current: StackLock
+  target: StackLock
+  changes: {
+    added: StackLock['packages']
+    removed: StackLock['packages']
+    updated: Array<{ package: string, from: StackLock['packages'][number], to: StackLock['packages'][number] }>
+    relocked: Array<{ package: string, from: StackLock['packages'][number], to: StackLock['packages'][number] }>
+    configChanged: boolean
+  }
+  summary: { added: number, removed: number, updated: number, relocked: number, configChanged: boolean }
+  requiresConfirmation: true
+  mutatesProfile: false
+}
+
 interface ResolutionOptions {
   includeRecommended?: boolean
   alternatives?: Record<string, string>
@@ -139,6 +160,21 @@ function selectedPlugins(variant: FlowVariant, options: ResolutionOptions = {}):
   return selected.sort((left, right) => left.package.localeCompare(right.package))
 }
 
+function resolvePlugin(requirement: FlowPlugin, registryPlugins: RegistryPlugin[]): RegistryPlugin {
+  if (validRange(requirement.range) === null) throw new Error(`flow-version-range-invalid:${requirement.package}@${requirement.range}`)
+  const named = registryPlugins.filter(item => item.package === requirement.package && valid(item.version) !== null)
+  const matching = named.filter(item => satisfies(item.version, requirement.range))
+  const eligible = matching.filter(item => item.verification.state !== 'failed' && item.verification.state !== 'stale')
+  const selectedVersion = maxSatisfying(eligible.map(item => item.version), requirement.range)
+  if (selectedVersion === null) {
+    if (matching.length > 0) throw new Error(`flow-package-not-eligible:${requirement.package}:${[...new Set(matching.map(item => item.verification.state))].sort().join(',')}`)
+    throw new Error(`flow-package-unresolved:${requirement.package}@${requirement.range}`)
+  }
+  const candidates = eligible.filter(item => item.version === selectedVersion)
+  if (candidates.length !== 1) throw new Error(`flow-package-ambiguous:${requirement.package}@${selectedVersion}`)
+  return candidates[0]!
+}
+
 export function compileStackPreview(flow: HarnessFlow, variantName: FlowVariantName, registryPlugins: RegistryPlugin[], options: {
   generatedAt: string
   dshVersion: string
@@ -154,9 +190,7 @@ export function compileStackPreview(flow: HarnessFlow, variantName: FlowVariantN
   if (!variant.platforms.includes(options.platform)) throw new Error(`flow-platform-unsupported:${options.platform}`)
   if (!Number.isFinite(Date.parse(options.generatedAt))) throw new Error('invalid-stack-generated-at')
   const packages = selectedPlugins(variant, options).map(requirement => {
-    const candidate = registryPlugins.find(item => item.package === requirement.package && item.version === requirement.range)
-    if (candidate === undefined) throw new Error(`flow-package-unresolved:${requirement.package}@${requirement.range}`)
-    if (candidate.verification.state === 'failed' || candidate.verification.state === 'stale') throw new Error(`flow-package-not-eligible:${requirement.package}:${candidate.verification.state}`)
+    const candidate = resolvePlugin(requirement, registryPlugins)
     const integrity = candidate.source.integrity ?? (candidate.source.commit === undefined ? null : `commit:${candidate.source.commit}`)
     if (integrity === null) throw new Error(`flow-package-integrity-missing:${requirement.package}`)
     return {
@@ -199,51 +233,8 @@ function profileTemplate(variant: FlowVariant): 'headless' | 'web' {
   return template
 }
 
-function compareSemver(left: string, right: string): number | null {
-  const parse = (value: string): { core: [number, number, number], pre: Array<number | string> } | null => {
-    const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(value)
-    if (match === null) return null
-    return {
-      core: [Number(match[1]), Number(match[2]), Number(match[3])] as [number, number, number],
-      pre: match[4] === undefined ? [] : match[4].split('.').map(item => /^\d+$/.test(item) ? Number(item) : item),
-    }
-  }
-  const a = parse(left)
-  const b = parse(right)
-  if (a === null || b === null) return null
-  for (let index = 0; index < 3; index += 1) {
-    const av = a.core[index]!
-    const bv = b.core[index]!
-    if (av !== bv) return av < bv ? -1 : 1
-  }
-  if (a.pre.length === 0 || b.pre.length === 0) return a.pre.length === b.pre.length ? 0 : (a.pre.length === 0 ? 1 : -1)
-  for (let index = 0; index < Math.max(a.pre.length, b.pre.length); index += 1) {
-    const av = a.pre[index]
-    const bv = b.pre[index]
-    if (av === undefined || bv === undefined) return av === bv ? 0 : (av === undefined ? -1 : 1)
-    if (av === bv) continue
-    if (typeof av === 'number' && typeof bv === 'number') return av < bv ? -1 : 1
-    if (typeof av === 'number') return -1
-    if (typeof bv === 'number') return 1
-    return av < bv ? -1 : 1
-  }
-  return 0
-}
-
 function supportsDshVersion(range: string, version: string): boolean {
-  const clauses = range.trim().split(/\s+/)
-  if (clauses.length === 0 || range.includes('||')) return false
-  return clauses.every(clause => {
-    const match = /^(>=|<=|>|<|=)?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/.exec(clause)
-    if (match === null) return false
-    const compared = compareSemver(version, match[2]!)
-    if (compared === null) return false
-    if (match[1] === '>=') return compared >= 0
-    if (match[1] === '<=') return compared <= 0
-    if (match[1] === '>') return compared > 0
-    if (match[1] === '<') return compared < 0
-    return compared === 0
-  })
+  return valid(version) !== null && validRange(range) !== null && satisfies(version, range)
 }
 
 export function compileFlowInstallPlan(flow: HarnessFlow, variantName: FlowVariantName, registryPlugins: RegistryPlugin[], options: {
@@ -314,4 +305,43 @@ export function compareFlowVariants(flow: HarnessFlow, from: FlowVariantName, to
     removed: [...leftPackages].filter(item => !rightPackages.has(item)).sort(),
     shared: [...leftPackages].filter(item => rightPackages.has(item)).sort(),
   }
+}
+
+export function compileFlowMigrationPreview(current: StackLock, flow: HarnessFlow, variantName: FlowVariantName, registryPlugins: RegistryPlugin[], options: {
+  generatedAt: string
+  dshVersion: string
+  platform: 'win32' | 'linux' | 'darwin'
+  arch: string
+  node: string
+  includeRecommended?: boolean
+  alternatives?: Record<string, string>
+}): FlowMigrationPreview {
+  if (current.flow.id !== flow.id) throw new Error(`flow-migration-id-mismatch:${current.flow.id}:${flow.id}`)
+  const target = compileStackPreview(flow, variantName, registryPlugins, { ...options, profile: current.profile })
+  const currentByPackage = new Map(current.packages.map(item => [item.package, item]))
+  const targetByPackage = new Map(target.packages.map(item => [item.package, item]))
+  const added = target.packages.filter(item => !currentByPackage.has(item.package))
+  const removed = current.packages.filter(item => !targetByPackage.has(item.package))
+  const updated: FlowMigrationPreview['changes']['updated'] = []
+  const relocked: FlowMigrationPreview['changes']['relocked'] = []
+  for (const item of target.packages) {
+    const before = currentByPackage.get(item.package)
+    if (before === undefined) continue
+    if (before.version !== item.version) updated.push({ package: item.package, from: before, to: item })
+    else if (before.source !== item.source || before.integrity !== item.integrity || before.commit !== item.commit) relocked.push({ package: item.package, from: before, to: item })
+  }
+  const changes = { added, removed, updated, relocked, configChanged: current.configDigest !== target.configDigest }
+  const body = {
+    schemaVersion: 1 as const,
+    createdAt: target.generatedAt,
+    action: 'preview-flow-update' as const,
+    profile: current.profile,
+    current,
+    target,
+    changes,
+    summary: { added: added.length, removed: removed.length, updated: updated.length, relocked: relocked.length, configChanged: changes.configChanged },
+    requiresConfirmation: true as const,
+    mutatesProfile: false as const,
+  }
+  return { ...body, id: createHash('sha256').update(canonicalJson(body)).digest('hex').slice(0, 24) }
 }

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness-flow.dev/schemas/flow-migration-preview.schema.json",
+  "title": "Harness Flow Migration Preview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "createdAt", "action", "profile", "current", "target", "changes", "summary", "requiresConfirmation", "mutatesProfile"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-f0-9]{24}$" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "action": { "const": "preview-flow-update" },
+    "profile": { "type": "string", "minLength": 1 },
+    "current": { "$ref": "stack-lock.schema.json" },
+    "target": { "$ref": "stack-lock.schema.json" },
+    "changes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added", "removed", "updated", "relocked", "configChanged"],
+      "properties": {
+        "added": { "type": "array", "items": { "$ref": "stack-lock.schema.json#/properties/packages/items" } },
+        "removed": { "type": "array", "items": { "$ref": "stack-lock.schema.json#/properties/packages/items" } },
+        "updated": { "type": "array", "items": { "$ref": "#/$defs/packageChange" } },
+        "relocked": { "type": "array", "items": { "$ref": "#/$defs/packageChange" } },
+        "configChanged": { "type": "boolean" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added", "removed", "updated", "relocked", "configChanged"],
+      "properties": {
+        "added": { "type": "integer", "minimum": 0 },
+        "removed": { "type": "integer", "minimum": 0 },
+        "updated": { "type": "integer", "minimum": 0 },
+        "relocked": { "type": "integer", "minimum": 0 },
+        "configChanged": { "type": "boolean" }
+      }
+    },
+    "requiresConfirmation": { "const": true },
+    "mutatesProfile": { "const": false }
+  },
+  "$defs": {
+    "packageChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package", "from", "to"],
+      "properties": {
+        "package": { "type": "string", "minLength": 1 },
+        "from": { "$ref": "stack-lock.schema.json#/properties/packages/items" },
+        "to": { "$ref": "stack-lock.schema.json#/properties/packages/items" }
+      }
+    }
+  }
+}
