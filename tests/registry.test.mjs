@@ -212,8 +212,11 @@ test('hosted worker workflow parses and retains full Windows and Linux evidence 
   assert.equal(job['timeout-minutes'], 45)
   const verifier = job.steps.find(step => step.name?.startsWith('Verify ten package transactions'))
   assert.match(verifier.run, /registry\/verifications-ci\/\$\{\{ runner\.os \}\} 10$/)
+  const lifecycle = job.steps.find(step => step.name === 'Verify native UI lifecycle and failed-transaction recovery')
+  assert.equal(lifecycle.run, 'pnpm run ui:verify-lifecycle')
   const upload = job.steps.find(step => step.uses === 'actions/upload-artifact@v4')
   assert.equal(upload.if, 'always()')
+  assert.match(upload.with.path, /m2-native-ui-lifecycle-2026-08-16\.json/)
 })
 
 test('Registry publication workflow defaults to candidate-only and protects the signing job', async () => {

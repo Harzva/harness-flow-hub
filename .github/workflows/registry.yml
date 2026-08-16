@@ -63,8 +63,16 @@ jobs:
           "DSH_VERSION=0.1.0-rc.6" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Verify ten package transactions without running third-party code
         run: node scripts/verify-installations.mjs registry/generated/registry.json registry/verifications-ci/${{ runner.os }} 10
+      - name: Build trusted native UI lifecycle fixtures
+        run: |
+          pnpm run pack:fixture
+          pnpm run pack:hub
+      - name: Verify native UI lifecycle and failed-transaction recovery
+        run: pnpm run ui:verify-lifecycle
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: registry-install-transaction-${{ runner.os }}
-          path: registry/verifications-ci/${{ runner.os }}/*.json
+          path: |
+            registry/verifications-ci/${{ runner.os }}/*.json
+            evidence/m2-native-ui-lifecycle-2026-08-16.json
