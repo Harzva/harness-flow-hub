@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-16",
+  "baseCommit": "14a6c363116a9c92f2e7deb6ad85b40e48d2ce93",
+  "dshVersion": "0.1.0-rc.6",
+  "profile": "isolated-web-fixture",
+  "flow": {
+    "id": "coding-expert",
+    "version": "0.1.0-alpha.1",
+    "state": "unverified",
+    "variants": {
+      "lite": {
+        "profile": "flow-coding-expert-lite",
+        "packages": ["dsh-mnemon@0.1.6", "dsh-plugin-writing-guard@0.9.2"],
+        "configDigest": "sha256:355863ad7c77a8a4594deae79ad4dc0ac6a3487e8678b8b2ec9ec1ddd1bb4a59"
+      },
+      "safe": {
+        "profile": "flow-coding-expert-safe",
+        "packages": ["dsh-plugin-writing-guard@0.9.2"],
+        "configDigest": "sha256:b037c1f430c50d968d1c6e741f397c81c37ef38e019ac85fb531d96d7d6a01f0"
+      }
+    },
+    "digest": "sha256:c01e9073acdd780a5596eb880b6fa9d94a4e932d37714a3c77748926f4108b20",
+    "liteToSafe": {
+      "added": [],
+      "removed": ["dsh-mnemon"],
+      "shared": ["dsh-plugin-writing-guard"]
+    }
+  },
+  "checks": [
+    { "id": "schema", "status": "passed", "detail": "Harness Flow and Stack lock validate against schema v1" },
+    { "id": "determinism", "status": "passed", "detail": "identical inputs produce byte-equivalent Stack preview objects" },
+    { "id": "fail-closed", "status": "passed", "detail": "unresolved, failed and ambiguous packages are rejected" },
+    { "id": "native-ui-lite", "status": "passed", "detail": "real DSH settings page shows role, boundaries, workflow, two exact packages and digests" },
+    { "id": "native-ui-safe", "status": "passed", "detail": "variant switch shows safe role, one exact package and reversed diff" },
+    { "id": "browser-console", "status": "passed", "detail": "no warning or error messages" },
+    { "id": "secret-boundary", "status": "passed", "detail": "credentials are names only; UI states that API keys are not read or saved" },
+    { "id": "write-boundary", "status": "passed", "detail": "read-only navigation and variant selection only; no install, update, remove or rollback action" },
+    { "id": "automated-tests", "status": "passed", "detail": "pnpm check: 34/34 tests passed" }
+  ]
+}

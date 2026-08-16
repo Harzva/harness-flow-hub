@@ -4,7 +4,7 @@
   "generatedFrom": {
     "kind": "github-topic+npm-search",
     "asOf": "2026-08-16",
-    "sha256": "ebd2912539949aa5424a773e08568d43e87721f46eade4a52b50f15704df72e5"
+    "sha256": "a73f65101f37129f14ad9096f8c6d65428eac5f7728d275e126cb44facb7b9f2"
   },
   "plugins": [
     {
@@ -699,5 +699,32 @@
       }
     }
   ],
-  "flows": []
+  "flows": [
+    {
+      "schemaVersion": 1,
+      "id": "coding-expert",
+      "version": "0.1.0-alpha.1",
+      "manifest": "registry/flows/coding-expert.dsh-flow.yml",
+      "digest": "sha256:c01e9073acdd780a5596eb880b6fa9d94a4e932d37714a3c77748926f4108b20",
+      "variants": [
+        "lite",
+        "safe"
+      ],
+      "verification": {
+        "schemaVersion": 1,
+        "subject": "coding-expert",
+        "state": "unverified",
+        "checks": [
+          {
+            "id": "manifest-schema",
+            "status": "passed",
+            "detail": "Harness Flow schema v1"
+          }
+        ],
+        "evidence": [
+          "registry/flows/coding-expert.dsh-flow.yml"
+        ]
+      }
+    }
+  ]
 }

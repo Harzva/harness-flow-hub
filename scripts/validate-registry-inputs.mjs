@@ -2,9 +2,11 @@ import { readFile, readdir, stat } from 'node:fs/promises'
 import { isAbsolute, relative, resolve } from 'node:path'
 import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
+import { parse as parseYaml } from 'yaml'
 
 const discoveryPath = resolve(process.argv[2] ?? 'registry/discovery/github-topic-2026-08-16.json')
 const verificationDir = resolve(process.argv[3] ?? 'registry/verifications')
+const flowDir = resolve(process.argv[4] ?? 'registry/flows')
 const projectRoot = resolve('.')
 
 async function json(path) {
@@ -48,8 +50,10 @@ const ajv = new Ajv2020({ allErrors: true, strict: true })
 addFormats(ajv)
 const discoverySchema = await json(resolve('schemas/discovery-snapshot.schema.json'))
 const verificationSchema = await json(resolve('schemas/verification-result.schema.json'))
+const flowSchema = await json(resolve('schemas/harness-flow.schema.json'))
 const validateDiscovery = ajv.compile(discoverySchema)
 const validateVerification = ajv.compile(verificationSchema)
+const validateFlow = ajv.compile(flowSchema)
 const discovery = await json(discoveryPath)
 if (!validateDiscovery(discovery)) throw new Error(`invalid discovery snapshot: ${ajv.errorsText(validateDiscovery.errors)}`)
 inspectPublicValues(discovery)
@@ -80,4 +84,21 @@ for (const name of verificationNames) {
   if (ids.has(result.subject)) relevant += 1
 }
 
-process.stdout.write(`${JSON.stringify({ ok: true, discovery: discoveryPath, candidates: discovery.candidates.length, verifications: verificationNames.length, relevant })}\n`)
+const flowNames = (await readdir(flowDir)).filter(name => name.endsWith('.dsh-flow.yml')).sort()
+const flowIds = new Set()
+for (const name of flowNames) {
+  const flow = parseYaml(await readFile(resolve(flowDir, name), 'utf8'))
+  if (!validateFlow(flow)) throw new Error(`invalid Flow ${name}: ${ajv.errorsText(validateFlow.errors)}`)
+  inspectPublicValues(flow)
+  if (flowIds.has(flow.id)) throw new Error(`duplicate Flow id: ${flow.id}`)
+  flowIds.add(flow.id)
+  for (const variant of Object.values(flow.variants)) {
+    for (const plugin of variant.plugins) {
+      if (plugin.relationship === 'conflict') continue
+      const candidate = discovery.candidates.find(item => item.package.name === plugin.package && item.package.version === plugin.range)
+      if (candidate === undefined) throw new Error(`Flow ${flow.id} has unresolved exact plugin ${plugin.package}@${plugin.range}`)
+    }
+  }
+}
+
+process.stdout.write(`${JSON.stringify({ ok: true, discovery: discoveryPath, candidates: discovery.candidates.length, verifications: verificationNames.length, relevant, flows: flowNames.length })}\n`)

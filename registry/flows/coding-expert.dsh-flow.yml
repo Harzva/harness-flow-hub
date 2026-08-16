@@ -1,0 +1,108 @@
+schemaVersion: 1
+id: coding-expert
+name: Coding Expert
+version: 0.1.0-alpha.1
+category: task-expert
+goal: 在独立 DSH Profile 中完成代码理解、最小修改、测试与审查闭环
+targetUsers:
+  - 需要可恢复编码环境的开发者
+expectedOutputs:
+  - 经过测试的最小代码变更
+  - 可追溯的验证结果与恢复说明
+variants:
+  lite:
+    role: 以最小依赖完成代码定位、修改、测试和复核的编码执行专家
+    boundaries:
+      - 只修改用户明确放入当前 workspace 的文件
+      - 未经确认不发布、不部署、不读取未声明凭据
+      - 测试失败时保留原始证据并给出恢复路径
+    model:
+      recommended: deepseek-chat
+      constraints:
+        - 支持工具调用
+        - 支持结构化输出
+    skills:
+      - id: workspace-inspection
+        purpose: 先复用现有模块、测试和官方接口
+      - id: patch-and-test
+        purpose: 生成最小补丁并运行与风险相称的测试
+    plugins:
+      - package: dsh-mnemon
+        range: 0.1.6
+        relationship: required
+      - package: dsh-plugin-writing-guard
+        range: 0.9.2
+        relationship: recommended
+    memory:
+      - id: coding-decisions
+        scope: 当前 Profile 的设计决定、失败与验证结论
+        retention: profile-local
+    workflows:
+      - id: inspect-patch-verify
+        goal: 从需求到可验证补丁
+        steps:
+          - 检查 workspace、约束和现有实现
+          - 生成最小补丁
+          - 运行定向测试并复核差异
+    permissionsPreset: coding-lite
+    uiExtensions:
+      - flow-hub.stack-preview
+    defaults:
+      profileIsolation: new-profile
+      shellWritesRequirePlan: true
+      networkAccess: prompt
+    platforms: [win32, linux, darwin]
+    credentials: []
+  safe:
+    role: 在默认无网络、最小文件写入范围内执行审查与补丁建议的安全编码专家
+    boundaries:
+      - 默认禁止网络和外部进程
+      - 只允许在当前 workspace 生成补丁与测试报告
+      - 不执行发布、部署、凭据访问或不可恢复操作
+    model:
+      recommended: deepseek-chat
+      constraints:
+        - 支持工具调用
+        - 支持结构化输出
+    skills:
+      - id: workspace-inspection
+        purpose: 只读分析现有模块、依赖和测试
+      - id: safe-patch-review
+        purpose: 生成可审阅补丁并阻止越界写入
+    plugins:
+      - package: dsh-plugin-writing-guard
+        range: 0.9.2
+        relationship: required
+    memory:
+      - id: review-decisions
+        scope: 当前 Session 的审查结论
+        retention: session
+    workflows:
+      - id: inspect-propose-review
+        goal: 在不扩大权限的前提下形成补丁建议
+        steps:
+          - 只读检查 workspace 与现有测试
+          - 生成补丁预览
+          - 等待用户确认后再执行允许的写入
+    permissionsPreset: coding-safe
+    uiExtensions:
+      - flow-hub.stack-preview
+    defaults:
+      profileIsolation: new-profile
+      shellWritesRequirePlan: true
+      networkAccess: denied
+    platforms: [win32, linux, darwin]
+    credentials: []
+validation:
+  - id: profile-dump-config
+    kind: dump-config
+    description: 生成的独立 Profile 必须通过官方 dsh --dump-config
+  - id: profile-boot
+    kind: profile-boot
+    description: Profile 必须启动并返回健康状态
+  - id: coding-smoke
+    kind: workflow-smoke
+    description: 在 fixture workspace 中完成检查、补丁预览和测试报告
+uninstall:
+  - 删除 Flow 创建的独立 Profile
+  - 保留用户 workspace，不删除源代码和测试结果

@@ -4,23 +4,24 @@
   "title": "Harness Flow",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "name", "version", "goal", "targetUsers", "expectedOutputs", "variants", "validation", "uninstall"],
+  "required": ["schemaVersion", "id", "name", "version", "category", "goal", "targetUsers", "expectedOutputs", "variants", "validation", "uninstall"],
   "properties": {
     "schemaVersion": { "const": 1 },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
     "name": { "type": "string", "minLength": 1 },
-    "version": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-z0-9.-]+)?$" },
+    "category": { "enum": ["domain-expert", "task-expert", "work-environment"] },
     "goal": { "type": "string", "minLength": 1 },
-    "targetUsers": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-    "expectedOutputs": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "targetUsers": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "expectedOutputs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
     "variants": {
       "type": "object",
       "minProperties": 1,
-      "propertyNames": { "enum": ["lite", "standard", "local"] },
+      "propertyNames": { "enum": ["lite", "standard", "local", "safe"] },
       "additionalProperties": { "$ref": "#/$defs/variant" }
     },
-    "validation": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-    "uninstall": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+    "validation": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/validationTask" } },
+    "uninstall": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
   },
   "$defs": {
     "plugin": {
@@ -31,24 +32,74 @@
         "package": { "type": "string", "minLength": 1 },
         "range": { "type": "string", "minLength": 1 },
         "relationship": { "enum": ["required", "recommended", "alternative", "conflict"] },
-        "alternativeGroup": { "type": "string" }
+        "alternativeGroup": { "type": "string", "minLength": 1 }
+      }
+    },
+    "skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "purpose"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "purpose": { "type": "string", "minLength": 1 }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "scope", "retention"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "scope": { "type": "string", "minLength": 1 },
+        "retention": { "enum": ["session", "profile-local", "external"] }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "goal", "steps"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "goal": { "type": "string", "minLength": 1 },
+        "steps": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recommended", "constraints"],
+      "properties": {
+        "recommended": { "type": "string", "minLength": 1 },
+        "constraints": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "validationTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "description"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "kind": { "enum": ["dump-config", "profile-boot", "workflow-smoke", "filesystem-assertion"] },
+        "description": { "type": "string", "minLength": 1 }
       }
     },
     "variant": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["role", "boundaries", "skills", "plugins", "memory", "workflows", "permissionsPreset", "defaults", "platforms", "credentials"],
+      "required": ["role", "boundaries", "model", "skills", "plugins", "memory", "workflows", "permissionsPreset", "uiExtensions", "defaults", "platforms", "credentials"],
       "properties": {
         "role": { "type": "string", "minLength": 1 },
-        "boundaries": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-        "skills": { "type": "array", "items": { "type": "string" } },
-        "plugins": { "type": "array", "items": { "$ref": "#/$defs/plugin" } },
-        "memory": { "type": "array", "items": { "type": "string" } },
-        "workflows": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "boundaries": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "model": { "$ref": "#/$defs/model" },
+        "skills": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/skill" } },
+        "plugins": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/plugin" } },
+        "memory": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/memory" } },
+        "workflows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/workflow" } },
         "permissionsPreset": { "type": "string", "minLength": 1 },
+        "uiExtensions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "defaults": { "type": "object" },
-        "platforms": { "type": "array", "minItems": 1, "items": { "enum": ["win32", "linux", "darwin"] } },
-        "credentials": { "type": "array", "items": { "type": "string" } }
+        "platforms": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["win32", "linux", "darwin"] } },
+        "credentials": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" } }
       }
     }
   }

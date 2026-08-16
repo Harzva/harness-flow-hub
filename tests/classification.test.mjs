@@ -17,6 +17,8 @@ test('management endpoint exposes only fixed plugin actions and structured rollb
   assert.match(source, /local-same-origin-required/)
   assert.match(source, /rollback-plan-missing-or-consumed/)
   assert.match(source, /recovery-point-unavailable/)
+  assert.match(source, /pathname === `\$\{API_PATH\}\/flows`/)
+  assert.match(source, /resolveFlowCatalog\(\)/)
 })
 
 test('test failure injection is server-configured and phase allowlisted', async () => {

@@ -1,10 +1,12 @@
 import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
+import { parse as parseYaml } from 'yaml'
+import { compareFlowVariants, compileStackPreview, type FlowVariantName, type HarnessFlow, type RegistryPlugin } from './flow-resolver.js'
 import {
   createInstallPlan, createRollbackPlan, executeInstallPlan, executeRollbackPlan, listRecoveryPoints, recoverInterruptedTransactions,
   type InstallPlan, type PluginAction, type RollbackPlan, type TransactionPhase, type TransactionResult,
@@ -106,6 +108,47 @@ function resolveRegistry(): unknown {
   return JSON.parse(readFileSync(resolve(hub.root, 'registry/generated/registry.json'), 'utf8')) as unknown
 }
 
+function resolveFlowCatalog(): unknown[] {
+  const hub = resolveHubPackage()
+  if (hub.root === null) throw new Error('hub-package-unavailable')
+  const registry = resolveRegistry() as { generatedFrom: { asOf: string }, plugins: RegistryPlugin[] }
+  const dshVersion = resolveDshVersion()
+  if (dshVersion === null) throw new Error('dsh-version-unavailable')
+  if (process.platform !== 'win32' && process.platform !== 'linux' && process.platform !== 'darwin') throw new Error(`unsupported-platform:${process.platform}`)
+  const platform = process.platform as 'win32' | 'linux' | 'darwin'
+  const generatedAt = `${registry.generatedFrom.asOf}T00:00:00.000Z`
+  const directory = resolve(hub.root, 'registry/flows')
+  return readdirSync(directory).filter(name => name.endsWith('.dsh-flow.yml')).sort().map(name => {
+    const flow = parseYaml(readFileSync(resolve(directory, name), 'utf8')) as HarnessFlow
+    const names = Object.keys(flow.variants).sort() as FlowVariantName[]
+    const variants = names.map(id => ({
+      id,
+      ...flow.variants[id],
+      stack: compileStackPreview(flow, id, registry.plugins, {
+        generatedAt,
+        dshVersion,
+        platform,
+        arch: process.arch,
+        node: process.version,
+      }),
+    }))
+    const comparisons = names.flatMap((from, index) => names.slice(index + 1).map(to => ({ from, to, diff: compareFlowVariants(flow, from, to) })))
+    return {
+      id: flow.id,
+      name: flow.name,
+      version: flow.version,
+      category: flow.category,
+      goal: flow.goal,
+      targetUsers: flow.targetUsers,
+      expectedOutputs: flow.expectedOutputs,
+      validation: flow.validation,
+      uninstall: flow.uninstall,
+      variants,
+      comparisons,
+    }
+  })
+}
+
 function resolveDshCli(): string {
   const require = createRequire(import.meta.url)
   const packagePath = require.resolve('@deepseek-ai/dsh/package.json')
@@ -199,6 +242,14 @@ export function apply(ctx: Context, config: Config = {}): void {
         json(res, 200, { ok: true, registry: resolveRegistry() })
       } catch (error) {
         json(res, 503, { ok: false, error: error instanceof Error ? error.message : 'registry-unavailable' })
+      }
+      return
+    }
+    if (pathname === `${API_PATH}/flows` && req.method === 'GET') {
+      try {
+        json(res, 200, { ok: true, flows: resolveFlowCatalog() })
+      } catch (error) {
+        json(res, 503, { ok: false, error: error instanceof Error ? error.message : 'flow-catalog-unavailable' })
       }
       return
     }

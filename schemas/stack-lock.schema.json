@@ -23,11 +23,12 @@
     "flow": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "version", "variant"],
+      "required": ["id", "version", "variant", "digest"],
       "properties": {
         "id": { "type": "string" },
         "version": { "type": "string" },
-        "variant": { "enum": ["lite", "standard", "local"] }
+        "variant": { "enum": ["lite", "standard", "local", "safe"] },
+        "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
       }
     },
     "packages": {

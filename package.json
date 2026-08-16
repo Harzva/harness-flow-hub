@@ -21,11 +21,13 @@
   "files": [
     "lib/index.js",
     "lib/transaction.js",
+    "lib/flow-resolver.js",
     "lib/client.js",
     "lib/client.js.map",
     "lib/types/**/*.d.ts",
     "cordis.patch.yml",
     "registry/generated/registry.json",
+    "registry/flows/*.dsh-flow.yml",
     "schemas/*.schema.json"
   ],
   "dsh": {
@@ -65,6 +67,9 @@
     "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts",
     "pack:hub": "pnpm build && pnpm pack --pack-destination artifacts"
   },
+  "dependencies": {
+    "yaml": "2.9.0"
+  },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
@@ -86,8 +91,7 @@
     "ajv-formats": "^3.0.1",
     "esbuild": "^0.25.0",
     "react": "^18.2.0",
-    "typescript": "^5.9.0",
-    "yaml": "2.9.0"
+    "typescript": "^5.9.0"
   },
   "engines": {
     "node": ">=22"
