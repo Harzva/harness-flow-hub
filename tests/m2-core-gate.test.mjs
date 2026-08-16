@@ -24,4 +24,6 @@ test('M2 core gate combines native UI, Bootstrap, transactions, recovery and off
   assert.match(workflow, /pnpm run m2:verify-core/)
   assert.match(workflow, /m2-native-ui-bootstrap-transaction-core-2026-08-17\.json/)
   assert.match(prepareSpike, /process\.argv\[2\] === '--' \? process\.argv\[3\] : process\.argv\[2\]/)
+  assert.match(prepareSpike, /runDsh\(dshCli, dshHome, \['--profile', 'web', '--dump-default-config'\]\)/)
+  assert.match(prepareSpike, /profileInitializedWithOfficialDsh: true/)
 })

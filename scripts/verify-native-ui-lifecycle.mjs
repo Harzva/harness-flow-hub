@@ -133,6 +133,12 @@ try {
   server = await startWeb(cli, home, fixtureArtifact)
   const bootstrap = await readEventually(server.origin, 'bootstrap', server.child)
   if (bootstrap.status !== 200 || bootstrap.payload.state !== 'compatible' || bootstrap.payload.testFailurePhase !== null) throw new Error('normal bootstrap contract failed')
+  const flowCatalog = await readEventually(server.origin, 'flows', server.child)
+  const catalogFlows = flowCatalog.payload.flows ?? []
+  if (flowCatalog.status !== 200 || catalogFlows.length !== 3) throw new Error('native Flow catalog did not expose three definitions')
+  if (new Set(catalogFlows.map(item => item.category)).size !== 3) throw new Error('native Flow catalog did not expose three category types')
+  if (catalogFlows.some(item => item.variants?.length !== 4)) throw new Error('native Flow catalog did not expose four variants per Flow')
+  if (catalogFlows.some(item => item.variants?.some(variant => variant.installPlan?.executable !== false))) throw new Error('unverified Flow dependency became executable in native UI')
   const initial = await readEventually(server.origin, 'profiles', server.child)
   if (initial.status !== 200 || initial.payload.profiles?.[0]?.plugin?.installed !== true) throw new Error('fixture is not installed before UI lifecycle')
 
@@ -197,6 +203,7 @@ try {
     },
     checks: {
       bootstrap: { status: 'passed', state: bootstrap.payload.state },
+      flowCatalog: { status: 'passed', flows: catalogFlows.map(item => item.id), categories: catalogFlows.map(item => item.category).sort(), variants: catalogFlows.reduce((total, item) => total + item.variants.length, 0), unverifiedPlansExecutable: false },
       update: { status: 'passed', http: update.response.status, phases: update.response.payload.phases?.map(item => item.phase) },
       remove: { status: 'passed', http: remove.response.status, inventoryInstalled: false },
       rollback: { status: 'passed', http: rollback.status, inventoryInstalled: true },

@@ -1,0 +1,219 @@
+schemaVersion: 1
+id: research-expert
+name: Research Expert
+version: 0.1.0-alpha.1
+category: domain-expert
+goal: 在独立 DSH Profile 中完成问题定义、资料检索、证据追踪、引用核验与研究报告交付
+targetUsers:
+  - 需要可追溯研究工作台的研究者与分析人员
+expectedOutputs:
+  - 带来源映射和引用状态的证据表
+  - 明确区分事实、推断与限制的研究报告
+variants:
+  lite:
+    role: 以最小依赖完成资料整理、证据追踪与引用核验的研究专家
+    boundaries:
+      - 不把搜索摘要当作原始证据
+      - 不伪造来源、引用、页码或实验结果
+      - 未经确认不上传用户文档或访问未声明凭据
+    model:
+      recommended: deepseek-chat
+      constraints:
+        - 支持工具调用
+        - 支持结构化证据输出
+    skills:
+      - id: question-decomposition
+        purpose: 将研究问题拆解为可验证子问题
+      - id: evidence-tracing
+        purpose: 记录主张、来源、引用状态与不确定性
+    plugins:
+      - package: dsh-science-workbench
+        range: 0.1.1
+        relationship: required
+      - package: dsh-mnemon
+        range: 0.1.6
+        relationship: recommended
+    memory:
+      - id: evidence-ledger
+        scope: 当前 Profile 的问题、来源、主张和引用核验状态
+        retention: profile-local
+    workflows:
+      - id: question-evidence-report
+        goal: 从研究问题形成可追溯结论
+        steps:
+          - 定义问题、范围与证据标准
+          - 收集候选来源并记录出处
+          - 逐条核验主张与引用
+          - 生成带限制说明的研究报告
+    permissionsPreset: research-lite
+    uiExtensions:
+      - flow-hub.stack-preview
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: headless
+      networkAccess: prompt
+      citationPolicy: source-required
+      claimPolicy: evidence-linked
+    platforms: [win32, linux, darwin]
+    credentials: []
+  standard:
+    role: 管理检索、阅读、知识组织、引用核验和报告生产的端到端领域研究专家
+    boundaries:
+      - 任何关键结论必须关联可复查来源
+      - 事实、推断、假设和未知必须分开表达
+      - 外部服务、付费数据源和文档上传必须单独确认
+    model:
+      recommended: deepseek-chat
+      constraints:
+        - 支持长上下文
+        - 支持工具调用与结构化输出
+    skills:
+      - id: research-design
+        purpose: 定义研究问题、纳入标准与交付结构
+      - id: literature-synthesis
+        purpose: 对多来源证据进行比较、冲突分析与综合
+      - id: citation-audit
+        purpose: 核验引用、出处和主张支持关系
+    plugins:
+      - package: dsh-science-workbench
+        range: 0.1.1
+        relationship: required
+      - package: dsh-mnemon
+        range: 0.1.6
+        relationship: required
+      - package: dsh-pocket
+        range: 1.4.3
+        relationship: recommended
+    memory:
+      - id: research-state
+        scope: 当前 Profile 的检索式、纳入记录、证据图谱与报告决定
+        retention: profile-local
+    workflows:
+      - id: scope-search-synthesize-audit
+        goal: 形成可复核的领域研究交付物
+        steps:
+          - 固化问题、范围、术语和纳入排除标准
+          - 执行检索并保存来源元数据
+          - 提取证据、比较冲突并标记不确定性
+          - 核验引用后生成报告和限制清单
+    permissionsPreset: research-standard
+    uiExtensions:
+      - flow-hub.stack-preview
+      - flow-hub.validation-tasks
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: headless
+      networkAccess: prompt
+      citationPolicy: primary-source-preferred
+      claimPolicy: evidence-linked
+      conflictingEvidence: preserve
+    platforms: [win32, linux, darwin]
+    credentials: []
+  local:
+    role: 仅使用本地资料库完成证据提取、综合与引用检查的离线研究专家
+    boundaries:
+      - 禁止网络检索、外部上传和云端知识库写入
+      - 只处理用户明确放入 workspace 的资料
+      - 缺少来源时标记证据缺口而不补写虚构引用
+    model:
+      recommended: local-long-context-model
+      constraints:
+        - 可在本地运行
+        - 支持长文档与结构化输出
+    skills:
+      - id: local-corpus-intake
+        purpose: 建立本地资料清单、出处与完整性记录
+      - id: offline-evidence-synthesis
+        purpose: 仅依据本地语料提取、比较和综合证据
+    plugins:
+      - package: dsh-science-workbench
+        range: 0.1.1
+        relationship: required
+      - package: dsh-mnemon
+        range: 0.1.6
+        relationship: required
+    memory:
+      - id: local-evidence-ledger
+        scope: 当前 Profile 的本地资料索引、证据与引用状态
+        retention: profile-local
+    workflows:
+      - id: inventory-extract-synthesize
+        goal: 从本地语料形成可追溯研究报告
+        steps:
+          - 清点本地资料并记录出处
+          - 提取主张、证据和引用位置
+          - 比较冲突并标记资料缺口
+          - 生成报告和待补来源清单
+    permissionsPreset: research-local
+    uiExtensions:
+      - flow-hub.stack-preview
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: headless
+      networkAccess: denied
+      corpusScope: workspace-only
+      citationPolicy: local-source-required
+    platforms: [win32, linux, darwin]
+    credentials: []
+  safe:
+    role: 以只读资料处理和最小持久化完成证据审查的安全研究专家
+    boundaries:
+      - 默认禁止网络与外部进程
+      - 不修改原始资料，不自动采纳低可信来源
+      - 不读取凭据，不上传文档，不生成无来源结论
+    model:
+      recommended: deepseek-chat
+      constraints:
+        - 支持结构化输出
+        - 支持只读工具策略
+    skills:
+      - id: read-only-evidence-review
+        purpose: 只读检查资料、主张与引用对应关系
+      - id: uncertainty-reporting
+        purpose: 显式记录证据不足、冲突与未知
+    plugins:
+      - package: dsh-science-workbench
+        range: 0.1.1
+        relationship: required
+      - package: dsh-plugin-writing-guard
+        range: 0.9.2
+        relationship: required
+    memory:
+      - id: review-session
+        scope: 当前 Session 的证据审查结论
+        retention: session
+    workflows:
+      - id: inspect-audit-report
+        goal: 在只读边界内完成证据审计
+        steps:
+          - 验证只读权限和资料范围
+          - 检查主张、来源与引用关系
+          - 标记冲突、未知和待人工确认项
+          - 输出审计报告但不改写原始资料
+    permissionsPreset: research-safe
+    uiExtensions:
+      - flow-hub.stack-preview
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: headless
+      networkAccess: denied
+      sourceWrites: denied
+      citationPolicy: source-required
+    platforms: [win32, linux, darwin]
+    credentials: []
+validation:
+  - id: profile-dump-config
+    kind: dump-config
+    description: 生成的独立 Profile 必须通过官方 dsh --dump-config
+  - id: profile-boot
+    kind: profile-boot
+    description: Profile 必须启动并返回健康状态
+  - id: research-smoke
+    kind: workflow-smoke
+    description: 在固定研究 fixture 中生成证据表、引用状态和限制说明
+  - id: source-preservation
+    kind: filesystem-assertion
+    description: 原始资料保持不变且 Stack Lock 不包含用户文件内容
+uninstall:
+  - 删除 Flow 创建的独立 Profile
+  - 保留用户资料、证据导出和研究报告

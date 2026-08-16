@@ -31,6 +31,7 @@ jobs:
       - run: pnpm run security:verify-credential-privacy
       - run: pnpm run registry:verify-recommendation-trust
       - run: pnpm run ui:verify-action-outcomes
+      - run: pnpm run flow:verify-catalog
       - run: pnpm check
       - run: pnpm run registry:assemble-release
       - run: pnpm run registry:validate-release-candidate
@@ -40,7 +41,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: registry-alpha-candidate-${{ github.sha }}
-          path: dist/registry/2026.08.16-alpha.1/
+          path: |
+            dist/registry/2026.08.16-alpha.1/
+            evidence/m3-three-flow-types-2026-08-17.json
           if-no-files-found: error
 
   install-transaction:
@@ -73,6 +76,8 @@ jobs:
         run: pnpm run registry:verify-recommendation-trust
       - name: Verify native failure outcomes explain rollback and recovery without leaking diagnostics
         run: pnpm run ui:verify-action-outcomes
+      - name: Verify three complete Flow types and deterministic isolated Profiles
+        run: pnpm run flow:verify-catalog
       - name: Locate the official DSH package
         shell: pwsh
         run: |
@@ -121,3 +126,4 @@ jobs:
             evidence/m2-recommendation-trust-gate-2026-08-17.json
             evidence/m2-action-outcome-clarity-2026-08-17.json
             evidence/m2-native-ui-bootstrap-transaction-core-2026-08-17.json
+            evidence/m3-three-flow-types-2026-08-17.json

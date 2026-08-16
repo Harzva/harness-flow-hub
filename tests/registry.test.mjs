@@ -58,10 +58,11 @@ test('same discovery input generates byte-identical valid registry', async () =>
     assert.deepEqual(await readFile(one), await readFile(two))
     execFileSync(process.execPath, ['scripts/validate-registry.mjs', one])
     const registry = JSON.parse(await readFile(one, 'utf8'))
-    assert.equal(registry.flows.length, 1)
-    assert.equal(registry.flows[0].id, 'coding-expert')
-    assert.deepEqual(registry.flows[0].variants, ['lite', 'safe'])
-    assert.match(registry.flows[0].digest, /^sha256:[a-f0-9]{64}$/)
+    assert.deepEqual(registry.flows.map(flow => flow.id), ['coding-expert', 'research-expert', 'ui-design-studio'])
+    for (const flow of registry.flows) {
+      assert.deepEqual(flow.variants, ['lite', 'local', 'safe', 'standard'])
+      assert.match(flow.digest, /^sha256:[a-f0-9]{64}$/)
+    }
   } finally {
     await rm(temp, { recursive: true, force: true })
   }

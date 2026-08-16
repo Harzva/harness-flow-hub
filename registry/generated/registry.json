@@ -4,7 +4,7 @@
   "generatedFrom": {
     "kind": "github-topic+npm-search",
     "asOf": "2026-08-16",
-    "sha256": "ab3c9b79daf87571edcbe3bb2acbd250d19f3803b46b96d96df21c0430cf4299"
+    "sha256": "4dedd1426be708fcbed0b01841979e3d504c3b9408fdf61748917830b8141662"
   },
   "plugins": [
     {
@@ -813,10 +813,12 @@
       "id": "coding-expert",
       "version": "0.1.0-alpha.1",
       "manifest": "registry/flows/coding-expert.dsh-flow.yml",
-      "digest": "sha256:5b87ebd228f2391cbb4ca4376e96923507c9189da1bc92afcf4365392b7dd7d4",
+      "digest": "sha256:4c3b3f6706857f6917fc568a808ca067648ae321f42890af6dac3a2cf0828988",
       "variants": [
         "lite",
-        "safe"
+        "local",
+        "safe",
+        "standard"
       ],
       "verification": {
         "schemaVersion": 1,
@@ -831,6 +833,62 @@
         ],
         "evidence": [
           "registry/flows/coding-expert.dsh-flow.yml"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "research-expert",
+      "version": "0.1.0-alpha.1",
+      "manifest": "registry/flows/research-expert.dsh-flow.yml",
+      "digest": "sha256:2af9f722ba7ed64921207519e5d2a8227620c919414fe109191f075e0a814d17",
+      "variants": [
+        "lite",
+        "local",
+        "safe",
+        "standard"
+      ],
+      "verification": {
+        "schemaVersion": 1,
+        "subject": "research-expert",
+        "state": "unverified",
+        "checks": [
+          {
+            "id": "manifest-schema",
+            "status": "passed",
+            "detail": "Harness Flow schema v1"
+          }
+        ],
+        "evidence": [
+          "registry/flows/research-expert.dsh-flow.yml"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "ui-design-studio",
+      "version": "0.1.0-alpha.1",
+      "manifest": "registry/flows/ui-design-studio.dsh-flow.yml",
+      "digest": "sha256:0304d926e0b9e2cee90765ed229e4eff5cf41670d2936c2056a8de721f17a29c",
+      "variants": [
+        "lite",
+        "local",
+        "safe",
+        "standard"
+      ],
+      "verification": {
+        "schemaVersion": 1,
+        "subject": "ui-design-studio",
+        "state": "unverified",
+        "checks": [
+          {
+            "id": "manifest-schema",
+            "status": "passed",
+            "detail": "Harness Flow schema v1"
+          }
+        ],
+        "evidence": [
+          "registry/flows/ui-design-studio.dsh-flow.yml"
         ]
       }
     }

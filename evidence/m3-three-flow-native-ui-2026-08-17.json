@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-08-17",
+  "subject": "Three Flow categories and twelve variants in the native DSH Web UI",
+  "environment": {
+    "dsh": "0.1.0-rc.6",
+    "hub": "0.0.2-m0",
+    "profile": "isolated-web",
+    "browser": "Codex-in-app-browser"
+  },
+  "commands": [
+    "pnpm run pack:hub",
+    "pnpm run ui:prepare-spike -- <isolated-dsh-home>",
+    "dsh --profile web --host 127.0.0.1 --port <isolated-port>"
+  ],
+  "checks": {
+    "freshProfileInitialization": "passed-with-official-dsh-dump-default-config",
+    "nativeMount": "Settings > Plugins > Flow Hub",
+    "flowCount": 3,
+    "flows": [
+      "Coding Expert",
+      "Research Expert",
+      "UI Design Studio"
+    ],
+    "categories": [
+      "task-expert",
+      "domain-expert",
+      "work-environment"
+    ],
+    "variants": 12,
+    "researchSelection": "passed",
+    "designSelection": "passed",
+    "installButtonsForUnverifiedFlows": 0,
+    "consoleErrors": 0,
+    "narrowViewport": {
+      "width": 390,
+      "height": 844,
+      "documentScrollWidth": 390,
+      "hubWidth": 358,
+      "catalogWidth": 316,
+      "flowCardWidths": [316, 316, 316]
+    }
+  },
+  "safety": {
+    "writeActionsTriggered": false,
+    "apiKeyEntered": false,
+    "userProfileTouched": false,
+    "privatePathsRecorded": false,
+    "credentialsCaptured": false
+  },
+  "result": "passed"
+}

@@ -62,7 +62,7 @@ test('Stack preview fails closed for unresolved, failed and ambiguous packages',
   const ambiguous = structuredClone(flow)
   ambiguous.variants.lite.plugins.push({ package: 'another-plugin', range: '1.0.0', relationship: 'alternative', alternativeGroup: 'memory' })
   assert.throws(() => compileStackPreview(ambiguous, 'lite', registry.plugins, options), /flow-alternative-requires-explicit-selection/)
-  assert.throws(() => compileStackPreview(flow, 'standard', registry.plugins, options), /flow-variant-unavailable/)
+  assert.throws(() => compileStackPreview(flow, 'enterprise', registry.plugins, options), /flow-variant-unavailable/)
 })
 
 test('Flow selection handles recommended, alternative and conflict relationships explicitly', async () => {

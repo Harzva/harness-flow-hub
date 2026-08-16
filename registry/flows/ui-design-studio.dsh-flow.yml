@@ -1,0 +1,223 @@
+schemaVersion: 1
+id: ui-design-studio
+name: UI Design Studio
+version: 0.1.0-alpha.1
+category: work-environment
+goal: 在独立 DSH Web Profile 中完成界面审计、设计系统约束、实现预览与可访问性验收
+targetUsers:
+  - 需要从设计要求到可验证界面实现的产品与前端团队
+expectedOutputs:
+  - 包含状态、响应式和可访问性约束的界面方案
+  - 可运行的最小界面实现与视觉验收报告
+variants:
+  lite:
+    role: 以最小插件组合完成界面结构、视觉约束和实现预览的 UI 设计工作环境
+    boundaries:
+      - 先复用现有组件和设计令牌
+      - 未经确认不替换品牌资产、不发布站点、不调用外部设计服务
+      - 必须覆盖空态、加载、错误和窄屏状态
+    model:
+      recommended: deepseek-chat
+      constraints:
+        - 支持视觉输入
+        - 支持工具调用与结构化输出
+    skills:
+      - id: interface-audit
+        purpose: 检查信息层级、交互状态、响应式和可访问性
+      - id: component-composition
+        purpose: 复用现有组件与令牌形成最小实现
+    plugins:
+      - package: dsh-frontend-tools-bridge
+        range: 0.2.0
+        relationship: required
+      - package: dsh-vision-router
+        range: 1.3.0
+        relationship: recommended
+    memory:
+      - id: design-decisions
+        scope: 当前 Profile 的设计约束、组件映射和验收结论
+        retention: profile-local
+    workflows:
+      - id: audit-compose-preview
+        goal: 从界面要求形成可评审预览
+        steps:
+          - 清点现有组件、令牌与交互约束
+          - 定义信息层级和关键状态
+          - 实现最小预览并检查窄屏
+          - 输出可访问性与视觉验收结果
+    permissionsPreset: ui-design-lite
+    uiExtensions:
+      - flow-hub.stack-preview
+      - flow-hub.visual-preview
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: web
+      networkAccess: prompt
+      componentPolicy: reuse-first
+      responsiveViewports: [390, 1440]
+    platforms: [win32, linux, darwin]
+    credentials: []
+  standard:
+    role: 管理界面审计、设计系统、前端实现、视觉比较和可访问性验收的完整设计工作环境
+    boundaries:
+      - 不绕过现有产品结构、品牌约束和组件 API
+      - 外部素材、设计平台、发布与部署必须单独确认
+      - 视觉通过不能替代键盘、语义和运行状态验证
+    model:
+      recommended: deepseek-chat
+      constraints:
+        - 支持视觉输入与长上下文
+        - 支持工具调用和结构化输出
+    skills:
+      - id: product-ui-audit
+        purpose: 审核信息架构、状态覆盖和产品表达
+      - id: design-system-integration
+        purpose: 映射现有令牌、组件和响应式规则
+      - id: visual-accessibility-qa
+        purpose: 执行视觉比较、键盘与语义验收
+    plugins:
+      - package: dsh-frontend-tools-bridge
+        range: 0.2.0
+        relationship: required
+      - package: dsh-vision-router
+        range: 1.3.0
+        relationship: required
+      - package: "@liustack/modlens"
+        range: 3.17.2
+        relationship: recommended
+    memory:
+      - id: ui-system-state
+        scope: 当前 Profile 的组件映射、令牌决定、视觉基线和验收记录
+        retention: profile-local
+    workflows:
+      - id: audit-system-build-validate
+        goal: 交付可运行且可复核的产品界面
+        steps:
+          - 审计现有产品结构和设计资产
+          - 固化组件、令牌、状态和响应式契约
+          - 实现并运行交互预览
+          - 完成视觉、键盘、语义和错误状态验收
+    permissionsPreset: ui-design-standard
+    uiExtensions:
+      - flow-hub.stack-preview
+      - flow-hub.visual-preview
+      - flow-hub.validation-tasks
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: web
+      networkAccess: prompt
+      componentPolicy: reuse-first
+      responsiveViewports: [390, 768, 1440]
+      accessibilityTarget: WCAG-2.2-AA
+    platforms: [win32, linux, darwin]
+    credentials: []
+  local:
+    role: 仅使用本地组件、素材和工具完成界面实现与视觉验收的离线设计工作环境
+    boundaries:
+      - 禁止访问外部素材库、设计平台、CDN 和部署服务
+      - 只使用 workspace 内已有组件、字体与资产
+      - 不读取凭据，不上传截图或用户界面内容
+    model:
+      recommended: local-vision-capable-model
+      constraints:
+        - 可在本地运行
+        - 支持视觉输入与工具调用
+    skills:
+      - id: local-design-inventory
+        purpose: 清点本地组件、令牌、字体和素材
+      - id: offline-ui-validation
+        purpose: 使用本地预览完成响应式和视觉验收
+    plugins:
+      - package: dsh-frontend-tools-bridge
+        range: 0.2.0
+        relationship: required
+      - package: dsh-vision-router
+        range: 1.3.0
+        relationship: required
+    memory:
+      - id: local-ui-decisions
+        scope: 当前 Profile 的本地设计系统映射和验收结果
+        retention: profile-local
+    workflows:
+      - id: inventory-build-local-qa
+        goal: 不依赖外部服务完成界面交付
+        steps:
+          - 清点本地组件与资产并验证许可证记录
+          - 定义离线可用的视觉和交互方案
+          - 使用本地工具实现与预览
+          - 在固定视口完成视觉和可访问性检查
+    permissionsPreset: ui-design-local
+    uiExtensions:
+      - flow-hub.stack-preview
+      - flow-hub.visual-preview
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: web
+      networkAccess: denied
+      assetPolicy: workspace-only
+      responsiveViewports: [390, 1440]
+    platforms: [win32, linux, darwin]
+    credentials: []
+  safe:
+    role: 以只读审计和补丁预览完成界面风险检查的安全设计工作环境
+    boundaries:
+      - 默认禁止网络、发布和外部进程
+      - 不覆盖原始设计资产，不自动应用界面补丁
+      - 只输出可审阅建议、预览和验收缺口
+    model:
+      recommended: deepseek-chat
+      constraints:
+        - 支持视觉输入
+        - 支持只读工具策略与结构化输出
+    skills:
+      - id: read-only-ui-audit
+        purpose: 只读检查界面结构、状态和可访问性
+      - id: safe-ui-patch-preview
+        purpose: 生成不自动应用的界面补丁预览
+    plugins:
+      - package: dsh-frontend-tools-bridge
+        range: 0.2.0
+        relationship: required
+      - package: dsh-plugin-writing-guard
+        range: 0.9.2
+        relationship: required
+    memory:
+      - id: ui-review-session
+        scope: 当前 Session 的界面审查结论和待确认项
+        retention: session
+    workflows:
+      - id: inspect-preview-report
+        goal: 在只读边界内形成界面改进建议
+        steps:
+          - 验证只读权限和审计范围
+          - 检查信息层级、交互状态和键盘路径
+          - 生成补丁与视觉预览但不自动应用
+          - 输出风险、缺口和人工确认项
+    permissionsPreset: ui-design-safe
+    uiExtensions:
+      - flow-hub.stack-preview
+      - flow-hub.visual-preview
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: web
+      networkAccess: denied
+      sourceWrites: denied
+      responsiveViewports: [390, 1440]
+    platforms: [win32, linux, darwin]
+    credentials: []
+validation:
+  - id: profile-dump-config
+    kind: dump-config
+    description: 生成的独立 Web Profile 必须通过官方 dsh --dump-config
+  - id: profile-boot
+    kind: profile-boot
+    description: Web Profile 必须启动并返回健康状态
+  - id: ui-workflow-smoke
+    kind: workflow-smoke
+    description: 在固定 UI fixture 中生成预览并覆盖加载、空、错误和完成状态
+  - id: source-preservation
+    kind: filesystem-assertion
+    description: 原始资产保持不变且 Stack Lock 不包含用户界面内容
+uninstall:
+  - 删除 Flow 创建的独立 Web Profile
+  - 保留用户 workspace、原始设计资产和导出的验收报告

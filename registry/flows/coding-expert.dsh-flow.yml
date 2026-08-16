@@ -54,6 +54,104 @@ variants:
       networkAccess: prompt
     platforms: [win32, linux, darwin]
     credentials: []
+  standard:
+    role: 负责代码理解、实现、测试、静态审查与恢复说明的端到端编码专家
+    boundaries:
+      - 只在用户授权的 workspace 与独立 Profile 内执行
+      - 发布、部署、远程写入和凭据访问必须另行确认
+      - 优先复用现有实现并保留失败日志与可恢复快照
+    model:
+      recommended: deepseek-chat
+      constraints:
+        - 支持工具调用
+        - 支持长上下文与结构化输出
+    skills:
+      - id: repository-mapping
+        purpose: 建立模块、依赖、测试与变更影响地图
+      - id: implementation
+        purpose: 复用现有接口完成最小实现
+      - id: verification-review
+        purpose: 运行测试、审查差异并记录恢复步骤
+    plugins:
+      - package: dsh-mnemon
+        range: 0.1.6
+        relationship: required
+      - package: dsh-plugin-writing-guard
+        range: 0.9.2
+        relationship: required
+      - package: "@liustack/modlens"
+        range: 3.17.2
+        relationship: recommended
+    memory:
+      - id: repository-decisions
+        scope: 当前 Profile 的架构决定、测试证据与失败恢复记录
+        retention: profile-local
+    workflows:
+      - id: map-implement-review
+        goal: 从代码地图到可验证实现
+        steps:
+          - 检查约束、现有实现和测试入口
+          - 生成实施计划并展示写入范围
+          - 完成最小修改并运行定向与回归测试
+          - 审查差异、记录证据和恢复步骤
+    permissionsPreset: coding-standard
+    uiExtensions:
+      - flow-hub.stack-preview
+      - flow-hub.validation-tasks
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: headless
+      shellWritesRequirePlan: true
+      networkAccess: prompt
+      testScope: affected-and-regression
+    platforms: [win32, linux, darwin]
+    credentials: []
+  local:
+    role: 在无外部网络的本地 workspace 中完成代码理解、补丁与测试的编码专家
+    boundaries:
+      - 禁止访问网络服务、远程仓库和云端模型端点
+      - 只读取和修改用户授权的本地 workspace
+      - 不执行发布、部署或凭据读取
+    model:
+      recommended: local-tool-capable-model
+      constraints:
+        - 可在本地运行
+        - 支持工具调用与结构化输出
+    skills:
+      - id: offline-repository-inspection
+        purpose: 离线检查代码、依赖缓存与测试
+      - id: local-patch-validation
+        purpose: 生成补丁并只使用本地工具验证
+    plugins:
+      - package: dsh-mnemon
+        range: 0.1.6
+        relationship: required
+      - package: dsh-plugin-writing-guard
+        range: 0.9.2
+        relationship: required
+    memory:
+      - id: local-coding-decisions
+        scope: 当前 Profile 内的本地代码决定和验证结果
+        retention: profile-local
+    workflows:
+      - id: offline-inspect-patch-test
+        goal: 不连接外部服务完成本地编码闭环
+        steps:
+          - 验证网络禁用和依赖缓存可用性
+          - 检查现有代码与测试
+          - 生成并应用最小补丁
+          - 使用本地测试与静态检查验收
+    permissionsPreset: coding-local
+    uiExtensions:
+      - flow-hub.stack-preview
+    defaults:
+      profileIsolation: new-profile
+      profileTemplate: headless
+      shellWritesRequirePlan: true
+      networkAccess: denied
+      dependencyMode: local-cache-only
+    platforms: [win32, linux, darwin]
+    credentials: []
   safe:
     role: 在默认无网络、最小文件写入范围内执行审查与补丁建议的安全编码专家
     boundaries:

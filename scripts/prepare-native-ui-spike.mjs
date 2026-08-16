@@ -2,6 +2,7 @@ import { createRequire } from 'node:module'
 import { readFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { createInstallPlan, executeInstallPlan, listRecoveryPoints } from '../lib/transaction.js'
+import { runDsh } from './dsh-cli-lib.mjs'
 
 const configuredHome = process.argv[2] === '--' ? process.argv[3] : process.argv[2]
 if (typeof configuredHome !== 'string' || configuredHome.trim() === '') throw new Error('usage: node scripts/prepare-native-ui-spike.mjs <isolated-dsh-home>')
@@ -10,6 +11,8 @@ const require = createRequire(import.meta.url)
 const packagePath = require.resolve('@deepseek-ai/dsh/package.json')
 const pkg = JSON.parse(await readFile(packagePath, 'utf8'))
 const dshCli = resolve(dirname(packagePath), typeof pkg.bin === 'string' ? pkg.bin : pkg.bin.dsh)
+const initialized = runDsh(dshCli, dshHome, ['--profile', 'web', '--dump-default-config'])
+if (initialized.status !== 0) throw new Error(`web Profile initialization failed: ${initialized.stderr || initialized.stdout}`)
 
 const operations = [
   { packageName: '@harness-flow/dsh-flow-hub', sourceSpec: resolve('artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz') },
@@ -26,4 +29,4 @@ for (const operation of operations) {
   results.push({ packageName: operation.packageName, planId: result.planId, phases: result.phases.map(item => item.phase) })
 }
 const recoveryPoints = await listRecoveryPoints({ home: dshHome, profile: 'web' })
-process.stdout.write(`${JSON.stringify({ ok: true, dshVersion: pkg.version, operations: results, recoveryPointCount: recoveryPoints.length })}\n`)
+process.stdout.write(`${JSON.stringify({ ok: true, dshVersion: pkg.version, profileInitializedWithOfficialDsh: true, operations: results, recoveryPointCount: recoveryPoints.length })}\n`)
