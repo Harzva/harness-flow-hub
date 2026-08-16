@@ -4,14 +4,15 @@ import { dirname, resolve } from 'node:path'
 const windowsPath = resolve(process.argv[2] ?? 'work/ci-runtime/windows/win32/m3-flow-dependency-runtime-win32-2026-08-17.json')
 const linuxPath = resolve(process.argv[3] ?? 'work/ci-runtime/linux/linux/m3-flow-dependency-runtime-linux-2026-08-17.json')
 const output = resolve(process.argv[4] ?? 'evidence/m3-flow-dependency-runtime-cross-platform-2026-08-17.json')
-const runUrl = process.argv[5] ?? 'https://github.com/Harzva/harness-flow-hub/actions/runs/31970741517'
+const runUrl = process.argv[5] ?? 'https://github.com/Harzva/harness-flow-hub/actions/runs/31971863385'
+const baseCommit = process.argv[6] ?? 'a1cf646d29166c3062ea6fc238c7c9398d20d764'
 
 function requireTrue(value, message) {
   if (!value) throw new Error(message)
 }
 
 const inputs = [JSON.parse(await readFile(windowsPath, 'utf8')), JSON.parse(await readFile(linuxPath, 'utf8'))]
-const expected = ['dsh-frontend-tools-bridge@0.2.0', 'dsh-mnemon@0.1.6', 'dsh-plugin-writing-guard@0.9.2', 'dsh-science-workbench@0.1.1', 'dsh-vision-router@1.3.0']
+const expected = ['@anionex/dsh-vision-toolkit@0.1.8', 'dsh-frontend-tools-bridge@0.2.0', 'dsh-mnemon@0.1.6', 'dsh-openwolf@0.9.1', 'dsh-plugin-writing-guard@0.9.2', 'dsh-science-workbench@0.1.1', 'dsh-vision-router@1.3.0']
 const platforms = {}
 for (const input of inputs) {
   requireTrue(input.result === 'passed', `platform runtime failed:${input.environment?.os ?? 'unknown'}`)
@@ -44,8 +45,8 @@ requireTrue(platforms.win32 !== undefined && platforms.linux !== undefined, 'Win
 const report = {
   schemaVersion: 1,
   verifiedAt: inputs.map(input => input.verifiedAt).sort().at(-1),
-  subject: 'Cross-platform bounded runtime verification for five exact initial Flow dependencies',
-  baseCommit: '22b0ca35d1753a1d489223530c85fc860de1034e',
+  subject: 'Cross-platform bounded runtime verification for seven exact corrected Flow dependencies',
+  baseCommit,
   run: runUrl,
   platforms,
   checks: {
