@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "verifiedAt": "2026-08-16T21:56:08.801Z",
-  "subject": "Cross-platform corrected Coding and UI Flow capability workflows",
-  "baseCommit": "5eb178fce590fa1769c7dba0862ad261526c6310",
-  "run": "https://github.com/Harzva/harness-flow-hub/actions/runs/31974818888",
+  "verifiedAt": "2026-08-16T22:20:53.686Z",
+  "subject": "Cross-platform corrected Coding, Research, and UI Flow capability workflows",
+  "baseCommit": "2c90a62ca4bac2ebad195bc9a0bc367b35d4594d",
+  "run": "https://github.com/Harzva/harness-flow-hub/actions/runs/31975721224",
   "platforms": {
     "win32": {
       "status": "passed",
@@ -23,6 +23,25 @@
         "mappedFilesBefore": 3,
         "mappedFilesAfter": 3,
         "finalTestsPassed": true
+      },
+      "research": {
+        "package": "dsh-science-workbench@0.1.1",
+        "workflow": [
+          "bio_set_projects_dir",
+          "bio_init_project",
+          "bio_run_cell",
+          "bio_add_feedback",
+          "bio_rerun_cell",
+          "bio_get_project"
+        ],
+        "officialToolRuntimePipeline": true,
+        "cells": 2,
+        "artifacts": 4,
+        "provenanceCommits": 3,
+        "artifactHashesComplete": true,
+        "feedbackLineageRecorded": true,
+        "sourcePreserved": true,
+        "networkCalled": false
       },
       "ui": {
         "package": "@anionex/dsh-vision-toolkit@0.1.8",
@@ -73,6 +92,25 @@
         "mappedFilesAfter": 3,
         "finalTestsPassed": true
       },
+      "research": {
+        "package": "dsh-science-workbench@0.1.1",
+        "workflow": [
+          "bio_set_projects_dir",
+          "bio_init_project",
+          "bio_run_cell",
+          "bio_add_feedback",
+          "bio_rerun_cell",
+          "bio_get_project"
+        ],
+        "officialToolRuntimePipeline": true,
+        "cells": 2,
+        "artifacts": 4,
+        "provenanceCommits": 3,
+        "artifactHashesComplete": true,
+        "feedbackLineageRecorded": true,
+        "sourcePreserved": true,
+        "networkCalled": false
+      },
       "ui": {
         "package": "@anionex/dsh-vision-toolkit@0.1.8",
         "workflow": [
@@ -107,6 +145,7 @@
   "isolation": {
     "exactNpmArtifacts": [
       "dsh-openwolf@0.9.1",
+      "dsh-science-workbench@0.1.1",
       "@anionex/dsh-vision-toolkit@0.1.8"
     ],
     "lifecycleScriptsDisabled": true,
@@ -118,9 +157,10 @@
   },
   "capabilityDecision": {
     "codingExpert": "fixture-workflow-passed-cross-platform",
+    "researchExpert": "science-workbench-fixture-workflow-passed-cross-platform",
     "uiDesignStudio": "agent-scoped-skill-and-tool-runtime-workflow-passed-cross-platform",
     "registryVerificationStateChanged": false,
     "flowExecutableStateChanged": false,
-    "reason": "The exact UI package native tools and Agent-scoped Skill activation passed through the official ToolRuntime on Windows and Linux; Research capability, signed Registry, and empty-environment Flow installation gates remain open."
+    "reason": "Exact Coding, Science Workbench, and Agent-scoped UI workflows passed through their DSH tool paths on Windows and Linux; memory/retrieval composition, signed Registry, and empty-environment Flow installation gates remain open."
   }
 }
