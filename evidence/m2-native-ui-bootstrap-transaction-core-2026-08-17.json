@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "date": "2026-08-16T16:46:02.897Z",
+  "date": "2026-08-16T17:08:07.701Z",
   "subject": "M2 native DSH UI, layered Bootstrap and transaction installer release gate",
   "environment": {
     "os": "win32",
@@ -14,6 +14,7 @@
     "pnpm run ui:verify-lifecycle",
     "pnpm run ui:verify-registry-offline",
     "pnpm run transaction:verify-flow",
+    "pnpm run transaction:verify-formal-sources",
     "pnpm run m2:verify-core"
   ],
   "components": {
@@ -69,6 +70,22 @@
       "isolatedProfile": true,
       "stackLock": true,
       "bootSmoke": "HTTP 200"
+    },
+    "formalSources": {
+      "status": "passed",
+      "adapters": [
+        "npm",
+        "tgz"
+      ],
+      "lifecycle": [
+        "install",
+        "update",
+        "update-rollback",
+        "health-failure-rollback",
+        "uninstall",
+        "uninstall-rollback"
+      ],
+      "failureRecovery": "byte-for-byte"
     }
   },
   "privacy": {

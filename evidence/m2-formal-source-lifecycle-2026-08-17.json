@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 1,
+  "subject": "Formal npm and offline tgz lifecycle through official DSH plugin commands",
+  "date": "2026-08-16T17:07:08.575Z",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0",
+    "dsh": "0.1.0-rc.6"
+  },
+  "commands": [
+    "pnpm run transaction:verify-formal-sources"
+  ],
+  "lifecycle": [
+    "install",
+    "update",
+    "update-rollback",
+    "health-failure-rollback",
+    "uninstall",
+    "uninstall-rollback"
+  ],
+  "adapters": [
+    {
+      "kind": "npm",
+      "sources": [
+        "@harness-flow/hello-bundle@0.0.1-m0",
+        "@harness-flow/hello-bundle@0.0.2-m2"
+      ],
+      "install": {
+        "status": "passed",
+        "version": "0.0.1-m0",
+        "phases": [
+          "preflight",
+          "snapshot",
+          "staging",
+          "install",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "update": {
+        "status": "passed",
+        "from": "0.0.1-m0",
+        "to": "0.0.2-m2",
+        "phases": [
+          "preflight",
+          "snapshot",
+          "staging",
+          "install",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "updateRollback": {
+        "status": "passed",
+        "restored": "0.0.1-m0",
+        "phases": [
+          "preflight",
+          "staging",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "injectedFailure": {
+        "status": "passed",
+        "at": "health",
+        "transactionOk": false,
+        "rollback": "passed",
+        "byteForByte": true
+      },
+      "uninstall": {
+        "status": "passed",
+        "phases": [
+          "preflight",
+          "snapshot",
+          "staging",
+          "install",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "uninstallRollback": {
+        "status": "passed",
+        "restored": "0.0.1-m0",
+        "phases": [
+          "preflight",
+          "staging",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "officialDumpConfig": "passed"
+    },
+    {
+      "kind": "tgz",
+      "sources": [
+        "artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz",
+        "artifacts/harness-flow-hello-bundle-0.0.2-m2.tgz"
+      ],
+      "install": {
+        "status": "passed",
+        "version": "0.0.1-m0",
+        "phases": [
+          "preflight",
+          "snapshot",
+          "staging",
+          "install",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "update": {
+        "status": "passed",
+        "from": "0.0.1-m0",
+        "to": "0.0.2-m2",
+        "phases": [
+          "preflight",
+          "snapshot",
+          "staging",
+          "install",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "updateRollback": {
+        "status": "passed",
+        "restored": "0.0.1-m0",
+        "phases": [
+          "preflight",
+          "staging",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "injectedFailure": {
+        "status": "passed",
+        "at": "health",
+        "transactionOk": false,
+        "rollback": "passed",
+        "byteForByte": true
+      },
+      "uninstall": {
+        "status": "passed",
+        "phases": [
+          "preflight",
+          "snapshot",
+          "staging",
+          "install",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "uninstallRollback": {
+        "status": "passed",
+        "restored": "0.0.1-m0",
+        "phases": [
+          "preflight",
+          "staging",
+          "dump-config",
+          "commit",
+          "relink",
+          "health",
+          "complete"
+        ]
+      },
+      "officialDumpConfig": "passed"
+    }
+  ],
+  "trustBoundary": {
+    "fixtures": "project-owned",
+    "lifecycleScriptsDisabled": true,
+    "userProfileTouched": false,
+    "credentialsCaptured": false,
+    "privatePathsRecorded": false
+  },
+  "result": "passed"
+}

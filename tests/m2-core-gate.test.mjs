@@ -10,10 +10,12 @@ test('M2 core gate combines native UI, Bootstrap, transactions, recovery and off
     'm2-native-ui-lifecycle-2026-08-16.json',
     'm2-registry-offline-resilience-2026-08-17.json',
     'm2-flow-transaction-lifecycle-2026-08-16.json',
+    'm2-formal-source-lifecycle-2026-08-17.json',
   ]) assert.match(gate, new RegExp(evidence.replaceAll('.', '\\.')))
   assert.match(gate, /DSH UI contains an external navigation operation/)
   assert.match(gate, /loopback-and-same-origin-only/)
   assert.match(gate, /transaction phase sequence drift/)
+  assert.match(gate, /formal source lifecycle gate failed/)
   assert.match(workflow, /pnpm run m2:verify-core/)
   assert.match(workflow, /m2-native-ui-bootstrap-transaction-core-2026-08-17\.json/)
 })

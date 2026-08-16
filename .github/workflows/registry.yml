@@ -69,6 +69,8 @@ jobs:
         run: |
           pnpm run pack:fixture
           pnpm run pack:hub
+      - name: Verify npm and tgz full recoverable lifecycle
+        run: pnpm run transaction:verify-formal-sources
       - name: Verify read-only, incompatible, update guidance and CLI rescue modes
         run: pnpm run ui:verify-bootstrap-compatibility
       - name: Verify native UI lifecycle and failed-transaction recovery
@@ -86,6 +88,7 @@ jobs:
           path: |
             registry/verifications-ci/${{ runner.os }}/*.json
             evidence/m1-hosted-worker-${{ runner.os }}-2026-08-17.json
+            evidence/m2-formal-source-lifecycle-2026-08-17.json
             evidence/m2-bootstrap-recovery-modes-2026-08-16.json
             evidence/m2-native-ui-lifecycle-2026-08-16.json
             evidence/m2-registry-offline-resilience-2026-08-17.json
