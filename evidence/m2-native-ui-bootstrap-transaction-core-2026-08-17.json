@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-16T16:46:02.897Z",
+  "subject": "M2 native DSH UI, layered Bootstrap and transaction installer release gate",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0",
+    "dsh": "0.1.0-rc.6"
+  },
+  "commands": [
+    "pnpm check",
+    "pnpm run ui:verify-bootstrap-compatibility",
+    "pnpm run ui:verify-lifecycle",
+    "pnpm run ui:verify-registry-offline",
+    "pnpm run transaction:verify-flow",
+    "pnpm run m2:verify-core"
+  ],
+  "components": {
+    "nativeUi": {
+      "status": "passed",
+      "officialBundleAndClient": true,
+      "views": [
+        "home",
+        "plugins",
+        "flows",
+        "profiles",
+        "tasks"
+      ],
+      "sameOriginTransactions": true,
+      "externalNavigation": false
+    },
+    "bootstrap": {
+      "status": "passed",
+      "modes": [
+        "compatible",
+        "read-only",
+        "safe-recovery"
+      ],
+      "incompatibleWriteHttp": 409
+    },
+    "transactionInstaller": {
+      "status": "passed",
+      "phases": [
+        "preflight",
+        "snapshot",
+        "staging",
+        "install",
+        "dump-config",
+        "commit",
+        "relink",
+        "health",
+        "complete"
+      ],
+      "update": 200,
+      "remove": 200,
+      "rollback": 200,
+      "injectedFailure": 502,
+      "recovery": "byte-for-byte",
+      "finalDumpConfig": 0
+    },
+    "offlineLocalManagement": {
+      "status": "passed",
+      "upstreamRegistry": "unreachable",
+      "profileAvailable": true
+    },
+    "flowTransaction": {
+      "status": "passed",
+      "isolatedProfile": true,
+      "stackLock": true,
+      "bootSmoke": "HTTP 200"
+    }
+  },
+  "privacy": {
+    "userProfileTouched": false,
+    "credentialsCaptured": false,
+    "privatePathsRecorded": false
+  },
+  "result": "passed"
+}

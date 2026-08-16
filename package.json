@@ -91,6 +91,7 @@
     "ui:prepare-spike": "pnpm build && node scripts/prepare-native-ui-spike.mjs",
     "ui:verify-lifecycle": "pnpm build && node scripts/verify-native-ui-lifecycle.mjs",
     "ui:verify-registry-offline": "pnpm build && node scripts/verify-registry-offline-resilience.mjs",
+    "m2:verify-core": "node scripts/verify-m2-core-gate.mjs",
     "ui:verify-bootstrap-compatibility": "pnpm build && node scripts/verify-bootstrap-compatibility.mjs",
     "ui:verify-dsh-version-entry": "pnpm build && node scripts/verify-dsh-version-entry.mjs",
     "compatibility:resolve-matrix": "node scripts/resolve-dsh-ci-matrix.mjs",
