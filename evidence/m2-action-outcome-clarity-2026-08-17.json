@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-17",
+  "subject": "DSH native action outcome clarity and recovery guidance gate",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0"
+  },
+  "commands": [
+    "pnpm run ui:verify-action-outcomes",
+    "pnpm check",
+    "pnpm run site:audit"
+  ],
+  "checks": {
+    "success": {
+      "status": "passed",
+      "state": "success",
+      "taskLabel": "成功"
+    },
+    "verifiedRollback": {
+      "status": "passed",
+      "state": "rolled-back",
+      "taskLabel": "已回滚"
+    },
+    "failedRollback": {
+      "status": "passed",
+      "state": "recovery-required",
+      "taskLabel": "需要恢复"
+    },
+    "unknownResult": {
+      "status": "passed",
+      "state": "unknown",
+      "taskLabel": "状态待确认"
+    },
+    "threeQuestions": {
+      "status": "passed",
+      "labels": [
+        "发生了什么",
+        "是否已回滚",
+        "下一步"
+      ]
+    },
+    "inDshRecovery": {
+      "status": "passed",
+      "action": "查看 Profiles"
+    },
+    "rawDiagnosticRedaction": {
+      "status": "passed"
+    }
+  },
+  "privacy": {
+    "credentialsCaptured": false,
+    "privatePathsRecorded": false,
+    "rawDiagnosticsPersisted": false
+  },
+  "browserWriteEvidence": {
+    "status": "not-run",
+    "reason": "Requires action-time user confirmation for failure injection in the browser."
+  },
+  "result": "passed-with-browser-write-gate-open"
+}

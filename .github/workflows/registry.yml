@@ -30,6 +30,7 @@ jobs:
       - run: pnpm run registry:verify-signature-runtime-gate
       - run: pnpm run security:verify-credential-privacy
       - run: pnpm run registry:verify-recommendation-trust
+      - run: pnpm run ui:verify-action-outcomes
       - run: pnpm check
       - run: pnpm run registry:assemble-release
       - run: pnpm run registry:validate-release-candidate
@@ -70,6 +71,8 @@ jobs:
         run: pnpm run security:verify-credential-privacy
       - name: Verify invalid signature, source drift and stale evidence block recommendations
         run: pnpm run registry:verify-recommendation-trust
+      - name: Verify native failure outcomes explain rollback and recovery without leaking diagnostics
+        run: pnpm run ui:verify-action-outcomes
       - name: Locate the official DSH package
         shell: pwsh
         run: |
@@ -116,4 +119,5 @@ jobs:
             evidence/m2-registry-signature-runtime-gate-2026-08-17.json
             evidence/m2-credential-privacy-gate-2026-08-17.json
             evidence/m2-recommendation-trust-gate-2026-08-17.json
+            evidence/m2-action-outcome-clarity-2026-08-17.json
             evidence/m2-native-ui-bootstrap-transaction-core-2026-08-17.json
