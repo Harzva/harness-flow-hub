@@ -91,6 +91,12 @@ jobs:
           node scripts/validate-registry-release.mjs dist/registry/2026.08.16-alpha.1
       - name: Create reproducible release archive
         run: tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf registry-2026.08.16-alpha.1.tar.gz -C dist/registry/2026.08.16-alpha.1 .
+      - name: Require immutable release policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          enabled="$(gh api 'repos/${{ github.repository }}/immutable-releases' -H 'X-GitHub-Api-Version: 2026-03-10' --jq '.enabled')"
+          test "$enabled" = "true"
       - name: Publish immutable GitHub Release asset
         env:
           GH_TOKEN: ${{ github.token }}
@@ -99,4 +105,5 @@ jobs:
           registry-2026.08.16-alpha.1.tar.gz
           --target "${{ github.sha }}"
           --title "Registry 2026.08.16-alpha.1"
+          --prerelease
           --notes "Signed Harness Flow Hub Registry Alpha. Verification scope and evidence are included in the asset."
