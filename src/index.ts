@@ -19,6 +19,7 @@ export interface Config {
   fixtureSpec?: string
   dshHome?: string
   testFailAt?: string
+  testDshVersion?: string
 }
 
 type BootstrapState = 'compatible' | 'unknown' | 'incompatible'
@@ -212,6 +213,13 @@ export function classifyVersion(version: string | null): BootstrapState {
   return 'incompatible'
 }
 
+export function parseTestDshVersion(value?: string): string | null {
+  const version = value?.trim()
+  if (version === undefined || version === '') return null
+  if (classifyVersion(version) === 'compatible') throw new Error(`test-dsh-version-must-fail-closed:${version}`)
+  return version
+}
+
 function publicPlan(plan: InstallPlan): InstallPlan {
   if (plan.source.kind === 'npm' || plan.source.kind === 'github-sha') return plan
   return { ...plan, source: { ...plan.source, spec: `configured-${plan.source.kind}` } }
@@ -222,6 +230,7 @@ export function apply(ctx: Context, config: Config = {}): void {
   const fixtureSpec = config.fixtureSpec?.trim() || ''
   const home = configuredDshHome(config.dshHome)
   const testFailurePhase = parseTestFailurePhase(config.testFailAt)
+  const testDshVersion = parseTestDshVersion(config.testDshVersion)
   if (testFailurePhase !== undefined && fixtureSpec.length === 0) throw new Error('test-failure-injection-requires-fixture')
   const recoveryPromise = recoverInterruptedTransactions({ home: config.dshHome }).then(recovered => {
     recentTransactions.unshift(...recovered)
@@ -230,7 +239,7 @@ export function apply(ctx: Context, config: Config = {}): void {
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const pathname = new URL(req.url ?? '/', 'http://local').pathname
     if (pathname === `${API_PATH}/bootstrap` && req.method === 'GET') {
-      const dshVersion = resolveDshVersion()
+      const dshVersion = testDshVersion ?? resolveDshVersion()
       const hub = resolveHubPackage()
       json(res, 200, {
         ok: true,

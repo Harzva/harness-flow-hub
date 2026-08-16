@@ -4,7 +4,7 @@ import { build } from 'esbuild'
 await rm('lib', { recursive: true, force: true })
 
 await build({
-  entryPoints: ['src/index.ts', 'src/transaction.ts', 'src/flow-resolver.ts'],
+  entryPoints: ['src/index.ts', 'src/transaction.ts', 'src/flow-resolver.ts', 'src/bootstrap-policy.ts'],
   outdir: 'lib',
   bundle: false,
   format: 'esm',
@@ -14,7 +14,7 @@ await build({
 })
 
 await build({
-  entryPoints: ['src/client/index.tsx'],
+  entryPoints: ['src/client/bootstrap.tsx'],
   outfile: 'lib/client.js',
   bundle: true,
   format: 'cjs',

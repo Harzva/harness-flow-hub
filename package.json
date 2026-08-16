@@ -20,8 +20,12 @@
       "default": "./lib/index.js"
     },
     "./client": {
-      "types": "./lib/types/client/index.d.ts",
+      "types": "./lib/types/client/bootstrap.d.ts",
       "default": "./lib/client.js"
+    },
+    "./bootstrap-policy": {
+      "types": "./lib/types/bootstrap-policy.d.ts",
+      "default": "./lib/bootstrap-policy.js"
     },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
@@ -30,6 +34,7 @@
     "lib/index.js",
     "lib/transaction.js",
     "lib/flow-resolver.js",
+    "lib/bootstrap-policy.js",
     "lib/client.js",
     "lib/client.js.map",
     "lib/types/**/*.d.ts",

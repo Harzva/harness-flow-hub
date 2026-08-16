@@ -6,3 +6,4 @@
         profile: web
         fixtureSpec: !!js process.env.DSH_FLOW_HUB_FIXTURE
         testFailAt: !!js process.env.DSH_FLOW_HUB_TEST_FAIL_AT
+        testDshVersion: !!js process.env.DSH_FLOW_HUB_TEST_DSH_VERSION

@@ -1,0 +1,63 @@
+{
+  "date": "2026-08-16",
+  "subject": "Flow Hub Bootstrap and full UI runtime layering",
+  "environment": {
+    "actualDshVersion": "0.1.0-rc.6",
+    "simulatedIncompatibleVersion": "0.2.0",
+    "hubVersion": "0.0.2-m0",
+    "profile": "isolated web",
+    "userProfileTouched": false
+  },
+  "implementation": {
+    "policy": "src/bootstrap-policy.ts",
+    "bootstrapClient": "src/client/bootstrap.tsx",
+    "fullClient": "src/client/index.tsx",
+    "entrypoint": "src/client/bootstrap.tsx",
+    "officialMount": "settings.plugins.tab",
+    "compatibilityOverride": "Host startup environment only; absent from Client requests; accepts only unknown/incompatible values and rejects compatible values"
+  },
+  "runtimeChecks": {
+    "compatible": {
+      "reportedDshVersion": "0.1.0-rc.6",
+      "mode": "full-ui",
+      "result": "passed",
+      "observed": ["Home", "Plugins", "Flows", "Profiles", "Tasks", "Registry 20 records"],
+      "screenshot": {
+        "file": "evidence/m2-bootstrap-compatible-full-ui-2026-08-16.png",
+        "sha256": "9d80fce163996a97d5a4ba181ff9b62857ff48b29ca737344fbedd70910d6379"
+      }
+    },
+    "incompatible": {
+      "reportedDshVersion": "0.2.0",
+      "mode": "safe-recovery",
+      "result": "passed",
+      "fullUiInitialized": false,
+      "mutationsAllowed": false,
+      "registryReadAllowed": false,
+      "recoveryCommandVisible": "dsh plugin --profile web remove @harness-flow/dsh-flow-hub",
+      "screenshot": {
+        "file": "evidence/m2-bootstrap-incompatible-safe-recovery-2026-08-16.png",
+        "sha256": "66164ba5eb2d753909695fe531a59c744a2fe335d242526da16c627763cd756f"
+      }
+    },
+    "postTestProfile": {
+      "dumpConfigExitCode": 0,
+      "result": "passed"
+    }
+  },
+  "automatedTests": {
+    "command": "pnpm check",
+    "tests": 46,
+    "passed": 46,
+    "failed": 0,
+    "coveredStates": ["loading", "compatible", "unknown", "incompatible", "bootstrap-unavailable"]
+  },
+  "packaging": {
+    "command": "pnpm run pack:hub",
+    "result": "passed",
+    "includes": ["lib/bootstrap-policy.js", "lib/client.js", "lib/types/client/bootstrap.d.ts"],
+    "singleClientBundleReason": "DSH 0.1.0-rc.6 exposes one external client module entry and no stable third-party chunk URL contract; source and runtime initialization are separated without inventing a parallel loader."
+  },
+  "scopeLimit": "The incompatible branch uses a Host-only reported-version override on an actual DSH 0.1.0-rc.6 runtime; current/previous/nightly binary compatibility remains a separate open matrix task.",
+  "result": "passed"
+}

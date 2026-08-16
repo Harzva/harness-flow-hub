@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyVersion, parseTestFailurePhase } from '../lib/index.js'
+import { classifyVersion, parseTestDshVersion, parseTestFailurePhase } from '../lib/index.js'
 
 test('bootstrap classifier fails closed across compatible unknown and incompatible states', () => {
   assert.equal(classifyVersion(null), 'unknown')
@@ -9,6 +9,20 @@ test('bootstrap classifier fails closed across compatible unknown and incompatib
   assert.equal(classifyVersion('0.1.0'), 'compatible')
   assert.equal(classifyVersion('0.1.1'), 'compatible')
   assert.equal(classifyVersion('0.2.0'), 'incompatible')
+})
+
+test('incompatible-version simulation is Host-startup-only and cannot be submitted by the Client', async () => {
+  const host = await import('node:fs/promises').then(fs => fs.readFile('src/index.ts', 'utf8'))
+  const patch = await import('node:fs/promises').then(fs => fs.readFile('cordis.patch.yml', 'utf8'))
+  const bootstrap = await import('node:fs/promises').then(fs => fs.readFile('src/client/bootstrap.tsx', 'utf8'))
+  assert.equal(parseTestDshVersion(undefined), null)
+  assert.equal(parseTestDshVersion(''), null)
+  assert.equal(parseTestDshVersion('0.2.0'), '0.2.0')
+  assert.throws(() => parseTestDshVersion('0.1.0-rc.6'), /test-dsh-version-must-fail-closed/)
+  assert.match(host, /testDshVersion = parseTestDshVersion\(config\.testDshVersion\)/)
+  assert.match(host, /const dshVersion = testDshVersion \?\? resolveDshVersion\(\)/)
+  assert.match(patch, /DSH_FLOW_HUB_TEST_DSH_VERSION/)
+  assert.doesNotMatch(bootstrap, /testDshVersion|TEST_DSH_VERSION/)
 })
 
 test('management endpoint exposes only fixed plugin actions and structured rollback plans', async () => {
