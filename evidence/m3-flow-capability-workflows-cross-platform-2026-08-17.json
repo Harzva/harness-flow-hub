@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-08-16T21:13:08.882Z",
+  "subject": "Cross-platform corrected Coding and UI Flow capability workflows",
+  "baseCommit": "a187ba3ab5a28618d7a5de292ad7286bc2119b7f",
+  "run": "https://github.com/Harzva/harness-flow-hub/actions/runs/31972742851",
+  "platforms": {
+    "win32": {
+      "status": "passed",
+      "node": "v24.19.0",
+      "dsh": "0.1.0-rc.6",
+      "coding": {
+        "package": "dsh-openwolf@0.9.1",
+        "workflow": [
+          "initial-test-failure",
+          "wolf_refresh",
+          "wolf_map",
+          "wolf_file",
+          "bounded-source-correction",
+          "wolf_refresh",
+          "node-test-pass"
+        ],
+        "mappedFilesBefore": 3,
+        "mappedFilesAfter": 3,
+        "finalTestsPassed": true
+      },
+      "ui": {
+        "package": "@anionex/dsh-vision-toolkit@0.1.8",
+        "workflow": [
+          "local-reference",
+          "render-initial-html",
+          "pixel-diff-initial",
+          "render-final-html",
+          "pixel-diff-final",
+          "numeric-acceptance"
+        ],
+        "canonical": {
+          "initialDifferencePct": 6.04,
+          "finalDifferencePct": 0
+        },
+        "currentRunner": {
+          "initialDifferencePct": 7.14,
+          "finalDifferencePct": 2.37,
+          "improved": true
+        },
+        "externalVisionApiCalled": false
+      }
+    },
+    "linux": {
+      "status": "passed",
+      "node": "v24.19.0",
+      "dsh": "0.1.0-rc.6",
+      "coding": {
+        "package": "dsh-openwolf@0.9.1",
+        "workflow": [
+          "initial-test-failure",
+          "wolf_refresh",
+          "wolf_map",
+          "wolf_file",
+          "bounded-source-correction",
+          "wolf_refresh",
+          "node-test-pass"
+        ],
+        "mappedFilesBefore": 3,
+        "mappedFilesAfter": 3,
+        "finalTestsPassed": true
+      },
+      "ui": {
+        "package": "@anionex/dsh-vision-toolkit@0.1.8",
+        "workflow": [
+          "local-reference",
+          "render-initial-html",
+          "pixel-diff-initial",
+          "render-final-html",
+          "pixel-diff-final",
+          "numeric-acceptance"
+        ],
+        "canonical": {
+          "initialDifferencePct": 6.04,
+          "finalDifferencePct": 0
+        },
+        "currentRunner": {
+          "initialDifferencePct": 5.81,
+          "finalDifferencePct": 1.86,
+          "improved": true
+        },
+        "externalVisionApiCalled": false
+      }
+    }
+  },
+  "isolation": {
+    "exactNpmArtifacts": [
+      "dsh-openwolf@0.9.1",
+      "@anionex/dsh-vision-toolkit@0.1.8"
+    ],
+    "lifecycleScriptsDisabled": true,
+    "syntheticWorkspacesOnly": true,
+    "userContentUsed": false,
+    "credentialsConfigured": false,
+    "externalVisionApiCalled": false,
+    "privatePathsRecorded": false
+  },
+  "capabilityDecision": {
+    "codingExpert": "fixture-workflow-passed-cross-platform",
+    "uiDesignStudio": "vendor-workflow-passed-cross-platform-native-agent-dispatch-pending",
+    "registryVerificationStateChanged": false,
+    "flowExecutableStateChanged": false,
+    "reason": "The exact UI package workflow is proven, but Agent-scoped activation and native ToolRuntime dispatch are still pending; signed Registry and empty-environment Flow installation gates also remain open."
+  }
+}
