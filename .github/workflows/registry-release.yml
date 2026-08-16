@@ -1,0 +1,102 @@
+name: Registry release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Create a public GitHub Release after protected signing
+        required: true
+        type: boolean
+        default: false
+      expires_at:
+        description: Detached signature expiry in ISO 8601 format
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: registry-release
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm run registry:validate-inputs
+      - run: pnpm run registry:generate
+      - run: pnpm run registry:validate
+      - run: git diff --exit-code -- registry/generated/registry.json
+      - run: pnpm check
+      - run: pnpm run registry:assemble-release
+      - run: pnpm run registry:validate-release-candidate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: registry-2026.08.16-alpha.1-candidate
+          path: dist/registry/2026.08.16-alpha.1/
+          if-no-files-found: error
+
+  sign-and-publish:
+    if: inputs.publish
+    needs: candidate
+    runs-on: ubuntu-latest
+    environment: registry-publish
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Materialize protected signing keys
+        shell: pwsh
+        env:
+          PRIVATE_KEY_B64: ${{ secrets.REGISTRY_ED25519_PRIVATE_KEY_B64 }}
+          PUBLIC_KEY_B64: ${{ secrets.REGISTRY_ED25519_PUBLIC_KEY_B64 }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:PRIVATE_KEY_B64) -or [string]::IsNullOrWhiteSpace($env:PUBLIC_KEY_B64)) { throw "protected Registry signing keys are unavailable" }
+          [IO.File]::WriteAllBytes("$env:RUNNER_TEMP/registry-private.pem", [Convert]::FromBase64String($env:PRIVATE_KEY_B64))
+          [IO.File]::WriteAllBytes("$env:RUNNER_TEMP/registry-public.pem", [Convert]::FromBase64String($env:PUBLIC_KEY_B64))
+      - name: Sign exact generated Registry bytes
+        shell: pwsh
+        run: >-
+          node scripts/sign-registry.mjs registry/generated/registry.json
+          "$env:RUNNER_TEMP/registry-private.pem"
+          "$env:RUNNER_TEMP/registry.signature.json"
+          registry-production-1
+          "${{ inputs.expires_at }}"
+      - name: Assemble and validate signed release
+        shell: pwsh
+        run: |
+          node scripts/assemble-registry-release.mjs registry/generated/registry.json dist/registry/2026.08.16-alpha.1 --signature "$env:RUNNER_TEMP/registry.signature.json" --public-key "$env:RUNNER_TEMP/registry-public.pem"
+          node scripts/validate-registry-release.mjs dist/registry/2026.08.16-alpha.1
+      - name: Create reproducible release archive
+        run: tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf registry-2026.08.16-alpha.1.tar.gz -C dist/registry/2026.08.16-alpha.1 .
+      - name: Publish immutable GitHub Release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create registry-v2026.08.16-alpha.1
+          registry-2026.08.16-alpha.1.tar.gz
+          --target "${{ github.sha }}"
+          --title "Registry 2026.08.16-alpha.1"
+          --notes "Signed Harness Flow Hub Registry Alpha. Verification scope and evidence are included in the asset."

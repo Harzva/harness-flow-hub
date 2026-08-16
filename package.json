@@ -43,8 +43,11 @@
     "check": "pnpm build && node --test tests/*.test.mjs",
     "registry:discover": "node scripts/discover-github.mjs registry/discovery/github-topic-2026-08-16.json 20 10",
     "registry:audit-candidates": "node scripts/audit-candidates.mjs registry/discovery/github-topic-2026-08-16.json registry/audits/candidates-2026-08-16.json",
+    "registry:validate-inputs": "node scripts/validate-registry-inputs.mjs registry/discovery/github-topic-2026-08-16.json registry/verifications",
     "registry:generate": "node scripts/generate-registry.mjs registry/discovery/github-topic-2026-08-16.json registry/generated/registry.json",
     "registry:validate": "node scripts/validate-registry.mjs registry/generated/registry.json",
+    "registry:assemble-release": "node scripts/assemble-registry-release.mjs registry/generated/registry.json",
+    "registry:validate-release-candidate": "node scripts/validate-registry-release.mjs dist/registry/2026.08.16-alpha.1 --allow-unsigned",
     "registry:sign": "node scripts/sign-registry.mjs",
     "registry:verify-signature": "node scripts/verify-registry-signature.mjs",
     "registry:verify-install": "node scripts/verify-installations.mjs registry/generated/registry.json registry/verifications 10",
@@ -72,7 +75,8 @@
     "ajv-formats": "^3.0.1",
     "esbuild": "^0.25.0",
     "react": "^18.2.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "yaml": "2.9.0"
   },
   "engines": {
     "node": ">=22"

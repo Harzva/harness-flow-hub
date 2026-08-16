@@ -25,6 +25,8 @@ test('v1 schemas are valid JSON and keep distinct responsibilities', async () =>
     ['stack-lock.schema.json', 'packages'],
     ['registry-signature.schema.json', 'signature'],
     ['registry-revocations.schema.json', 'revokedRegistryVersions'],
+    ['discovery-snapshot.schema.json', 'candidates'],
+    ['registry-release-manifest.schema.json', 'files'],
   ]
   for (const [file, responsibility] of entries) {
     const schema = JSON.parse(await fs.readFile(`schemas/${file}`, 'utf8'))

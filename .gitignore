@@ -1,5 +1,6 @@
 node_modules/
 artifacts/*.tgz
 lib/
+dist/
 *.log
 .DS_Store

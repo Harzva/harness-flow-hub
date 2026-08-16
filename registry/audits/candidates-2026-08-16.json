@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "auditedAt": "2026-08-16T09:37:26.897Z",
+  "auditedAt": "2026-08-16T10:16:15.591Z",
   "input": "registry/discovery/github-topic-2026-08-16.json",
   "candidates": 20,
   "passed": 20,

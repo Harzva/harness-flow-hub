@@ -21,15 +21,24 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run registry:validate-inputs
       - run: pnpm run registry:audit-candidates
       - run: pnpm run registry:generate
       - run: pnpm run registry:validate
       - run: pnpm check
+      - run: pnpm run registry:assemble-release
+      - run: pnpm run registry:validate-release-candidate
       - name: Generated registry must be committed and deterministic
         shell: pwsh
         run: git diff --exit-code -- registry/generated/registry.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: registry-alpha-candidate-${{ github.sha }}
+          path: dist/registry/2026.08.16-alpha.1/
+          if-no-files-found: error
 
   install-transaction:
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -45,6 +54,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run registry:validate-inputs
       - run: pnpm add --global @deepseek-ai/dsh@0.1.0-rc.6
       - name: Locate the official DSH package
         shell: pwsh
@@ -52,9 +62,10 @@ jobs:
           $root = pnpm root --global
           "DSH_PACKAGE_ROOT=$root/@deepseek-ai/dsh" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "DSH_VERSION=0.1.0-rc.6" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      - name: Verify one package transaction without running third-party code
-        run: node scripts/verify-installations.mjs registry/generated/registry.json registry/verifications-ci/${{ runner.os }} 1
+      - name: Verify ten package transactions without running third-party code
+        run: node scripts/verify-installations.mjs registry/generated/registry.json registry/verifications-ci/${{ runner.os }} 10
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: registry-install-transaction-${{ runner.os }}
           path: registry/verifications-ci/${{ runner.os }}/*.json

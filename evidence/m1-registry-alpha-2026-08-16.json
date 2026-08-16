@@ -34,6 +34,7 @@
     "candidates": 20,
     "passed": 20,
     "failed": 0,
+    "transientFetchTimeoutsBeforeSuccessfulRetry": 2,
     "checks": [
       "manifest-name",
       "manifest-version",
@@ -43,6 +44,15 @@
       "lifecycle-scripts-disclosed",
       "source-pinned"
     ]
+  },
+  "prepublicationInputGate": {
+    "discoveryCandidates": 20,
+    "verificationFiles": 25,
+    "relevantVerificationFiles": 18,
+    "rejectsFloatingGitHubSources": true,
+    "rejectsPrivateAbsolutePaths": true,
+    "rejectsCredentialMaterial": true,
+    "requiresExistingEvidenceFiles": true
   },
   "platformMatrix": {
     "win32": "implemented-with-current-local-evidence",
@@ -68,6 +78,30 @@
     "snapshotRecovery": "package.json and pnpm-lock.yaml restored byte-for-byte",
     "evidence": "evidence/trusted-fixture-lifecycle-2026-08-16.json"
   },
+  "releaseCandidate": {
+    "registryVersion": "2026.08.16-alpha.1",
+    "status": "candidate",
+    "files": 34,
+    "signaturePresent": false,
+    "deterministicManifest": true,
+    "unsignedPublishBlocked": true,
+    "validDetachedSignatureAllowsPublishValidation": true,
+    "localOutput": "dist/registry/2026.08.16-alpha.1"
+  },
+  "releaseWorkflow": {
+    "path": ".github/workflows/registry-release.yml",
+    "trigger": "workflow_dispatch",
+    "publishDefault": false,
+    "candidateJobReadOnly": true,
+    "signingEnvironment": "registry-publish",
+    "productionSecretsRequired": [
+      "REGISTRY_ED25519_PRIVATE_KEY_B64",
+      "REGISTRY_ED25519_PUBLIC_KEY_B64"
+    ],
+    "immutableGithubReleaseConfigured": true,
+    "hostedRunCompleted": false,
+    "publicReleaseCreated": false
+  },
   "generatedRegistry": {
     "path": "registry/generated/registry.json",
     "plugins": 20,
@@ -81,15 +115,26 @@
     "deterministic": true
   },
   "quality": {
-    "tests": 11,
-    "passed": 11,
+    "tests": 16,
+    "passed": 16,
     "failed": 0,
     "invalidVerificationStateBlocked": true,
     "staleStateDerivedDeterministically": true,
     "fiveTrustStates": ["unknown", "unverified", "passed", "failed", "stale"],
     "ciWorkflowDefined": ".github/workflows/registry.yml",
+    "ciTargetsPerPlatform": 10,
+    "ciPreservesFailureArtifacts": true,
     "ciRunCompleted": false
   },
+  "commands": [
+    "pnpm run registry:validate-inputs",
+    "pnpm run registry:audit-candidates",
+    "pnpm run registry:generate",
+    "pnpm run registry:validate",
+    "pnpm run registry:assemble-release",
+    "pnpm run registry:validate-release-candidate",
+    "pnpm check"
+  ],
   "openGates": [
     "Publish and sign the versioned Registry.",
     "Run the workflow on a hosted CI system.",
