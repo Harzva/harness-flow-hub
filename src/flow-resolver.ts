@@ -176,6 +176,17 @@ function resolvePlugin(requirement: FlowPlugin, registryPlugins: RegistryPlugin[
   return candidates[0]!
 }
 
+function exactSource(candidate: RegistryPlugin): boolean {
+  if (candidate.source.kind === 'npm') {
+    return candidate.source.spec === `${candidate.package}@${candidate.version}` && /^sha512-/.test(candidate.source.integrity ?? '')
+  }
+  if (candidate.source.kind === 'github-sha') {
+    const commit = candidate.source.commit ?? ''
+    return /^[a-f0-9]{40}$/.test(commit) && candidate.source.spec.endsWith(`#${commit}`)
+  }
+  return false
+}
+
 export function compileStackPreview(flow: HarnessFlow, variantName: FlowVariantName, registryPlugins: RegistryPlugin[], options: {
   generatedAt: string
   dshVersion: string
@@ -192,6 +203,7 @@ export function compileStackPreview(flow: HarnessFlow, variantName: FlowVariantN
   if (!Number.isFinite(Date.parse(options.generatedAt))) throw new Error('invalid-stack-generated-at')
   const packages = selectedPlugins(variant, options).map(requirement => {
     const candidate = resolvePlugin(requirement, registryPlugins)
+    if (!exactSource(candidate)) throw new Error(`flow-package-source-unpinned:${requirement.package}`)
     const integrity = candidate.source.integrity ?? (candidate.source.commit === undefined ? null : `commit:${candidate.source.commit}`)
     if (integrity === null) throw new Error(`flow-package-integrity-missing:${requirement.package}`)
     return {
@@ -251,7 +263,10 @@ export function compileFlowInstallPlan(flow: HarnessFlow, variantName: FlowVaria
 }): FlowInstallPlan {
   const variant = flow.variants[variantName]
   if (variant === undefined) throw new Error(`flow-variant-unavailable:${variantName}`)
-  const stack = compileStackPreview(flow, variantName, registryPlugins, options)
+  const stack = compileStackPreview(flow, variantName, registryPlugins, {
+    ...options,
+    includeRecommended: options.registrySignature === 'verified' ? options.includeRecommended : false,
+  })
   const operations = stack.packages.map((item, index) => {
     const candidate = registryPlugins.find(plugin => plugin.package === item.package && plugin.version === item.version)
     if (candidate === undefined) throw new Error(`flow-package-unresolved:${item.package}@${item.version}`)

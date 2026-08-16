@@ -214,6 +214,7 @@ function resolveFlowCatalog(): unknown[] {
         platform,
         arch: process.arch,
         node: process.version,
+        includeRecommended: registryTrust.allowRecommendations,
       }),
       installPlan: compileFlowInstallPlan(flow, id, registry.plugins, {
         generatedAt,
@@ -222,6 +223,7 @@ function resolveFlowCatalog(): unknown[] {
         arch: process.arch,
         node: process.version,
         registrySignature: registryTrust.allowInstallPlans ? 'verified' : 'unverified',
+        includeRecommended: registryTrust.allowRecommendations,
       }),
     }))
     const comparisons = names.flatMap((from, index) => names.slice(index + 1).map(to => ({ from, to, diff: compareFlowVariants(flow, from, to) })))
@@ -235,6 +237,10 @@ function resolveFlowCatalog(): unknown[] {
       expectedOutputs: flow.expectedOutputs,
       validation: flow.validation,
       uninstall: flow.uninstall,
+      recommendations: {
+        allowed: registryTrust.allowRecommendations,
+        reason: registryTrust.allowRecommendations ? 'registry-trust-verified' : registryTrust.reason,
+      },
       variants,
       comparisons,
     }

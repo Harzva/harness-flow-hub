@@ -154,6 +154,7 @@ interface FlowCatalogEntry {
   targetUsers: string[]
   expectedOutputs: string[]
   validation: Array<{ id: string, kind: string, description: string }>
+  recommendations: { allowed: boolean, reason: string }
   variants: FlowVariantPreview[]
   comparisons: Array<{ from: FlowVariantName, to: FlowVariantName, diff: { added: string[], removed: string[], shared: string[] } }>
 }
@@ -273,6 +274,7 @@ function FlowCatalog({ flows }: { flows: FlowCatalogEntry[] }): ReactNode {
   }
   return <div className="flowHubFlowLayout">
     <article className="flowHubFlowHero"><div><span className="flowHubEyebrow">{flow.category} · {flow.version}</span><h4>{flow.name}</h4><p>{flow.goal}</p></div><span className="flowHubPreviewBadge">只读预览 · 未验证</span></article>
+    {!flow.recommendations.allowed ? <div className="flowHubPreviewNotice" role="status"><b>推荐依赖已锁定。</b> Registry 信任门未通过（{flow.recommendations.reason}），当前 Stack 只显示 Flow 必需依赖，不会静默加入 recommended 插件。</div> : null}
     <div className="flowHubVariantTabs" role="tablist" aria-label="Flow 变体">{flow.variants.map(item => <button key={item.id} type="button" role="tab" tabIndex={item.id === variantId ? 0 : -1} aria-selected={item.id === variantId} onKeyDown={event => { onVariantKeyDown(event, item.id) }} onClick={() => { setVariantId(item.id) }}><b>{item.id.toUpperCase()}</b><small>{item.plugins.length} 个插件</small></button>)}</div>
     <div className="flowHubFlowColumns">
       <article className="flowHubDetail"><span className="flowHubEyebrow">专家定义</span><h4>{variant.role}</h4><dl><dt>模型</dt><dd>{variant.model.recommended}</dd><dt>权限</dt><dd>{variant.permissionsPreset}</dd><dt>技能</dt><dd>{variant.skills.map(item => item.id).join('、')}</dd><dt>记忆</dt><dd>{variant.memory.map(item => `${item.id} (${item.retention})`).join('、')}</dd><dt>凭据</dt><dd>{variant.credentials.length ? variant.credentials.join('、') : '不需要'}</dd><dt>边界</dt><dd><ul>{variant.boundaries.map(item => <li key={item}>{item}</li>)}</ul></dd><dt>工作流</dt><dd>{variant.workflows.map(item => <div key={item.id}><b>{item.goal}</b><ol>{item.steps.map(step => <li key={step}>{step}</li>)}</ol></div>)}</dd></dl></article>

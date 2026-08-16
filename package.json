@@ -92,6 +92,7 @@
     "registry:verify-source-policy": "pnpm build && node scripts/verify-remote-source-policy.mjs",
     "registry:verify-signature-runtime-gate": "pnpm build && node scripts/verify-registry-signature-runtime-gate.mjs",
     "security:verify-credential-privacy": "pnpm build && node scripts/verify-credential-privacy-gate.mjs",
+    "registry:verify-recommendation-trust": "pnpm build && node scripts/verify-recommendation-trust-gate.mjs",
     "transaction:verify-lifecycle": "pnpm build && node scripts/verify-transaction-lifecycle.mjs",
     "transaction:verify-adapters": "pnpm build && node scripts/verify-transaction-adapters.mjs",
     "transaction:verify-versions": "pnpm build && node scripts/verify-transaction-version-lifecycle.mjs",

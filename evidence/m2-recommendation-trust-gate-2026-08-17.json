@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-16T18:44:40.112Z",
+  "subject": "Fail-closed Flow recommendation trust gate",
+  "checks": {
+    "invalidSignatureRecommendationAllowed": false,
+    "invalidSignatureRecommendedPackageIncluded": false,
+    "verifiedSignatureRecommendedPackageIncluded": true,
+    "floatingSourceRecommendationBlocked": true,
+    "staleVerificationRecommendationBlocked": true,
+    "explicitNativeUiNotice": true
+  },
+  "policy": {
+    "requiredDependenciesRemainVisibleForReview": true,
+    "recommendationsRequireVerifiedRegistry": true,
+    "sourcesMustBeExact": true,
+    "staleCandidatesEligible": false
+  },
+  "privacy": {
+    "credentialsCaptured": false,
+    "privatePathsRecorded": false,
+    "userContentCaptured": false
+  },
+  "result": "passed"
+}
