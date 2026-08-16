@@ -6,7 +6,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import { parse as parseYaml } from 'yaml'
-import { compareFlowVariants, compileStackPreview, type FlowVariantName, type HarnessFlow, type RegistryPlugin } from './flow-resolver.js'
+import { compareFlowVariants, compileFlowInstallPlan, compileStackPreview, type FlowVariantName, type HarnessFlow, type RegistryPlugin } from './flow-resolver.js'
 import {
   createInstallPlan, createRollbackPlan, executeInstallPlan, executeRollbackPlan, listRecoveryPoints, recoverInterruptedTransactions,
   type InstallPlan, type PluginAction, type RollbackPlan, type TransactionPhase, type TransactionResult,
@@ -130,6 +130,14 @@ function resolveFlowCatalog(): unknown[] {
         platform,
         arch: process.arch,
         node: process.version,
+      }),
+      installPlan: compileFlowInstallPlan(flow, id, registry.plugins, {
+        generatedAt,
+        dshVersion,
+        platform,
+        arch: process.arch,
+        node: process.version,
+        registrySignature: 'unverified',
       }),
     }))
     const comparisons = names.flatMap((from, index) => names.slice(index + 1).map(to => ({ from, to, diff: compareFlowVariants(flow, from, to) })))

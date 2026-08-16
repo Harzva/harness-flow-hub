@@ -5,7 +5,7 @@
   "route": "Settings > Plugins > Flow Hub",
   "packageArtifact": {
     "file": "harness-flow-dsh-flow-hub-0.0.2-m0.tgz",
-    "sha256": "34f6eadbce15d0233adfae91558e35e1b63e48398682a9d38f1d10841507cd72"
+    "sha256": "41cf354467b827ff37c56629aa4b0de6b606d019953af07dd0b73595bd818212"
   },
   "nativeBrowserChecks": {
     "structuredPlanReceivesFocus": true,
@@ -16,7 +16,26 @@
     "searchResults": 2,
     "keyboardSelectedDetail": "@anionex/dsh-vision-toolkit",
     "emptySearchStateVisible": true,
-    "minimumMeasuredControlHeightPx": 44
+    "minimumMeasuredControlHeightPx": 44,
+    "darkMode": {
+      "colorScheme": "dark",
+      "background": "rgb(21, 21, 23)",
+      "foreground": "rgb(249, 250, 251)",
+      "horizontalOverflow": false
+    },
+    "appearanceRestored": "System",
+    "narrowViewport": {
+      "width": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": false,
+      "flowPlanVisible": true
+    },
+    "flowVariantKeyboard": {
+      "enterSelected": "safe",
+      "arrowLeftSelected": "lite",
+      "rovingTabIndex": true
+    },
+    "consoleWarningsOrErrors": 0
   },
   "implementedContracts": [
     "semantic current-page navigation",
@@ -30,8 +49,8 @@
   ],
   "automatedTest": {
     "command": "pnpm check",
-    "tests": 30,
-    "passed": 30,
+    "tests": 36,
+    "passed": 36,
     "failed": 0
   },
   "writeActionExecuted": false,

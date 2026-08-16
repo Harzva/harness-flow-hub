@@ -4,7 +4,7 @@
   "generatedFrom": {
     "kind": "github-topic+npm-search",
     "asOf": "2026-08-16",
-    "sha256": "a73f65101f37129f14ad9096f8c6d65428eac5f7728d275e126cb44facb7b9f2"
+    "sha256": "ab3c9b79daf87571edcbe3bb2acbd250d19f3803b46b96d96df21c0430cf4299"
   },
   "plugins": [
     {
@@ -705,7 +705,7 @@
       "id": "coding-expert",
       "version": "0.1.0-alpha.1",
       "manifest": "registry/flows/coding-expert.dsh-flow.yml",
-      "digest": "sha256:c01e9073acdd780a5596eb880b6fa9d94a4e932d37714a3c77748926f4108b20",
+      "digest": "sha256:5b87ebd228f2391cbb4ca4376e96923507c9189da1bc92afcf4365392b7dd7d4",
       "variants": [
         "lite",
         "safe"

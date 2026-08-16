@@ -1,0 +1,57 @@
+{
+  "date": "2026-08-16",
+  "baseCommit": "8b706dd",
+  "dshVersion": "0.1.0-rc.6",
+  "officialReuse": {
+    "cli": "dsh plugin --profile <name> forwards package operations and reconciles the Profile bundle list",
+    "profileTemplates": {
+      "web": ["base", "web-app"],
+      "headless": ["base", "headless"]
+    },
+    "packageFormat": "existing npm, tgz, GitHub commit and local directory sources; no new package format"
+  },
+  "flow": {
+    "id": "coding-expert",
+    "version": "0.1.0-alpha.1",
+    "digest": "sha256:5b87ebd228f2391cbb4ca4376e96923507c9189da1bc92afcf4365392b7dd7d4"
+  },
+  "plans": {
+    "lite": {
+      "id": "a483b3ea02676c7bd947b911",
+      "profile": "flow-coding-expert-lite",
+      "template": "headless",
+      "configDigest": "sha256:d34c096a8a8b41848aed791e3eb2f561c602ecaba2aa7211c24003a63e32a4d5",
+      "operations": ["dsh-mnemon@0.1.6", "dsh-plugin-writing-guard@0.9.2"],
+      "blockers": 7,
+      "executable": false
+    },
+    "safe": {
+      "id": "29e2cf9734b3052b891bc3ae",
+      "profile": "flow-coding-expert-safe",
+      "template": "headless",
+      "configDigest": "sha256:5c46b629d21a71ede95ceacd4197305813abb72169f546020a6331d90429c5f4",
+      "operations": ["dsh-plugin-writing-guard@0.9.2"],
+      "blockers": 4,
+      "executable": false
+    }
+  },
+  "stages": ["preflight", "initialize-profile", "snapshot", "staging", "install-packages", "dump-config", "boot-smoke", "commit", "health", "write-stack-lock"],
+  "gates": ["registry signature", "plugin verification", "DSH compatibility range", "platform evidence"],
+  "resolverContracts": ["required", "recommended", "explicit alternative selection", "conflict rejection", "exact version resolution", "fail-closed compatibility"],
+  "nativeBrowserChecks": {
+    "liteAndSafePlansVisible": true,
+    "exactSourcesAndLifecycleScriptsVisible": true,
+    "userReadableBlockersVisible": true,
+    "installButtonVisible": false,
+    "consoleWarningsOrErrors": 0,
+    "apiKeyRead": false,
+    "writeActionExecuted": false
+  },
+  "automatedTest": {
+    "command": "pnpm check",
+    "tests": 36,
+    "passed": 36,
+    "failed": 0
+  },
+  "result": "passed-read-only-plan"
+}

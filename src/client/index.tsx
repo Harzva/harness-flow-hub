@@ -81,6 +81,25 @@ interface StackPreview {
   configDigest: string
   validations: Array<{ id: string, status: 'skipped', evidence: string }>
 }
+interface FlowInstallPlanPreview {
+  id: string
+  createdAt: string
+  profile: { name: string, isolation: 'new', template: 'headless' | 'web' }
+  operations: Array<{
+    order: number
+    package: string
+    version: string
+    source: { kind: string, spec: string, integrity: string }
+    verification: VerificationState
+    lifecycleScripts: string[]
+    permissions: string[]
+    credentials: string[]
+  }>
+  risk: { registrySignature: 'verified' | 'unverified', lifecycleScriptsDisabled: true, permissionsPreset: string, permissions: string[], credentials: string[] }
+  steps: string[]
+  executable: boolean
+  blockers: string[]
+}
 interface FlowVariantPreview {
   id: FlowVariantName
   role: string
@@ -93,6 +112,7 @@ interface FlowVariantPreview {
   permissionsPreset: string
   credentials: string[]
   stack: StackPreview
+  installPlan: FlowInstallPlanPreview
 }
 interface FlowCatalogEntry {
   id: string
@@ -181,6 +201,16 @@ function PlanPreview({ plan, running, execute, cancel }: { plan: OperationPlan, 
 
 function shortDigest(value: string): string { return `${value.slice(0, 18)}…${value.slice(-8)}` }
 
+function blockerLabel(value: string): string {
+  if (value === 'registry-signature-not-verified') return '当前内置 Registry 尚未绑定已验证签名'
+  const [kind, packageName, detail] = value.split(':')
+  if (kind === 'plugin-not-verified') return `${packageName} 的验证状态为 ${detail ?? '未知'}`
+  if (kind === 'plugin-dsh-compatibility-unknown') return `${packageName} 尚无明确 DSH 兼容范围`
+  if (kind === 'plugin-dsh-incompatible') return `${packageName} 声明的 DSH 兼容范围（${detail ?? '未知'}）不包含当前版本`
+  if (kind === 'plugin-platform-unverified') return `${packageName} 尚无当前平台运行证据`
+  return value
+}
+
 function FlowCatalog({ flows }: { flows: FlowCatalogEntry[] }): ReactNode {
   const flow = flows[0]
   const [variantId, setVariantId] = useState<FlowVariantName>('lite')
@@ -195,13 +225,29 @@ function FlowCatalog({ flows }: { flows: FlowCatalogEntry[] }): ReactNode {
   const diff = comparison === undefined ? null : comparison.from === variantId ? comparison.diff : {
     added: comparison.diff.removed, removed: comparison.diff.added, shared: comparison.diff.shared,
   }
+  const onVariantKeyDown = (event: KeyboardEvent<HTMLButtonElement>, id: FlowVariantName): void => {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+      event.preventDefault()
+      setVariantId(id)
+      return
+    }
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+    event.preventDefault()
+    const tabs = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [])
+    const current = tabs.indexOf(event.currentTarget)
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length
+    const nextId = flow.variants[next]?.id
+    if (nextId !== undefined) setVariantId(nextId)
+    tabs[next]?.focus()
+  }
   return <div className="flowHubFlowLayout">
     <article className="flowHubFlowHero"><div><span className="flowHubEyebrow">{flow.category} · {flow.version}</span><h4>{flow.name}</h4><p>{flow.goal}</p></div><span className="flowHubPreviewBadge">只读预览 · 未验证</span></article>
-    <div className="flowHubVariantTabs" role="tablist" aria-label="Flow 变体">{flow.variants.map(item => <button key={item.id} type="button" role="tab" aria-selected={item.id === variantId} onClick={() => { setVariantId(item.id) }}><b>{item.id.toUpperCase()}</b><small>{item.plugins.length} 个插件</small></button>)}</div>
+    <div className="flowHubVariantTabs" role="tablist" aria-label="Flow 变体">{flow.variants.map(item => <button key={item.id} type="button" role="tab" tabIndex={item.id === variantId ? 0 : -1} aria-selected={item.id === variantId} onKeyDown={event => { onVariantKeyDown(event, item.id) }} onClick={() => { setVariantId(item.id) }}><b>{item.id.toUpperCase()}</b><small>{item.plugins.length} 个插件</small></button>)}</div>
     <div className="flowHubFlowColumns">
       <article className="flowHubDetail"><span className="flowHubEyebrow">专家定义</span><h4>{variant.role}</h4><dl><dt>模型</dt><dd>{variant.model.recommended}</dd><dt>权限</dt><dd>{variant.permissionsPreset}</dd><dt>技能</dt><dd>{variant.skills.map(item => item.id).join('、')}</dd><dt>记忆</dt><dd>{variant.memory.map(item => `${item.id} (${item.retention})`).join('、')}</dd><dt>凭据</dt><dd>{variant.credentials.length ? variant.credentials.join('、') : '不需要'}</dd><dt>边界</dt><dd><ul>{variant.boundaries.map(item => <li key={item}>{item}</li>)}</ul></dd><dt>工作流</dt><dd>{variant.workflows.map(item => <div key={item.id}><b>{item.goal}</b><ol>{item.steps.map(step => <li key={step}>{step}</li>)}</ol></div>)}</dd></dl></article>
       <article className="flowHubStack"><div className="flowHubStackHead"><div><span className="flowHubEyebrow">确定性 Stack 预览</span><h4>{variant.stack.profile}</h4></div><span>{variant.stack.platform.os} · DSH {variant.stack.dshVersion}</span></div><p className="flowHubPreviewNotice">候选插件尚未通过兼容性验证，因此不会出现安装按钮，也不会读取或保存你的 API Key。</p><div className="flowHubStackPackages">{variant.stack.packages.map(item => <div key={item.package}><b>{item.package}</b><span>{item.version}</span><small>{shortDigest(item.integrity)}</small></div>)}</div><dl><dt>Flow 摘要</dt><dd className="flowHubCode">{shortDigest(variant.stack.flow.digest)}</dd><dt>配置摘要</dt><dd className="flowHubCode">{shortDigest(variant.stack.configDigest)}</dd><dt>验收</dt><dd>{variant.stack.validations.length} 项 · 安装后执行</dd></dl></article>
     </div>
+    <article className="flowHubFlowPlan"><div className="flowHubStackHead"><div><span className="flowHubEyebrow">结构化 Flow 安装计划</span><h4>{variant.installPlan.profile.name}</h4></div><span className={variant.installPlan.executable ? 'flowHubPlanReady' : 'flowHubPlanBlocked'}>{variant.installPlan.executable ? '可执行' : `阻止执行 · ${variant.installPlan.blockers.length}`}</span></div><p>新建隔离的 {variant.installPlan.profile.template} Profile；所有包使用精确来源，生命周期脚本默认禁用。</p><div className="flowHubPlanOps">{variant.installPlan.operations.map(operation => <div key={operation.package}><b>{operation.order}. {operation.package}@{operation.version}</b><StatePill state={operation.verification} /><small>{operation.source.kind} · {operation.source.spec}</small><small>脚本：{operation.lifecycleScripts.length ? operation.lifecycleScripts.join('、') : '无'} · 权限：{operation.permissions.length ? operation.permissions.join('、') : '未声明'} · 凭据：{operation.credentials.length ? operation.credentials.join('、') : '无'}</small></div>)}</div><div className="flowHubPlanSteps" aria-label="Flow 安装阶段">{variant.installPlan.steps.map((step, index) => <span key={step}>{index + 1}. {step}</span>)}</div>{variant.installPlan.blockers.length ? <div className="flowHubBlockers" role="status"><b>执行门尚未满足</b><ul>{variant.installPlan.blockers.map(blocker => <li key={blocker}>{blockerLabel(blocker)}</li>)}</ul></div> : null}<dl><dt>计划 ID</dt><dd className="flowHubCode">{variant.installPlan.id}</dd><dt>权限预设</dt><dd>{variant.installPlan.risk.permissionsPreset}</dd><dt>Registry</dt><dd>{variant.installPlan.risk.registrySignature === 'verified' ? '签名已验证' : '签名未绑定'}</dd></dl></article>
     {diff && peer ? <article className="flowHubCompare"><div><span className="flowHubEyebrow">插件差异</span><h4>{variantId.toUpperCase()} → {peer.toUpperCase()}</h4></div><div><small>增加</small><b>{diff.added.join('、') || '无'}</b></div><div><small>移除</small><b>{diff.removed.join('、') || '无'}</b></div><div><small>共用</small><b>{diff.shared.join('、') || '无'}</b></div></article> : null}
   </div>
 }
@@ -308,6 +354,7 @@ export function FlowHubTab(): ReactNode {
         .flowHubSearch{width:min(310px,100%);min-height:44px;border:1px solid var(--fh-line);border-radius:9px;padding:9px 12px;background:transparent;color:inherit;outline:none}.flowHubSearch:focus{border-color:var(--fh-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--fh-accent) 13%,transparent)}.flowHubPluginLayout{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,.72fr);gap:12px}.flowHubList{display:grid;gap:7px;max-height:420px;overflow:auto;padding-right:3px}.flowHubPlugin{min-height:54px;border:1px solid var(--fh-line);border-radius:10px;padding:13px 14px;background:transparent;color:inherit;text-align:left;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:8px}.flowHubPlugin:hover,.flowHubPlugin[aria-current=true]{border-color:color-mix(in srgb,var(--fh-accent) 55%,var(--fh-line));background:color-mix(in srgb,var(--fh-accent) 6%,transparent)}.flowHubPlugin strong{font-size:13px;overflow-wrap:anywhere}.flowHubPlugin small{display:block;margin-top:4px;opacity:.5}
         .flowHubPill{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:10px;font-weight:750}.flowHubPill i{width:6px;height:6px;border-radius:50%;background:#8b8b8b}.flowHubPill--passed i{background:var(--fh-green)}.flowHubPill--failed i{background:var(--fh-red)}.flowHubPill--stale i{background:var(--fh-accent)}.flowHubDetail{border:1px solid var(--fh-line);border-radius:12px;padding:17px;min-height:220px}.flowHubDetail h4{margin:0 0 5px;font-size:15px;overflow-wrap:anywhere}.flowHubDetail dl{display:grid;grid-template-columns:78px 1fr;gap:9px;margin:18px 0 0;font-size:11px}.flowHubDetail dt{opacity:.48}.flowHubDetail dd{margin:0;overflow-wrap:anywhere}.flowHubCode{font-family:ui-monospace,monospace;font-size:10px}
         .flowHubFlowLayout{display:grid;gap:12px}.flowHubFlowHero{display:flex;align-items:start;justify-content:space-between;gap:18px;border:1px solid var(--fh-line);border-radius:14px;padding:18px;background:linear-gradient(125deg,color-mix(in srgb,var(--fh-accent) 10%,transparent),transparent 58%)}.flowHubFlowHero h4,.flowHubStack h4,.flowHubCompare h4{margin:4px 0 6px;font:600 19px/1.2 "Iowan Old Style","Noto Serif SC",serif}.flowHubFlowHero p{margin:0;font-size:12px;line-height:1.65;opacity:.68}.flowHubEyebrow{font:700 9px/1.2 ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;opacity:.55}.flowHubPreviewBadge{white-space:nowrap;border:1px solid color-mix(in srgb,var(--fh-accent) 45%,var(--fh-line));border-radius:999px;padding:7px 10px;font-size:10px;color:var(--fh-accent)}.flowHubVariantTabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.flowHubVariantTabs button{min-height:54px;border:1px solid var(--fh-line);border-radius:10px;padding:10px 13px;background:transparent;color:inherit;text-align:left;cursor:pointer}.flowHubVariantTabs button[aria-selected=true]{border-color:var(--fh-accent);background:color-mix(in srgb,var(--fh-accent) 10%,transparent)}.flowHubVariantTabs b,.flowHubVariantTabs small{display:block}.flowHubVariantTabs small{margin-top:4px;opacity:.5}.flowHubFlowColumns{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.86fr);gap:12px}.flowHubDetail ul,.flowHubDetail ol{margin:4px 0 0;padding-left:18px}.flowHubDetail li{margin:4px 0;line-height:1.45}.flowHubStack{border:1px solid var(--fh-line);border-radius:12px;padding:17px;background:color-mix(in srgb,currentColor 2%,transparent)}.flowHubStackHead{display:flex;justify-content:space-between;gap:12px}.flowHubStackHead>span{font-size:10px;opacity:.5}.flowHubPreviewNotice{border-left:3px solid var(--fh-accent);padding:9px 11px;background:color-mix(in srgb,var(--fh-accent) 8%,transparent);font-size:11px;line-height:1.55}.flowHubStackPackages{display:grid;gap:7px;margin:14px 0}.flowHubStackPackages>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;border-bottom:1px solid var(--fh-line);padding:8px 0}.flowHubStackPackages b{font-size:11px;overflow-wrap:anywhere}.flowHubStackPackages span{font:600 10px ui-monospace,monospace}.flowHubStackPackages small{grid-column:1/-1;font:9px ui-monospace,monospace;opacity:.48;overflow-wrap:anywhere}.flowHubStack dl{display:grid;grid-template-columns:82px 1fr;gap:8px;margin:14px 0 0;font-size:10px}.flowHubStack dt{opacity:.5}.flowHubStack dd{margin:0;overflow-wrap:anywhere}.flowHubCompare{display:grid;grid-template-columns:minmax(150px,.8fr) repeat(3,minmax(0,1fr));gap:12px;align-items:center;border:1px solid var(--fh-line);border-radius:12px;padding:15px}.flowHubCompare>div:not(:first-child){border-left:1px solid var(--fh-line);padding-left:12px;min-width:0}.flowHubCompare small,.flowHubCompare b{display:block}.flowHubCompare small{font-size:9px;opacity:.5}.flowHubCompare b{margin-top:5px;font-size:10px;overflow-wrap:anywhere}
+        .flowHubFlowPlan{border:1px solid var(--fh-line);border-radius:12px;padding:17px}.flowHubFlowPlan h4{margin:4px 0 6px;font:600 17px/1.2 "Iowan Old Style","Noto Serif SC",serif}.flowHubFlowPlan>p{margin:8px 0;font-size:11px;opacity:.66}.flowHubPlanBlocked,.flowHubPlanReady{align-self:start;border-radius:999px;padding:6px 9px;font-weight:700}.flowHubPlanBlocked{color:var(--fh-red);background:color-mix(in srgb,var(--fh-red) 10%,transparent)}.flowHubPlanReady{color:var(--fh-green);background:color-mix(in srgb,var(--fh-green) 10%,transparent)}.flowHubPlanOps{display:grid;gap:7px;margin:12px 0}.flowHubPlanOps>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;border:1px solid var(--fh-line);border-radius:9px;padding:10px}.flowHubPlanOps small{grid-column:1/-1;font-size:9px;opacity:.55;overflow-wrap:anywhere}.flowHubPlanSteps{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0}.flowHubPlanSteps span{border:1px solid var(--fh-line);border-radius:999px;padding:5px 8px;font:9px ui-monospace,monospace}.flowHubBlockers{border-left:3px solid var(--fh-red);padding:9px 11px;background:color-mix(in srgb,var(--fh-red) 8%,transparent);font-size:10px}.flowHubBlockers ul{margin:6px 0 0;padding-left:18px}.flowHubFlowPlan dl{display:grid;grid-template-columns:82px 1fr;gap:7px;margin:12px 0 0;font-size:10px}.flowHubFlowPlan dt{opacity:.5}.flowHubFlowPlan dd{margin:0}
         .flowHubEmpty{display:grid;place-items:center;text-align:center;min-height:270px;border:1px dashed var(--fh-line);border-radius:13px;padding:28px}.flowHubEmpty b{font:600 22px/1.2 "Iowan Old Style","Noto Serif SC",serif}.flowHubEmpty p{max-width:440px;opacity:.58;font-size:12px;line-height:1.7}.flowHubTask{display:grid;grid-template-columns:90px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--fh-line);font-size:11px}.flowHubTask:last-child{border-bottom:0}.flowHubAlert{margin-bottom:14px;border-left:3px solid var(--fh-red);padding:10px 12px;background:color-mix(in srgb,var(--fh-red) 8%,transparent);font-size:12px}.flowHubResult{margin-top:12px;border-left:3px solid var(--fh-green);padding:10px 12px;background:color-mix(in srgb,var(--fh-green) 8%,transparent);font-size:11px}.flowHubResult--bad{border-color:var(--fh-red)}.flowHubResult pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:120px;overflow:auto}
         @container(max-width:760px){.flowHubTop{grid-template-columns:1fr;padding:22px}.flowHubStatus{justify-items:start}.flowHubBody{grid-template-columns:1fr}.flowHubNav{border-right:0;border-bottom:1px solid var(--fh-line);display:grid;grid-template-columns:repeat(5,minmax(86px,1fr));overflow:auto}.flowHubNav button{grid-template-columns:1fr;gap:3px;text-align:center;padding:9px 5px}.flowHubMain{padding:20px 16px}.flowHubGrid{grid-template-columns:1fr 1fr}.flowHubPluginLayout,.flowHubFlowColumns{grid-template-columns:1fr}.flowHubList{max-height:270px}.flowHubDetail{min-height:0}.flowHubSectionHead{align-items:start;flex-direction:column}.flowHubTask{grid-template-columns:72px 1fr}.flowHubCompare{grid-template-columns:1fr 1fr}.flowHubCompare>div:not(:first-child){border-left:0;border-top:1px solid var(--fh-line);padding:10px 0 0}.flowHubFlowHero{flex-direction:column}.flowHubPreviewBadge{white-space:normal}}
         @media(max-width:900px){.flowHubGrid{grid-template-columns:repeat(2,1fr)}.flowHubPluginLayout{grid-template-columns:1fr}.flowHubDetail{min-height:0}}@media(max-width:650px){.flowHubGrid{grid-template-columns:1fr}}@media(prefers-reduced-motion:no-preference){.flowHubMain>*{animation:fh-rise .28s ease both}@keyframes fh-rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}}

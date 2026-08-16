@@ -49,6 +49,7 @@ variants:
       - flow-hub.stack-preview
     defaults:
       profileIsolation: new-profile
+      profileTemplate: headless
       shellWritesRequirePlan: true
       networkAccess: prompt
     platforms: [win32, linux, darwin]
@@ -89,6 +90,7 @@ variants:
       - flow-hub.stack-preview
     defaults:
       profileIsolation: new-profile
+      profileTemplate: headless
       shellWritesRequirePlan: true
       networkAccess: denied
     platforms: [win32, linux, darwin]

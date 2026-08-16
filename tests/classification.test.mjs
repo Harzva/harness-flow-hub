@@ -44,6 +44,7 @@ test('v1 schemas are valid JSON and keep distinct responsibilities', async () =>
     ['discovery-snapshot.schema.json', 'candidates'],
     ['registry-release-manifest.schema.json', 'files'],
     ['install-plan.schema.json', 'phases'],
+    ['flow-install-plan.schema.json', 'operations'],
     ['rollback-plan.schema.json', 'backupId'],
   ]
   for (const [file, responsibility] of entries) {
