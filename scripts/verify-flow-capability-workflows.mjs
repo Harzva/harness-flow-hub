@@ -375,6 +375,7 @@ export async function verifyResearch(home, workspace, options = {}) {
       const initialCode = [
         'from pathlib import Path',
         'import json',
+        "Path('figures').mkdir(parents=True, exist_ok=True)",
         "source = Path('data/source.txt').read_text(encoding='utf-8').strip()",
         "Path('evidence.json').write_text(json.dumps({'source': source, 'citationStatus': 'verified', 'limitations': ['synthetic fixture only']}, indent=2), encoding='utf-8')",
         "Path('report.md').write_text('# Research fixture\\n\\nFact: claim-alpha.\\n\\nInference: none.\\n\\nLimitation: synthetic fixture only.\\n', encoding='utf-8')",

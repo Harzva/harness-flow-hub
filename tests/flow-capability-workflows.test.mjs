@@ -38,6 +38,7 @@ test('Research fixture executes a provenance workflow without user data or netwo
   assert.match(script, /science-workbench-fixture-workflow-passed/)
   assert.match(script, /initial evidence cell failed:status=/)
   assert.match(script, /safeStderr/)
+  assert.match(script, /Path\('figures'\)\.mkdir\(parents=True, exist_ok=True\)/)
   assert.match(script, /networkCalled: false/)
 })
 
