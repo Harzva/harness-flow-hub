@@ -15,6 +15,8 @@ test('empty-environment verifier binds ephemeral signature, Flow transaction, Pr
   assert.match(verifier, /verifyRegistrySignature\(registryText/)
   assert.match(verifier, /compileFlowInstallPlan\(flow, 'safe'/)
   assert.match(verifier, /executeFlowInstallPlan\(plan/)
+  assert.match(verifier, /official headless app help probe passed without a model request/)
+  assert.match(verifier, /\[cli, '--profile', profile, '--help'\]/)
   assert.match(verifier, /verifyCoding\(home, workspace, options\)/)
   assert.match(verifier, /verifyResearch\(home, workspace, options\)/)
   assert.match(verifier, /verifyUi\(home, workspace, options\)/)

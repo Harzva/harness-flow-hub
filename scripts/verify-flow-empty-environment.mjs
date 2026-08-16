@@ -53,26 +53,34 @@ async function stop(child) {
 }
 
 async function profileBootSmoke(template, profile, env) {
+  if (template === 'headless') {
+    // The official headless bundle is a one-shot app, not a resident service.
+    // Its app-owned --help path loads the Profile and command-line provider,
+    // exits before dependent Agent rows activate, and makes no model request.
+    const probe = spawnSync(process.execPath, [cli, '--profile', profile, '--help'], {
+      env: { ...safeEnvironment(env.DSH_HOME), DSH_HOME: env.DSH_HOME },
+      encoding: 'utf8', windowsHide: true, timeout: 45_000, maxBuffer: 8 * 1024 * 1024,
+    })
+    const output = `${probe.stdout ?? ''}\n${probe.stderr ?? ''}`
+    const validHelp = probe.status === 0 && /Usage:/i.test(output) && /task/i.test(output)
+    return validHelp
+      ? { code: 0, stdout: 'official headless app help probe passed without a model request', stderr: '' }
+      : { code: 1, stdout: '', stderr: `headless app help probe failed:${probe.status ?? 'spawn'}` }
+  }
   const port = template === 'web' ? await freePort() : undefined
-  const args = [cli, '--profile', profile, ...(port === undefined ? [] : ['--host', '127.0.0.1', '--port', String(port)])]
+  const args = [cli, '--profile', profile, '--host', '127.0.0.1', '--port', String(port)]
   const child = spawn(process.execPath, args, { env: { ...safeEnvironment(env.DSH_HOME), DSH_HOME: env.DSH_HOME }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] })
   try {
-    const deadline = Date.now() + (template === 'web' ? 45_000 : 5_000)
+    const deadline = Date.now() + 45_000
     while (Date.now() < deadline) {
       if (child.exitCode !== null) return { code: 1, stdout: '', stderr: `profile process exited:${child.exitCode}` }
-      if (port === undefined) {
-        await new Promise(resolveWait => setTimeout(resolveWait, 250))
-        continue
-      }
       try {
         const response = await fetch(`http://127.0.0.1:${port}/`, { signal: AbortSignal.timeout(2_000) })
         if (response.ok) return { code: 0, stdout: `HTTP ${response.status}`, stderr: '' }
       } catch {}
       await new Promise(resolveWait => setTimeout(resolveWait, 250))
     }
-    return port === undefined
-      ? { code: 0, stdout: 'headless process remained healthy for 5s', stderr: '' }
-      : { code: 1, stdout: '', stderr: 'web health check timed out' }
+    return { code: 1, stdout: '', stderr: 'web health check timed out' }
   } finally {
     await stop(child)
   }
