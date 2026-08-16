@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import { cp, mkdir, readFile, readdir, rename, rm, stat, statfs, writeFile } from 'node:fs/promises'
 import { arch, homedir, platform } from 'node:os'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
+import type { FlowInstallPlan, StackLock } from './flow-resolver.js'
 
 export type PluginAction = 'add' | 'update' | 'remove'
 export type TransactionAction = PluginAction | 'rollback'
@@ -90,6 +91,23 @@ export interface TransactionOptions {
   runtimeArch?: string
   availableCredentials?: string[]
   networkProbe?: (endpoint: string) => Promise<boolean>
+}
+
+export type FlowTransactionStep = FlowInstallPlan['steps'][number] | 'rollback'
+export interface FlowTransactionResult {
+  ok: boolean
+  planId: string
+  action: 'install-flow'
+  profile: string
+  steps: Array<{ step: FlowTransactionStep, status: 'passed' | 'failed', detail?: string }>
+  stackLockPath?: string
+  error?: string
+  startedAt: string
+  finishedAt: string
+}
+export interface FlowTransactionOptions extends Omit<TransactionOptions, 'failAt'> {
+  failAt?: FlowInstallPlan['steps'][number]
+  bootSmoke: (profile: string, env: NodeJS.ProcessEnv) => Promise<CommandResult>
 }
 
 interface TransactionJournal {
@@ -564,4 +582,215 @@ export async function executeRollbackPlan(plan: RollbackPlan, options: Transacti
   } finally {
     if (locked) await rm(lockDir, { recursive: true, force: true }).catch(() => {})
   }
+}
+
+type FlowJournalStatus = 'started' | 'staged' | 'committed' | 'complete' | 'rolled-back' | 'recovered'
+interface FlowTransactionJournal {
+  schemaVersion: 1
+  planId: string
+  profile: string
+  pid: number
+  status: FlowJournalStatus
+  updatedAt: string
+}
+
+const FLOW_TEMPLATE_BUNDLES = {
+  headless: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-headless'],
+  web: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'],
+} as const
+
+async function applyFlowProfileTemplate(profileDir: string, template: FlowInstallPlan['profile']['template']): Promise<void> {
+  const manifestPath = join(profileDir, 'package.json')
+  const parsed = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>
+  const dsh = parsed.dsh !== null && typeof parsed.dsh === 'object' && !Array.isArray(parsed.dsh) ? parsed.dsh as Record<string, unknown> : {}
+  const profile = dsh.profile !== null && typeof dsh.profile === 'object' && !Array.isArray(dsh.profile) ? dsh.profile as Record<string, unknown> : {}
+  await atomicJson(manifestPath, { ...parsed, dsh: { ...dsh, profile: { ...profile, bundles: [...FLOW_TEMPLATE_BUNDLES[template]] } } })
+}
+
+function flowJournal(plan: FlowInstallPlan, status: FlowJournalStatus, now: Date): FlowTransactionJournal {
+  return { schemaVersion: 1, planId: plan.id, profile: plan.profile.name, pid: process.pid, status, updatedAt: now.toISOString() }
+}
+
+function validateExecutableFlowPlan(plan: FlowInstallPlan, actualPlatform: string, actualDshVersion: string, availableCredentials: Set<string>): void {
+  safeProfile(plan.profile.name)
+  if (plan.profile.isolation !== 'new') throw new Error('flow-profile-must-be-new')
+  if (!plan.executable || plan.blockers.length > 0) throw new Error('flow-plan-not-executable')
+  if (plan.risk.registrySignature !== 'verified') throw new Error('registry-signature-unverified')
+  if (plan.stack.platform.os !== actualPlatform) throw new Error(`unsupported-platform:${actualPlatform}`)
+  if (plan.stack.dshVersion !== actualDshVersion) throw new Error(`flow-plan-dsh-version-mismatch:${actualDshVersion}`)
+  const missingCredentials = plan.risk.credentials.filter(name => !availableCredentials.has(name))
+  if (missingCredentials.length > 0) throw new Error(`missing-credentials:${missingCredentials.join(',')}`)
+  if (plan.operations.length === 0) throw new Error('flow-plan-has-no-operations')
+  for (const [index, operation] of plan.operations.entries()) {
+    if (operation.order !== index + 1 || operation.action !== 'add') throw new Error('flow-operation-order-invalid')
+    if (operation.verification !== 'passed') throw new Error(`plugin-not-verified:${operation.package}:${operation.verification}`)
+    const kind = inferSourceKind(operation.source.spec)
+    if (kind !== operation.source.kind) throw new Error(`flow-source-kind-mismatch:${operation.package}`)
+    const locked = plan.stack.packages.find(item => item.package === operation.package && item.version === operation.version)
+    if (locked === undefined || locked.source !== operation.source.spec || locked.integrity !== operation.source.integrity) throw new Error(`flow-stack-operation-mismatch:${operation.package}`)
+  }
+}
+
+/** Execute all Flow package additions in one staging Profile and commit once. */
+export async function executeFlowInstallPlan(plan: FlowInstallPlan, options: FlowTransactionOptions): Promise<FlowTransactionResult> {
+  const startedAt = (options.now?.() ?? new Date()).toISOString()
+  const steps: FlowTransactionResult['steps'] = []
+  const home = dshHome(options.home)
+  const profilesRoot = join(home, 'profiles')
+  const stateRoot = join(home, 'flow-hub')
+  const profileName = plan.profile.name
+  const profileDir = join(profilesRoot, profileName)
+  const stageProfile = `flow-hub-stage-${plan.id}`
+  const stageDir = join(profilesRoot, stageProfile)
+  const snapshotDir = join(stateRoot, 'flow-snapshots', plan.id)
+  const failedDir = join(stateRoot, 'failed', plan.id)
+  const lockDir = join(stateRoot, 'locks', `${profileName}.lock`)
+  const journalPath = join(stateRoot, 'flow-transactions', `${plan.id}.json`)
+  const stackLockPath = join(profileDir, `${plan.flow.id}.stack.lock.json`)
+  const run = options.run ?? ((args, env) => defaultRun(options.dshCli, args, env))
+  let locked = false
+  let committed = false
+  const pass = (step: FlowInstallPlan['steps'][number], detail?: string): void => { steps.push({ step, status: 'passed', ...(detail ? { detail } : {}) }) }
+  const failPoint = (step: FlowInstallPlan['steps'][number]): void => { if (options.failAt === step) throw new Error(`injected-failure:${step}`) }
+  try {
+    const actualPlatform = options.runtimePlatform ?? platform()
+    const actualDshVersion = options.dshVersion ?? detectedDshVersion()
+    if (actualDshVersion === null) throw new Error('dsh-version-unknown')
+    const availableCredentials = new Set(options.availableCredentials ?? Object.keys(process.env).filter(name => Boolean(process.env[name])))
+    validateExecutableFlowPlan(plan, actualPlatform, actualDshVersion, availableCredentials)
+    for (const target of [profileDir, stageDir, snapshotDir, failedDir, lockDir, journalPath, stackLockPath]) {
+      if (!inside(home, target)) throw new Error('transaction-path-outside-dsh-home')
+    }
+    if (await exists(profileDir)) throw new Error('flow-target-profile-already-exists')
+    const disk = await statfs(home)
+    const free = Number(disk.bavail) * Number(disk.bsize)
+    if (free < (options.minimumFreeBytes ?? 128 * 1024 * 1024)) throw new Error('insufficient-disk-space')
+    const networkKinds = new Set(plan.operations.map(item => item.source.kind).filter(kind => kind === 'npm' || kind === 'github-sha'))
+    for (const kind of networkKinds) {
+      const endpoint = kind === 'npm' ? 'https://registry.npmjs.org/' : 'https://github.com/'
+      if (!await (options.networkProbe ?? defaultNetworkProbe)(endpoint)) throw new Error(`network-preflight-failed:${kind}`)
+    }
+    await mkdir(dirname(lockDir), { recursive: true })
+    try { await mkdir(lockDir) } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error('profile-transaction-locked')
+      throw error
+    }
+    locked = true
+    await writeFile(join(lockDir, 'owner.json'), JSON.stringify({ planId: plan.id, startedAt }) + '\n', 'utf8')
+    await atomicJson(journalPath, flowJournal(plan, 'started', options.now?.() ?? new Date()))
+    failPoint('preflight'); pass('preflight', `platform=${actualPlatform}; dsh=${actualDshVersion}; signature=verified; scripts=disabled`)
+
+    await rm(stageDir, { recursive: true, force: true })
+    const initialized = await run(['plugin', '--profile', stageProfile, 'install', '--ignore-scripts', '--reporter=silent'], { ...process.env, DSH_HOME: home })
+    if (initialized.code !== 0) throw new Error(`flow-profile-initialize-failed:${initialized.code ?? 'spawn'}`)
+    await applyFlowProfileTemplate(stageDir, plan.profile.template)
+    failPoint('initialize-profile'); pass('initialize-profile', `template=${plan.profile.template}`)
+
+    await mkdir(snapshotDir, { recursive: true })
+    await atomicJson(join(snapshotDir, 'original.json'), { profile: profileName, existed: false })
+    await atomicJson(join(snapshotDir, 'plan.json'), plan)
+    failPoint('snapshot'); pass('snapshot', 'original-profile=absent')
+
+    await atomicJson(journalPath, flowJournal(plan, 'staged', options.now?.() ?? new Date()))
+    failPoint('staging'); pass('staging', `profile=${stageProfile}`)
+
+    for (const operation of plan.operations) {
+      const installed = await run(['plugin', '--profile', stageProfile, 'add', operation.source.spec, '--save-exact', '--ignore-scripts', '--reporter=silent'], { ...process.env, DSH_HOME: home })
+      if (installed.code !== 0) throw new Error(`flow-package-install-failed:${operation.package}:${installed.code ?? 'spawn'}`)
+    }
+    failPoint('install-packages'); pass('install-packages', `packages=${plan.operations.length}`)
+
+    const stagedDump = await run(['--profile', stageProfile, '--dump-config'], { ...process.env, DSH_HOME: home })
+    if (stagedDump.code !== 0) throw new Error(`flow-staged-dump-config-failed:${stagedDump.code ?? 'spawn'}`)
+    failPoint('dump-config'); pass('dump-config')
+
+    const smoke = await options.bootSmoke(stageProfile, { ...process.env, DSH_HOME: home })
+    if (smoke.code !== 0) throw new Error(`flow-boot-smoke-failed:${smoke.code ?? 'spawn'}`)
+    failPoint('boot-smoke'); pass('boot-smoke')
+
+    await rm(join(stageDir, 'node_modules'), { recursive: true, force: true })
+    await mkdir(profilesRoot, { recursive: true })
+    await rename(stageDir, profileDir)
+    committed = true
+    await atomicJson(journalPath, flowJournal(plan, 'committed', options.now?.() ?? new Date()))
+    failPoint('commit'); pass('commit', 'new-profile-committed')
+
+    const relink = await run(['plugin', '--profile', profileName, 'install', '--ignore-scripts', '--reporter=silent'], { ...process.env, DSH_HOME: home })
+    if (relink.code !== 0) throw new Error(`flow-final-profile-relink-failed:${relink.code ?? 'spawn'}`)
+    const health = await run(['--profile', profileName, '--dump-config'], { ...process.env, DSH_HOME: home })
+    if (health.code !== 0) throw new Error(`flow-committed-profile-health-failed:${health.code ?? 'spawn'}`)
+    const finalSmoke = await options.bootSmoke(profileName, { ...process.env, DSH_HOME: home })
+    if (finalSmoke.code !== 0) throw new Error(`flow-committed-profile-boot-failed:${finalSmoke.code ?? 'spawn'}`)
+    failPoint('health'); pass('health', 'dump-config-and-boot-smoke-passed')
+
+    await atomicJson(stackLockPath, plan.stack satisfies StackLock)
+    failPoint('write-stack-lock'); pass('write-stack-lock', `${plan.flow.id}.stack.lock.json`)
+    await atomicJson(journalPath, flowJournal(plan, 'complete', options.now?.() ?? new Date()))
+    return { ok: true, planId: plan.id, action: 'install-flow', profile: profileName, steps, stackLockPath, startedAt, finishedAt: (options.now?.() ?? new Date()).toISOString() }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    const failedStep = plan.steps.find(step => !steps.some(result => result.step === step)) ?? 'preflight'
+    steps.push({ step: failedStep, status: 'failed', detail: message })
+    if (committed && await exists(profileDir)) {
+      try {
+        await mkdir(dirname(failedDir), { recursive: true })
+        await rm(failedDir, { recursive: true, force: true })
+        await rename(profileDir, failedDir)
+        steps.push({ step: 'rollback', status: 'passed', detail: 'original-profile=absent' })
+      } catch (rollbackError) {
+        steps.push({ step: 'rollback', status: 'failed', detail: rollbackError instanceof Error ? rollbackError.message : String(rollbackError) })
+      }
+    } else {
+      await rm(stageDir, { recursive: true, force: true }).catch(() => {})
+      steps.push({ step: 'rollback', status: 'passed', detail: 'target-profile-not-created' })
+    }
+    await atomicJson(journalPath, flowJournal(plan, 'rolled-back', options.now?.() ?? new Date())).catch(() => {})
+    return { ok: false, planId: plan.id, action: 'install-flow', profile: profileName, steps, error: message, startedAt, finishedAt: (options.now?.() ?? new Date()).toISOString() }
+  } finally {
+    if (locked) await rm(lockDir, { recursive: true, force: true }).catch(() => {})
+  }
+}
+
+/** Remove a partially committed new Flow Profile after an interrupted process. */
+export async function recoverInterruptedFlowTransactions(options: { home?: string, now?: () => Date, isProcessAlive?: (pid: number) => boolean } = {}): Promise<FlowTransactionResult[]> {
+  const home = dshHome(options.home)
+  const root = join(home, 'flow-hub', 'flow-transactions')
+  let names: string[]
+  try { names = await readdir(root) } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
+    throw error
+  }
+  const results: FlowTransactionResult[] = []
+  for (const name of names.filter(value => /^[a-f0-9]{24}\.json$/.test(value))) {
+    let journal: FlowTransactionJournal
+    try { journal = JSON.parse(await readFile(join(root, name), 'utf8')) as FlowTransactionJournal } catch { continue }
+    if (journal.schemaVersion !== 1 || `${journal.planId}.json` !== name || ['complete', 'rolled-back', 'recovered'].includes(journal.status)) continue
+    if ((options.isProcessAlive ?? processAlive)(journal.pid)) continue
+    try { safeProfile(journal.profile) } catch { continue }
+    const profileDir = join(home, 'profiles', journal.profile)
+    const stageDir = join(home, 'profiles', `flow-hub-stage-${journal.planId}`)
+    const failedDir = join(home, 'flow-hub', 'failed', journal.planId)
+    const lockDir = join(home, 'flow-hub', 'locks', `${journal.profile}.lock`)
+    if (![profileDir, stageDir, failedDir, lockDir].every(target => inside(home, target))) continue
+    const steps: FlowTransactionResult['steps'] = []
+    try {
+      // A hard stop can occur after the atomic stage->target rename but before
+      // the journal advances from staged to committed. Flow targets are new
+      // by contract, so any target found for an unfinished journal is partial.
+      if (await exists(profileDir)) {
+        await mkdir(dirname(failedDir), { recursive: true })
+        await rm(failedDir, { recursive: true, force: true })
+        await rename(profileDir, failedDir)
+      }
+      await rm(stageDir, { recursive: true, force: true })
+      await rm(lockDir, { recursive: true, force: true })
+      await atomicJson(join(root, name), { ...journal, status: 'recovered', updatedAt: (options.now?.() ?? new Date()).toISOString() })
+      steps.push({ step: 'rollback', status: 'passed', detail: 'interrupted-new-profile-removed' })
+      results.push({ ok: false, planId: journal.planId, action: 'install-flow', profile: journal.profile, steps, error: 'interrupted-flow-transaction-recovered', startedAt: journal.updatedAt, finishedAt: (options.now?.() ?? new Date()).toISOString() })
+    } catch (error) {
+      steps.push({ step: 'rollback', status: 'failed', detail: error instanceof Error ? error.message : String(error) })
+      results.push({ ok: false, planId: journal.planId, action: 'install-flow', profile: journal.profile, steps, error: 'interrupted-flow-transaction-recovery-failed', startedAt: journal.updatedAt, finishedAt: (options.now?.() ?? new Date()).toISOString() })
+    }
+  }
+  return results
 }

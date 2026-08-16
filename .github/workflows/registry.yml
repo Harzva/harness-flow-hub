@@ -69,6 +69,8 @@ jobs:
           pnpm run pack:hub
       - name: Verify native UI lifecycle and failed-transaction recovery
         run: pnpm run ui:verify-lifecycle
+      - name: Verify aggregate Flow transaction and deterministic Stack lock
+        run: pnpm run transaction:verify-flow
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -76,3 +78,4 @@ jobs:
           path: |
             registry/verifications-ci/${{ runner.os }}/*.json
             evidence/m2-native-ui-lifecycle-2026-08-16.json
+            evidence/m2-flow-transaction-lifecycle-2026-08-16.json

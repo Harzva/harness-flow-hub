@@ -1,0 +1,78 @@
+{
+  "milestone": "M2-flow-aggregate-transaction-real-lifecycle",
+  "date": "2026-08-16T13:50:49.738Z",
+  "dshVersion": "0.1.0-rc.6",
+  "fixture": "artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz",
+  "privatePathsRecorded": false,
+  "profile": "flow-trusted-fixture",
+  "template": "web",
+  "planId": "d0f6a2b3313cbe938748ae0e",
+  "operations": [
+    "@harness-flow/hello-bundle@0.0.1-m0"
+  ],
+  "steps": [
+    {
+      "step": "preflight",
+      "status": "passed",
+      "detail": "platform=win32; dsh=0.1.0-rc.6; signature=verified; scripts=disabled"
+    },
+    {
+      "step": "initialize-profile",
+      "status": "passed",
+      "detail": "template=web"
+    },
+    {
+      "step": "snapshot",
+      "status": "passed",
+      "detail": "original-profile=absent"
+    },
+    {
+      "step": "staging",
+      "status": "passed",
+      "detail": "profile=flow-hub-stage-d0f6a2b3313cbe938748ae0e"
+    },
+    {
+      "step": "install-packages",
+      "status": "passed",
+      "detail": "packages=1"
+    },
+    {
+      "step": "dump-config",
+      "status": "passed"
+    },
+    {
+      "step": "boot-smoke",
+      "status": "passed"
+    },
+    {
+      "step": "commit",
+      "status": "passed",
+      "detail": "new-profile-committed"
+    },
+    {
+      "step": "health",
+      "status": "passed",
+      "detail": "dump-config-and-boot-smoke-passed"
+    },
+    {
+      "step": "write-stack-lock",
+      "status": "passed",
+      "detail": "trusted-flow-transaction-fixture.stack.lock.json"
+    }
+  ],
+  "stackLock": "trusted-flow-transaction-fixture.stack.lock.json",
+  "officialDumpConfig": "passed",
+  "stagedAndFinalBootSmoke": "HTTP 200",
+  "automatedTest": {
+    "command": "pnpm check",
+    "tests": 41,
+    "passed": 41,
+    "failed": 0,
+    "failureInjectionSteps": 10
+  },
+  "commands": [
+    "pnpm run pack:fixture",
+    "pnpm run transaction:verify-flow",
+    "pnpm check"
+  ]
+}
