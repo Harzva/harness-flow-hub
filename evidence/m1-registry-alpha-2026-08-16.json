@@ -56,9 +56,19 @@
   },
   "platformMatrix": {
     "win32": "implemented-with-current-local-evidence",
-    "linux": "configured-in-hosted-ci-without-current-run-evidence",
+    "linux": "implemented-with-hosted-ci-evidence",
     "darwin": "not-covered",
     "manifest": "registry/platform-support.json"
+  },
+  "hostedCi": {
+    "provider": "GitHub Actions",
+    "runId": 31941788066,
+    "url": "https://github.com/Harzva/harness-flow-hub/actions/runs/31941788066",
+    "conclusion": "success",
+    "windowsInstallAndRemoveTransactions": 10,
+    "linuxInstallAndRemoveTransactions": 10,
+    "candidateValidation": "passed",
+    "artifactsUploaded": true
   },
   "signatureProtocol": {
     "algorithm": "Ed25519",
@@ -124,7 +134,7 @@
     "ciWorkflowDefined": ".github/workflows/registry.yml",
     "ciTargetsPerPlatform": 10,
     "ciPreservesFailureArtifacts": true,
-    "ciRunCompleted": false
+    "ciRunCompleted": true
   },
   "commands": [
     "pnpm run registry:validate-inputs",
@@ -137,8 +147,7 @@
   ],
   "openGates": [
     "Publish and sign the versioned Registry.",
-    "Run the workflow on a hosted CI system.",
-    "Add Linux evidence and declare macOS coverage explicitly.",
+    "Keep macOS explicitly not-covered until a macOS worker is funded.",
     "Run third-party dump-config, boot, health, uninstall and recovery only inside an OS-level sandbox."
   ]
 }
