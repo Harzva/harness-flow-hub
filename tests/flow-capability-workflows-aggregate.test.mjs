@@ -11,6 +11,8 @@ test('cross-platform Flow capability evidence keeps partial UI proof fail-closed
     assert.equal(platform.coding.package, 'dsh-openwolf@0.9.1')
     assert.equal(platform.coding.finalTestsPassed, true)
     assert.equal(platform.ui.package, '@anionex/dsh-vision-toolkit@0.1.8')
+    assert.equal(platform.ui.nativeToolDefinitionsExecuted, true)
+    assert.equal(platform.ui.officialToolRuntimePipeline, true)
     assert.equal(platform.ui.externalVisionApiCalled, false)
     assert.ok(platform.ui.currentRunner.finalDifferencePct < platform.ui.currentRunner.initialDifferencePct)
   }
@@ -18,5 +20,5 @@ test('cross-platform Flow capability evidence keeps partial UI proof fail-closed
   assert.equal(evidence.isolation.credentialsConfigured, false)
   assert.equal(evidence.capabilityDecision.registryVerificationStateChanged, false)
   assert.equal(evidence.capabilityDecision.flowExecutableStateChanged, false)
-  assert.match(evidence.capabilityDecision.uiDesignStudio, /native-agent-dispatch-pending/)
+  assert.match(evidence.capabilityDecision.uiDesignStudio, /official-tool-runtime-workflow-passed-cross-platform-agent-scope-pending/)
 })

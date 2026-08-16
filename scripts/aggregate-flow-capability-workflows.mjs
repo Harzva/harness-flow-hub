@@ -4,8 +4,8 @@ import { dirname, resolve } from 'node:path'
 const windowsPath = resolve(process.argv[2] ?? 'work/ci-capability/windows/m3-flow-capability-workflows-win32-2026-08-17.json')
 const linuxPath = resolve(process.argv[3] ?? 'work/ci-capability/linux/m3-flow-capability-workflows-linux-2026-08-17.json')
 const output = resolve(process.argv[4] ?? 'evidence/m3-flow-capability-workflows-cross-platform-2026-08-17.json')
-const runUrl = process.argv[5] ?? 'https://github.com/Harzva/harness-flow-hub/actions/runs/31972742851'
-const baseCommit = process.argv[6] ?? 'a187ba3ab5a28618d7a5de292ad7286bc2119b7f'
+const runUrl = process.argv[5] ?? 'https://github.com/Harzva/harness-flow-hub/actions/runs/31973876918'
+const baseCommit = process.argv[6] ?? 'c97a58fdee2b99fd7390b85ad9f97e9645a29f39'
 
 function requireTrue(value, message) {
   if (!value) throw new Error(message)
@@ -25,6 +25,7 @@ for (const input of inputs) {
   requireTrue(input.ui?.package === '@anionex/dsh-vision-toolkit' && input.ui?.version === '0.1.8', `${os} UI package drifted`)
   requireTrue(input.ui?.canonical?.initialDifferencePct >= 1 && input.ui?.canonical?.finalDifferencePct <= 0.02, `${os} portable UI thresholds failed`)
   requireTrue(input.ui?.currentRunner?.improved === true && input.ui.currentRunner.finalDifferencePct < input.ui.currentRunner.initialDifferencePct, `${os} runner UI workflow did not improve`)
+  requireTrue(input.ui?.nativeToolDefinitionsExecuted === true && input.ui?.runtime?.officialToolRuntimePipeline === true, `${os} official UI ToolRuntime workflow incomplete`)
   requireTrue(input.ui?.externalVisionApiCalled === false && input.ui?.credentialConfigured === false && input.ui?.userContentUsed === false, `${os} UI isolation contract failed`)
   requireTrue(input.capabilityDecision?.registryVerificationStateChanged === false, `${os} changed Registry trust from partial workflow evidence`)
   platforms[os] = {
@@ -41,6 +42,8 @@ for (const input of inputs) {
       workflow: input.ui.workflow,
       canonical: input.ui.canonical,
       currentRunner: input.ui.currentRunner,
+      nativeToolDefinitionsExecuted: true,
+      officialToolRuntimePipeline: true,
       externalVisionApiCalled: false,
     },
   }
@@ -65,10 +68,10 @@ const report = {
   },
   capabilityDecision: {
     codingExpert: 'fixture-workflow-passed-cross-platform',
-    uiDesignStudio: 'vendor-workflow-passed-cross-platform-native-agent-dispatch-pending',
+    uiDesignStudio: 'official-tool-runtime-workflow-passed-cross-platform-agent-scope-pending',
     registryVerificationStateChanged: false,
     flowExecutableStateChanged: false,
-    reason: 'The exact UI package workflow is proven, but Agent-scoped activation and native ToolRuntime dispatch are still pending; signed Registry and empty-environment Flow installation gates also remain open.',
+    reason: 'The exact UI package native tools passed through the official ToolRuntime on Windows and Linux, but Agent-scoped Skill activation remains pending; signed Registry and empty-environment Flow installation gates also remain open.',
   },
 }
 
