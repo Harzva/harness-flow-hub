@@ -25,6 +25,7 @@ export interface Config {
 
 type TaskRecord = TransactionResult
 
+const HUB_PACKAGE_NAME = '@harness-flow/dsh-flow-hub'
 const PACKAGE_NAME = '@harness-flow/hello-bundle'
 const API_PATH = '/flow-hub/api'
 const MAX_BODY_BYTES = 16 * 1024
@@ -270,6 +271,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         profile,
         fixtureReady: fixtureSpec.length > 0,
         packageName: PACKAGE_NAME,
+        hubPackageName: HUB_PACKAGE_NAME,
         hubVersion: hub.version,
         testFailurePhase: testFailurePhase ?? null,
       })

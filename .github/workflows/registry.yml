@@ -67,6 +67,8 @@ jobs:
         run: |
           pnpm run pack:fixture
           pnpm run pack:hub
+      - name: Verify read-only, incompatible, update guidance and CLI rescue modes
+        run: pnpm run ui:verify-bootstrap-compatibility
       - name: Verify native UI lifecycle and failed-transaction recovery
         run: pnpm run ui:verify-lifecycle
       - name: Verify aggregate Flow transaction and deterministic Stack lock
@@ -77,5 +79,6 @@ jobs:
           name: registry-install-transaction-${{ runner.os }}
           path: |
             registry/verifications-ci/${{ runner.os }}/*.json
+            evidence/m2-bootstrap-recovery-modes-2026-08-16.json
             evidence/m2-native-ui-lifecycle-2026-08-16.json
             evidence/m2-flow-transaction-lifecycle-2026-08-16.json

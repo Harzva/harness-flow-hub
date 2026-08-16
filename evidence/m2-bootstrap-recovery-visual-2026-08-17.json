@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-17",
+  "subject": "DSH-native read-only update and rescue UI visual verification",
+  "environment": {
+    "dshRuntime": "0.1.0-rc.6",
+    "hostReportedCandidate": "0.1.0-rc.7",
+    "hubVersion": "0.0.2-m0",
+    "profile": "isolated web"
+  },
+  "route": "Settings > Plugins > Flow Hub",
+  "assertions": {
+    "runtimeMode": "read-only",
+    "fullUiLoaded": false,
+    "registryReadAllowed": false,
+    "profileMutationAllowed": false,
+    "updateCommand": "dsh plugin --profile web update @harness-flow/dsh-flow-hub",
+    "rescueCommand": "dsh plugin --profile web remove @harness-flow/dsh-flow-hub",
+    "copyUpdateButtonVisible": true,
+    "copyRescueButtonVisible": true,
+    "retryButtonVisible": true,
+    "commandAutoExecution": false,
+    "externalNavigationRequired": false
+  },
+  "screenshots": [
+    {
+      "file": "evidence/m2-bootstrap-read-only-recovery-2026-08-17.png",
+      "sha256": "34547edc4e709a429ebd4d4fa6d7add9f6759e6eba9919ef503b1221f6c1ab31",
+      "shows": ["DSH settings mount", "read-only state", "four compatibility dimensions", "update and rescue section"]
+    },
+    {
+      "file": "evidence/m2-bootstrap-update-rescue-commands-2026-08-17.png",
+      "sha256": "d59786a385b244820903dc7a880e4c6d20d22020aa011c6b8d1f2b93c4dd089b",
+      "shows": ["exact Hub update command", "exact Hub removal command", "copy actions", "no automatic execution notice"]
+    }
+  ],
+  "trustBoundary": {
+    "userProfileTouched": false,
+    "credentialsEntered": false,
+    "browserWriteActionPerformed": false,
+    "privatePathVisible": false,
+    "developerRemarkVisible": false
+  },
+  "result": "passed"
+}

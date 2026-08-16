@@ -28,6 +28,7 @@ export interface BootstrapResponse {
   profile: string
   fixtureReady: boolean
   packageName: string
+  hubPackageName: string
   testFailurePhase: string | null
 }
 

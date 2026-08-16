@@ -6,7 +6,7 @@ import { dirname, join, resolve, sep } from 'node:path'
 import { dshCliPath, runDsh } from './dsh-cli-lib.mjs'
 
 const artifact = resolve(process.argv[2] ?? 'artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz')
-const output = resolve(process.argv[3] ?? 'evidence/m2-four-dimensional-compatibility-2026-08-16.json')
+const output = resolve(process.argv[3] ?? 'evidence/m2-bootstrap-recovery-modes-2026-08-16.json')
 const tempRoot = resolve(process.env.DSH_BOOTSTRAP_COMPAT_TEMP_ROOT ?? '../../work/bootstrap-compatibility')
 
 function hash(value) {
@@ -68,6 +68,11 @@ async function request(origin, path, body) {
   return { status: response.status, payload: await response.json() }
 }
 
+async function requestText(origin, path) {
+  const response = await fetch(`${origin}${path}`, { cache: 'no-store', signal: AbortSignal.timeout(10_000) })
+  return { status: response.status, contentType: response.headers.get('content-type'), text: await response.text() }
+}
+
 function requireDsh(result, label) {
   if (result.status !== 0) throw new Error(`${label} failed: ${result.stderr}`)
   return result
@@ -98,6 +103,22 @@ try {
   await stop(server.child)
   server = undefined
 
+  server = await startWeb(cli, home, '0.1.0-rc.7')
+  const unknown = await request(server.origin, 'bootstrap')
+  if (unknown.status !== 200) throw new Error(`unknown bootstrap returned ${unknown.status}`)
+  if (unknown.payload.hubPackageName !== '@harness-flow/dsh-flow-hub' || unknown.payload.packageName !== '@harness-flow/hello-bundle') throw new Error('Bootstrap package roles are ambiguous')
+  const unknownDimensions = requireFourDimensions(unknown.payload, 'unknown')
+  if (unknownDimensions.dsh.state !== 'unknown' || unknownDimensions.dsh.reason !== 'version-not-verified') throw new Error('simulated unverified DSH was not classified as unknown')
+  const blockedUnknownPlan = await request(server.origin, 'plan', { action: 'add' })
+  if (blockedUnknownPlan.status !== 409 || blockedUnknownPlan.payload.error !== 'bootstrap-compatibility-required') throw new Error('read-only Host write gate did not fail closed')
+  const client = await requestText(server.origin, '/plugins/@harness-flow/dsh-flow-hub/client.js')
+  if (client.status !== 200) throw new Error(`client module returned ${client.status}`)
+  for (const marker of ['read-only', 'safe-recovery', 'navigator.clipboard.writeText', 'updateCommand', 'removeCommand', 'dsh plugin --profile ']) {
+    if (!client.text.includes(marker)) throw new Error(`client recovery guidance missing:${marker}`)
+  }
+  await stop(server.child)
+  server = undefined
+
   server = await startWeb(cli, home, '0.2.0')
   const incompatible = await request(server.origin, 'bootstrap')
   if (incompatible.status !== 200) throw new Error(`incompatible bootstrap returned ${incompatible.status}`)
@@ -108,18 +129,29 @@ try {
   await stop(server.child)
   server = undefined
 
-  const postCheck = requireDsh(runDsh(cli, home, ['--profile', 'web', '--dump-config']), 'post-check dump-config')
+  const preRescue = requireDsh(runDsh(cli, home, ['--profile', 'web', '--dump-config']), 'pre-rescue dump-config')
+  if (!preRescue.stdout.includes('harness-flow-hub')) throw new Error('Hub missing before CLI rescue')
+  requireDsh(runDsh(cli, home, ['plugin', '--profile', 'web', 'remove', '@harness-flow/dsh-flow-hub', '--reporter=silent']), 'CLI rescue remove')
+  const removed = requireDsh(runDsh(cli, home, ['--profile', 'web', '--dump-config']), 'post-remove dump-config')
+  if (removed.stdout.includes('harness-flow-hub')) throw new Error('CLI rescue did not remove Hub')
+  requireDsh(runDsh(cli, home, ['plugin', '--profile', 'web', 'add', artifact, '--save-exact', '--ignore-scripts', '--reporter=silent']), 'CLI rescue reinstall')
+  const postCheck = requireDsh(runDsh(cli, home, ['--profile', 'web', '--dump-config']), 'post-rescue dump-config')
+  if (!postCheck.stdout.includes('harness-flow-hub')) throw new Error('CLI rescue reinstall did not restore Hub')
   const baseCommit = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8', windowsHide: true }).stdout.trim()
   const report = {
     date: new Date().toISOString(),
     baseCommit,
-    subject: 'Four-dimensional Bootstrap compatibility on an isolated real DSH Web Profile',
+    subject: 'Read-only, incompatible, update guidance and rescue modes on an isolated real DSH Web Profile',
     environment: { os: process.platform, arch: process.arch, node: process.version, profile: 'isolated web' },
     artifact: { file: 'artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz', sha256: hash(await readFile(artifact)) },
     checks: {
       current: { status: 'passed', aggregate: current.payload.state, dimensions: currentDimensions },
+      simulatedUnknown: { status: 'passed', aggregate: unknown.payload.state, runtimeMode: 'read-only', dimensions: unknownDimensions },
+      unknownWriteGate: { status: 'passed', http: blockedUnknownPlan.status, error: blockedUnknownPlan.payload.error, profileMutationAttempted: false },
       simulatedIncompatible: { status: 'passed', aggregate: incompatible.payload.state, dimensions: incompatibleDimensions },
       hostWriteGate: { status: 'passed', http: blockedPlan.status, error: blockedPlan.payload.error, profileMutationAttempted: false },
+      clientRecoveryGuidance: { status: 'passed', http: client.status, runtimeModes: ['read-only', 'safe-recovery'], hubPackageName: unknown.payload.hubPackageName, fixturePackageName: unknown.payload.packageName, updatePrompt: true, rescueEntry: true, autoExecution: false },
+      cliRescue: { status: 'passed', preDumpConfig: preRescue.status, remove: removed.status, reinstall: postCheck.status },
       postCheckDumpConfig: { status: 'passed', exitCode: postCheck.status },
     },
     trustBoundary: { userProfileTouched: false, credentialsCaptured: false, browserWriteActionPerformed: false },
