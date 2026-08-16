@@ -84,12 +84,26 @@ jobs:
         run: |
           $output = "evidence-ci/dsh-matrix/${{ runner.os }}/current-native-ui-${{ matrix.version }}.json"
           node scripts/verify-native-ui-lifecycle.mjs artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz $output
+      - name: Verify current DSH preserves the prior Hub Profile across update failures
+        if: matrix.verification == 'full-lifecycle'
+        shell: pwsh
+        run: |
+          pnpm run pack:hub-recovery-fixture
+          $output = "evidence-ci/dsh-matrix/${{ runner.os }}/current-hub-update-recovery-${{ matrix.version }}.json"
+          node scripts/verify-hub-update-recovery.mjs artifacts/harness-flow-dsh-flow-hub-0.0.1-recovery-fixture.tgz artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz $output
       - name: Verify trusted release candidate through the native UI lifecycle
         if: matrix.verification == 'release-regression' && matrix.expected == 'compatible'
         shell: pwsh
         run: |
           $output = "evidence-ci/dsh-matrix/${{ runner.os }}/candidate-native-ui-${{ matrix.version }}.json"
           node scripts/verify-native-ui-lifecycle.mjs artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz $output
+      - name: Verify compatible release candidate preserves the prior Hub Profile across update failures
+        if: matrix.verification == 'release-regression' && matrix.expected == 'compatible'
+        shell: pwsh
+        run: |
+          pnpm run pack:hub-recovery-fixture
+          $output = "evidence-ci/dsh-matrix/${{ runner.os }}/candidate-hub-update-recovery-${{ matrix.version }}.json"
+          node scripts/verify-hub-update-recovery.mjs artifacts/harness-flow-dsh-flow-hub-0.0.1-recovery-fixture.tgz artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz $output
       - name: Qualify in-range release candidate install, update, uninstall and rollback
         if: matrix.verification == 'release-regression' && matrix.expected != 'incompatible'
         shell: pwsh

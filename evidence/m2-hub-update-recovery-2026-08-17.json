@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-16T17:48:54.845Z",
+  "subject": "Official DSH Hub update preflight and whole-Profile recovery",
+  "environment": {
+    "os": "win32",
+    "arch": "x64",
+    "node": "v25.2.0",
+    "dsh": "0.1.0-rc.6",
+    "profile": "isolated web"
+  },
+  "commands": [
+    "pnpm run transaction:verify-hub-update-recovery",
+    "dsh plugin --profile web add <trusted-baseline-tgz> --save-exact --ignore-scripts",
+    "dsh --profile web --dump-config"
+  ],
+  "artifacts": {
+    "baseline": {
+      "file": "artifacts/harness-flow-dsh-flow-hub-0.0.1-recovery-fixture.tgz",
+      "version": "0.0.1-recovery-fixture",
+      "sha256": "4e0caff3bcc38d0e3811aeb5fb8a1403d2a957210f9d46aaf48ab14db1f8fb74"
+    },
+    "update": {
+      "file": "artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz",
+      "version": "0.0.2-m0",
+      "sha256": "a267013bfeda8a460e49f6cab57ecd05aa72ce5dcc3d3d3818d951224b868364"
+    }
+  },
+  "checks": {
+    "baseline": {
+      "status": "passed",
+      "version": "0.0.1-recovery-fixture",
+      "web": "HTTP 200"
+    },
+    "incompatiblePreflight": {
+      "status": "passed",
+      "blocked": true,
+      "error": "unsupported-dsh-version",
+      "profileUnchanged": true,
+      "versionRestored": "0.0.1-recovery-fixture",
+      "web": "HTTP 200"
+    },
+    "healthFailureRollback": {
+      "status": "passed",
+      "failedAt": "health",
+      "rollback": "passed",
+      "attemptedVersion": "0.0.2-m0",
+      "failedProfileRetained": true
+    },
+    "wholeProfileRecovery": {
+      "status": "passed",
+      "treeByteDigestRestored": true,
+      "packageJsonRestored": true,
+      "lockfileRestored": true,
+      "patchRestored": true,
+      "versionRestored": "0.0.1-recovery-fixture"
+    },
+    "postRollbackDumpConfig": {
+      "status": "passed",
+      "exitCode": 0
+    },
+    "postRollbackWeb": {
+      "status": "passed",
+      "http": 200
+    }
+  },
+  "privacy": {
+    "userProfileTouched": false,
+    "credentialsCaptured": false,
+    "privatePathsRecorded": false
+  },
+  "result": "passed"
+}

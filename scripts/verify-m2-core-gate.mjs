@@ -6,7 +6,7 @@ const json = async path => JSON.parse(await readFile(resolve(path), 'utf8'))
 const requireTrue = (condition, message) => { if (!condition) throw new Error(message) }
 const passed = value => value?.status === 'passed'
 
-const [pkg, client, bootstrapSource, patch, bootstrap, lifecycle, offline, flow, formalSources] = await Promise.all([
+const [pkg, client, bootstrapSource, patch, bootstrap, lifecycle, offline, flow, formalSources, hubUpdateRecovery] = await Promise.all([
   json('package.json'),
   readFile(resolve('src/client/index.tsx'), 'utf8'),
   readFile(resolve('src/client/bootstrap.tsx'), 'utf8'),
@@ -16,6 +16,7 @@ const [pkg, client, bootstrapSource, patch, bootstrap, lifecycle, offline, flow,
   json('evidence/m2-registry-offline-resilience-2026-08-17.json'),
   json('evidence/m2-flow-transaction-lifecycle-2026-08-16.json'),
   json('evidence/m2-formal-source-lifecycle-2026-08-17.json'),
+  json('evidence/m2-hub-update-recovery-2026-08-17.json'),
 ])
 
 requireTrue(pkg.dsh?.bundle?.patch === './cordis.patch.yml' && pkg.dsh?.client?.platform === 'web' && pkg.exports?.['./client']?.default === './lib/client.js', 'official DSH bundle/client contract missing')
@@ -42,13 +43,19 @@ for (const kind of ['npm', 'tgz']) {
   requireTrue(adapter?.injectedFailure?.byteForByte === true && adapter?.uninstall?.status === 'passed' && adapter?.uninstallRollback?.status === 'passed', `${kind} failure/uninstall recovery incomplete`)
 }
 requireTrue(formalSources.trustBoundary?.userProfileTouched === false && formalSources.trustBoundary?.credentialsCaptured === false && formalSources.trustBoundary?.privatePathsRecorded === false, 'formal source evidence privacy boundary failed')
+requireTrue(hubUpdateRecovery.result === 'passed', 'Hub update recovery gate failed')
+requireTrue(passed(hubUpdateRecovery.checks?.incompatiblePreflight) && hubUpdateRecovery.checks.incompatiblePreflight.blocked === true && hubUpdateRecovery.checks.incompatiblePreflight.profileUnchanged === true && hubUpdateRecovery.checks.incompatiblePreflight.web === 'HTTP 200', 'incompatible DSH update recovery incomplete')
+requireTrue(passed(hubUpdateRecovery.checks?.healthFailureRollback) && hubUpdateRecovery.checks.healthFailureRollback.rollback === 'passed' && hubUpdateRecovery.checks.healthFailureRollback.failedProfileRetained === true, 'Hub health-failure rollback incomplete')
+requireTrue(passed(hubUpdateRecovery.checks?.wholeProfileRecovery) && hubUpdateRecovery.checks.wholeProfileRecovery.treeByteDigestRestored === true && hubUpdateRecovery.checks.wholeProfileRecovery.packageJsonRestored === true && hubUpdateRecovery.checks.wholeProfileRecovery.lockfileRestored === true && hubUpdateRecovery.checks.wholeProfileRecovery.patchRestored === true, 'old Hub package, lock or Profile was not restored')
+requireTrue(passed(hubUpdateRecovery.checks?.postRollbackDumpConfig) && hubUpdateRecovery.checks.postRollbackDumpConfig.exitCode === 0 && passed(hubUpdateRecovery.checks?.postRollbackWeb) && hubUpdateRecovery.checks.postRollbackWeb.http === 200, 'restored Hub Profile is not healthy')
+requireTrue(hubUpdateRecovery.privacy?.userProfileTouched === false && hubUpdateRecovery.privacy?.credentialsCaptured === false && hubUpdateRecovery.privacy?.privatePathsRecorded === false, 'Hub update recovery evidence privacy boundary failed')
 
 const report = {
   schemaVersion: 1,
   date: new Date().toISOString(),
   subject: 'M2 native DSH UI, layered Bootstrap and transaction installer release gate',
   environment: { os: process.platform, arch: process.arch, node: process.version, dsh: lifecycle.environment.dsh },
-  commands: ['pnpm check', 'pnpm run ui:verify-bootstrap-compatibility', 'pnpm run ui:verify-lifecycle', 'pnpm run ui:verify-registry-offline', 'pnpm run transaction:verify-flow', 'pnpm run transaction:verify-formal-sources', 'pnpm run m2:verify-core'],
+  commands: ['pnpm check', 'pnpm run ui:verify-bootstrap-compatibility', 'pnpm run ui:verify-lifecycle', 'pnpm run ui:verify-registry-offline', 'pnpm run transaction:verify-flow', 'pnpm run transaction:verify-formal-sources', 'pnpm run transaction:verify-hub-update-recovery', 'pnpm run m2:verify-core'],
   components: {
     nativeUi: { status: 'passed', officialBundleAndClient: true, views: ['home', 'plugins', 'flows', 'profiles', 'tasks'], sameOriginTransactions: true, externalNavigation: false },
     bootstrap: { status: 'passed', modes: ['compatible', 'read-only', 'safe-recovery'], incompatibleWriteHttp: 409 },
@@ -56,6 +63,7 @@ const report = {
     offlineLocalManagement: { status: 'passed', upstreamRegistry: 'unreachable', profileAvailable: true },
     flowTransaction: { status: 'passed', isolatedProfile: true, stackLock: true, bootSmoke: 'HTTP 200' },
     formalSources: { status: 'passed', adapters: ['npm', 'tgz'], lifecycle: formalSources.lifecycle, failureRecovery: 'byte-for-byte' },
+    hubUpdateRecovery: { status: 'passed', incompatibleUpdate: 'blocked-without-profile-change', injectedFailure: 'health', recovery: 'whole-profile-digest', finalDumpConfig: 0, finalWeb: 'HTTP 200' },
   },
   privacy: { userProfileTouched: false, credentialsCaptured: false, privatePathsRecorded: false },
   result: 'passed',

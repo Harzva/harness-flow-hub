@@ -89,6 +89,7 @@
     "transaction:verify-rollback": "pnpm build && node scripts/verify-rollback-lifecycle.mjs",
     "transaction:verify-flow": "pnpm build && node scripts/verify-flow-transaction-lifecycle.mjs",
     "transaction:verify-formal-sources": "pnpm build && node scripts/verify-formal-source-lifecycle.mjs",
+    "transaction:verify-hub-update-recovery": "pnpm build && pnpm run pack:hub-recovery-fixture && pnpm run pack:hub && node scripts/verify-hub-update-recovery.mjs",
     "ui:prepare-spike": "pnpm build && node scripts/prepare-native-ui-spike.mjs",
     "ui:verify-lifecycle": "pnpm build && node scripts/verify-native-ui-lifecycle.mjs",
     "ui:verify-registry-offline": "pnpm build && node scripts/verify-registry-offline-resilience.mjs",
@@ -103,6 +104,7 @@
     "site:audit": "node scripts/audit-public-site.mjs _site",
     "site:serve": "node scripts/serve-site.mjs",
     "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts && pnpm --dir fixtures/hello-bundle-v2 pack --pack-destination ../../artifacts",
+    "pack:hub-recovery-fixture": "pnpm --dir fixtures/dsh-flow-hub-recovery-baseline pack --pack-destination ../../artifacts",
     "pack:hub": "pnpm build && pnpm pack --pack-destination artifacts"
   },
   "dependencies": {
