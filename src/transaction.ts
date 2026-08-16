@@ -391,6 +391,7 @@ export async function executeInstallPlan(plan: InstallPlan, options: Transaction
   try {
     safeProfile(plan.profile)
     if (Date.parse(plan.expiresAt) <= Date.parse(startedAt)) throw new Error('install-plan-expired')
+    if (plan.risk.signature === 'unverified') throw new Error('registry-signature-unverified')
     for (const target of [profileDir, stageDir, snapshotDir, backupDir, lockDir, failedDir, journalPath]) {
       if (!inside(home, target)) throw new Error('transaction-path-outside-dsh-home')
     }
@@ -415,7 +416,6 @@ export async function executeInstallPlan(plan: InstallPlan, options: Transaction
     const availableCredentials = new Set(options.availableCredentials ?? Object.keys(process.env).filter(name => Boolean(process.env[name])))
     const missingCredentials = plan.risk.credentials.filter(name => !availableCredentials.has(name))
     if (missingCredentials.length > 0) throw new Error(`missing-credentials:${missingCredentials.join(',')}`)
-    if (plan.risk.signature === 'unverified') throw new Error('registry-signature-unverified')
     let network: PreflightReport['network'] = 'not-required'
     if (plan.requirements.network.required) {
       const endpoint = plan.requirements.network.endpoint

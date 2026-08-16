@@ -27,6 +27,7 @@ jobs:
       - run: pnpm run registry:validate
       - run: pnpm run registry:verify-traceability
       - run: pnpm run registry:verify-source-policy
+      - run: pnpm run registry:verify-signature-runtime-gate
       - run: pnpm check
       - run: pnpm run registry:assemble-release
       - run: pnpm run registry:validate-release-candidate
@@ -61,6 +62,8 @@ jobs:
         run: pnpm run registry:verify-traceability
       - name: Verify remote sources are exact and floating branches are blocked
         run: pnpm run registry:verify-source-policy
+      - name: Verify Registry signature failures block plans and DSH writes
+        run: pnpm run registry:verify-signature-runtime-gate
       - name: Locate the official DSH package
         shell: pwsh
         run: |
@@ -104,4 +107,5 @@ jobs:
             evidence/m2-hub-update-recovery-2026-08-17.json
             evidence/m2-registry-verification-traceability-2026-08-17.json
             evidence/m2-remote-source-pinning-2026-08-17.json
+            evidence/m2-registry-signature-runtime-gate-2026-08-17.json
             evidence/m2-native-ui-bootstrap-transaction-core-2026-08-17.json

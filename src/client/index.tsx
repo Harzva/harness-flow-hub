@@ -93,6 +93,15 @@ interface RegistryAvailability {
   upstream: 'not-configured' | 'reachable' | 'unreachable'
   offlineReady: boolean
 }
+interface RegistryTrust {
+  status: 'verified' | 'missing' | 'invalid'
+  reason: string
+  keyId?: string
+  createdAt?: string
+  expiresAt?: string
+  allowRecommendations: boolean
+  allowInstallPlans: boolean
+}
 type FlowVariantName = 'lite' | 'standard' | 'local' | 'safe'
 interface StackPreview {
   dshVersion: string
@@ -278,6 +287,7 @@ export function FlowHubFullUI({ bootstrap }: { bootstrap: BootstrapResponse }): 
   const [view, setView] = useState<View>('home')
   const [registry, setRegistry] = useState<Registry | null>(null)
   const [registryAvailability, setRegistryAvailability] = useState<RegistryAvailability | null>(null)
+  const [registryTrust, setRegistryTrust] = useState<RegistryTrust | null>(null)
   const [profiles, setProfiles] = useState<ProfileRecord[]>([])
   const [tasks, setTasks] = useState<ActionResponse[]>([])
   const [flows, setFlows] = useState<FlowCatalogEntry[]>([])
@@ -296,15 +306,17 @@ export function FlowHubFullUI({ bootstrap }: { bootstrap: BootstrapResponse }): 
     setRegistryError(null)
     setLocalError(null)
     void Promise.allSettled([
-      api<{ ok: true, registry: Registry, availability: RegistryAvailability }>('registry'),
+      api<{ ok: true, registry: Registry, availability: RegistryAvailability, trust: RegistryTrust }>('registry'),
       api<{ ok: true, profiles: ProfileRecord[] }>('profiles'), api<{ ok: true, tasks: ActionResponse[] }>('tasks'),
       api<{ ok: true, flows: FlowCatalogEntry[] }>('flows'),
     ]).then(([nextRegistry, nextProfiles, nextTasks, nextFlows]) => {
       if (nextRegistry.status === 'fulfilled') {
         setRegistry(nextRegistry.value.registry)
         setRegistryAvailability(nextRegistry.value.availability)
+        setRegistryTrust(nextRegistry.value.trust)
       } else {
         setRegistry(null)
+        setRegistryTrust(null)
         setRegistryAvailability({ catalog: 'unavailable', upstream: 'unreachable', offlineReady: false })
         setRegistryError(nextRegistry.reason instanceof Error ? nextRegistry.reason.message : String(nextRegistry.reason))
       }
@@ -400,6 +412,7 @@ export function FlowHubFullUI({ bootstrap }: { bootstrap: BootstrapResponse }): 
         <nav className="flowHubNav" aria-label="Flow Hub 区域">{views.map(item => <button key={item.id} type="button" aria-current={view === item.id ? 'page' : undefined} onClick={() => { setView(item.id) }}><small>{item.mark}</small><span>{item.label}</span></button>)}</nav>
         <main ref={mainRef} className="flowHubMain" tabIndex={-1} aria-busy={running !== null}>
           {registryAvailability?.upstream === 'unreachable' && registryAvailability.offlineReady ? <div className="flowHubAlert flowHubAlert--offline" role="status" aria-live="polite"><b>上游 Registry 不可达，已切换固定本地快照。</b><br />已安装 Profile、恢复点和本地任务继续从当前 DSH Host 读取；离线不会被误报为空结果。</div> : null}
+          {registryTrust && registryTrust.status !== 'verified' ? <div className="flowHubAlert" role="alert"><b>Registry 签名未通过，安装计划已锁定。</b><br />原因：{registryTrust.reason}。目录仅供检查，不会静默生成或执行 Marketplace 安装。</div> : null}
           {registryError ? <div className="flowHubAlert flowHubAlert--offline" role="alert"><b>Registry 当前不可用。</b><br />插件发现与 Flow 目录暂不可用；已安装 Profiles、恢复点和本地任务仍可管理。错误：{registryError}</div> : null}
           {localError ? <div className="flowHubAlert" role="alert">部分本地数据不可用：{localError}</div> : null}
           {bootstrap.testFailurePhase ? <div className="flowHubAlert" role="alert">隔离测试模式：事务将在 {bootstrap.testFailurePhase} 阶段注入故障；失败后必须显示已回滚。</div> : null}

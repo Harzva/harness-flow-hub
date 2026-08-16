@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-16T18:27:18.113Z",
+  "subject": "Runtime Registry signature trust and silent-install blocking",
+  "cases": {
+    "verified": {
+      "status": "verified",
+      "reason": "verified",
+      "allowRecommendations": true,
+      "allowInstallPlans": true
+    },
+    "missing": {
+      "status": "missing",
+      "reason": "missing-signature-artifacts",
+      "allowRecommendations": false,
+      "allowInstallPlans": false
+    },
+    "partial": {
+      "status": "invalid",
+      "reason": "invalid-signature-artifacts",
+      "allowRecommendations": false,
+      "allowInstallPlans": false
+    },
+    "tampered": {
+      "status": "invalid",
+      "reason": "hash-mismatch",
+      "allowRecommendations": false,
+      "allowInstallPlans": false
+    },
+    "expired": {
+      "status": "invalid",
+      "reason": "expired",
+      "allowRecommendations": false,
+      "allowInstallPlans": false
+    },
+    "keyRevoked": {
+      "status": "invalid",
+      "reason": "key-revoked",
+      "allowRecommendations": false,
+      "allowInstallPlans": false
+    },
+    "registryRevoked": {
+      "status": "invalid",
+      "reason": "registry-revoked",
+      "allowRecommendations": false,
+      "allowInstallPlans": false
+    },
+    "invalidSignature": {
+      "status": "invalid",
+      "reason": "invalid-signature",
+      "allowRecommendations": false,
+      "allowInstallPlans": false
+    }
+  },
+  "execution": {
+    "flowPlanBlocked": true,
+    "pluginPlanBlocked": true,
+    "dshWriteCalls": 0
+  },
+  "ui": {
+    "explicitTrustFailureNotice": true,
+    "reasonExposed": true
+  },
+  "privacy": {
+    "credentialsCaptured": false,
+    "privatePathsRecorded": false,
+    "userContentCaptured": false,
+    "ephemeralKeysPersisted": false
+  },
+  "result": "passed"
+}

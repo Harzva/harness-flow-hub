@@ -2,13 +2,14 @@ import { createRequire } from 'node:module'
 import { createHash } from 'node:crypto'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import { parse as parseYaml } from 'yaml'
 import { classifyDshVersion, evaluateCompatibility, type CompatibilitySnapshot, type CompatibilityState } from './compatibility.js'
 import { compareFlowVariants, compileFlowInstallPlan, compileStackPreview, type FlowVariantName, type HarnessFlow, type RegistryPlugin } from './flow-resolver.js'
+import { evaluateRegistryTrust, type RegistryRevocations, type RegistrySignatureEnvelope, type RegistryTrust } from './registry-trust.js'
 import {
   createInstallPlan, createRollbackPlan, executeInstallPlan, executeRollbackPlan, listRecoveryPoints, recoverInterruptedTransactions,
   type InstallPlan, type PluginAction, type RollbackPlan, type TransactionPhase, type TransactionResult,
@@ -112,6 +113,35 @@ function resolveRegistry(): unknown {
   return JSON.parse(readFileSync(resolve(hub.root, 'registry/generated/registry.json'), 'utf8')) as unknown
 }
 
+export function resolveBundledRegistryTrust(root: string, now: string | number | Date = Date.now()): RegistryTrust {
+  const registryPath = resolve(root, 'registry/generated/registry.json')
+  const signaturePath = resolve(root, 'registry/registry.signature.json')
+  const publicKeyPath = resolve(root, 'keys/registry-ed25519-public.pem')
+  const revocationsPath = resolve(root, 'registry/revocations.json')
+  const registryText = readFileSync(registryPath, 'utf8')
+  if (!existsSync(signaturePath) && !existsSync(publicKeyPath)) return evaluateRegistryTrust({ registryText, now })
+  if (![signaturePath, publicKeyPath, revocationsPath].every(path => existsSync(path))) {
+    return { status: 'invalid', reason: 'invalid-signature-artifacts', allowRecommendations: false, allowInstallPlans: false }
+  }
+  try {
+    return evaluateRegistryTrust({
+      registryText,
+      envelope: JSON.parse(readFileSync(signaturePath, 'utf8')) as RegistrySignatureEnvelope,
+      publicKey: readFileSync(publicKeyPath, 'utf8'),
+      revocations: JSON.parse(readFileSync(revocationsPath, 'utf8')) as RegistryRevocations,
+      now,
+    })
+  } catch {
+    return { status: 'invalid', reason: 'invalid-signature-artifacts', allowRecommendations: false, allowInstallPlans: false }
+  }
+}
+
+function resolveRegistryTrust(): RegistryTrust {
+  const hub = resolveHubPackage()
+  if (hub.root === null) throw new Error('hub-package-unavailable')
+  return resolveBundledRegistryTrust(hub.root)
+}
+
 type RegistryUpstreamState = 'not-configured' | 'reachable' | 'unreachable'
 
 export async function probeRegistryUpstream(value?: string): Promise<{ state: RegistryUpstreamState, checked: boolean }> {
@@ -170,6 +200,7 @@ function resolveFlowCatalog(): unknown[] {
   if (process.platform !== 'win32' && process.platform !== 'linux' && process.platform !== 'darwin') throw new Error(`unsupported-platform:${process.platform}`)
   const platform = process.platform as 'win32' | 'linux' | 'darwin'
   const generatedAt = `${registry.generatedFrom.asOf}T00:00:00.000Z`
+  const registryTrust = resolveBundledRegistryTrust(hub.root)
   const directory = resolve(hub.root, 'registry/flows')
   return readdirSync(directory).filter(name => name.endsWith('.dsh-flow.yml')).sort().map(name => {
     const flow = parseYaml(readFileSync(resolve(directory, name), 'utf8')) as HarnessFlow
@@ -190,7 +221,7 @@ function resolveFlowCatalog(): unknown[] {
         platform,
         arch: process.arch,
         node: process.version,
-        registrySignature: 'unverified',
+        registrySignature: registryTrust.allowInstallPlans ? 'verified' : 'unverified',
       }),
     }))
     const comparisons = names.flatMap((from, index) => names.slice(index + 1).map(to => ({ from, to, diff: compareFlowVariants(flow, from, to) })))
@@ -318,6 +349,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         json(res, 200, {
           ok: true,
           registry: resolveRegistry(),
+          trust: resolveRegistryTrust(),
           availability: {
             catalog: 'bundled-snapshot',
             upstream: upstream.state,
