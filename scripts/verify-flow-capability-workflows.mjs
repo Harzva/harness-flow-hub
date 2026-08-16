@@ -384,7 +384,9 @@ export async function verifyResearch(home, workspace, options = {}) {
         name: 'evidence_fixture', title: 'Evidence trace', code: initialCode, language: 'python',
         params: { fixture: 'synthetic' }, seed: 42, inputs: ['data/source.txt'], outputs: ['evidence.json', 'report.md'],
       })
-      if (first.status !== 'ok' || first.artifacts.length < 3) throw new Error('science workbench initial evidence cell failed')
+      if (first.status !== 'ok' || first.artifacts.length < 3) {
+        throw new Error(`science workbench initial evidence cell failed:status=${first.status};artifacts=${first.artifacts.length};stdout=${String(first.stdoutTail ?? '').trim() !== ''};stderr=${String(first.stderrTail ?? '').trim() !== ''}`)
+      }
       const firstFigure = first.artifacts.find(path => path.endsWith('.svg'))
       if (firstFigure === undefined) throw new Error('science workbench did not register the evidence figure')
       const feedback = await execute('bio_add_feedback', {
