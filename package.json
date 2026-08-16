@@ -82,14 +82,5 @@
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.19.0",
-  "pnpm": {
-    "ignoredBuiltDependencies": [
-      "@deepseek-ai/dsh-subprocess-local",
-      "@google/genai",
-      "koffi",
-      "node-pty",
-      "protobufjs"
-    ]
-  }
+  "packageManager": "pnpm@11.19.0"
 }
