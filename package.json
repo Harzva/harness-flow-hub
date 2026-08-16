@@ -79,6 +79,8 @@
     "check": "pnpm build && node --test tests/*.test.mjs",
     "registry:discover": "node scripts/discover-github.mjs registry/discovery/github-topic-2026-08-16.json 20 10",
     "registry:audit-candidates": "node scripts/audit-candidates.mjs registry/discovery/github-topic-2026-08-16.json registry/audits/candidates-2026-08-16.json",
+    "registry:audit-flow-dependencies": "node scripts/verify-flow-dependency-static-audit.mjs",
+    "registry:verify-flow-dependency-runtime": "node scripts/verify-flow-dependency-runtime.mjs",
     "registry:validate-inputs": "node scripts/validate-registry-inputs.mjs registry/discovery/github-topic-2026-08-16.json registry/verifications",
     "registry:generate": "node scripts/generate-registry.mjs registry/discovery/github-topic-2026-08-16.json registry/generated/registry.json",
     "registry:validate": "node scripts/validate-registry.mjs registry/generated/registry.json",
