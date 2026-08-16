@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "date": "2026-08-16",
   "baseCommit": "14a6c363116a9c92f2e7deb6ad85b40e48d2ce93",
+  "implementationCommit": "0f08f078eb410e718b8827948093bcc4083dcb9d",
   "dshVersion": "0.1.0-rc.6",
   "profile": "isolated-web-fixture",
   "flow": {
@@ -36,6 +37,13 @@
     { "id": "browser-console", "status": "passed", "detail": "no warning or error messages" },
     { "id": "secret-boundary", "status": "passed", "detail": "credentials are names only; UI states that API keys are not read or saved" },
     { "id": "write-boundary", "status": "passed", "detail": "read-only navigation and variant selection only; no install, update, remove or rollback action" },
-    { "id": "automated-tests", "status": "passed", "detail": "pnpm check: 34/34 tests passed" }
-  ]
+    { "id": "automated-tests", "status": "passed", "detail": "pnpm check: 34/34 tests passed" },
+    { "id": "hosted-registry", "status": "passed", "detail": "GitHub Actions run 31949304237 passed validate and native lifecycle on Windows and Ubuntu" },
+    { "id": "hosted-pages", "status": "passed", "detail": "GitHub Pages run 31949304171 passed disclosure audit and deployed one Coding Expert Flow" }
+  ],
+  "hostedRuns": {
+    "registry": "https://github.com/Harzva/harness-flow-hub/actions/runs/31949304237",
+    "pages": "https://github.com/Harzva/harness-flow-hub/actions/runs/31949304171",
+    "site": "https://harzva.github.io/harness-flow-hub/"
+  }
 }
