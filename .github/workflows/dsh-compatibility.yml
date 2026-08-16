@@ -4,7 +4,14 @@ on:
   pull_request:
   push:
     branches: [main]
+  repository_dispatch:
+    types: [dsh-release]
   workflow_dispatch:
+    inputs:
+      candidate_version:
+        description: Exact published DSH version to exercise through the release-candidate path
+        required: false
+        type: string
   schedule:
     - cron: '23 3 * * *'
 
@@ -29,6 +36,8 @@ jobs:
       - id: matrix
         name: Resolve published DSH versions
         shell: pwsh
+        env:
+          DSH_CANDIDATE_VERSION: ${{ inputs.candidate_version || github.event.client_payload.version || '' }}
         run: |
           $matrix = node scripts/resolve-dsh-ci-matrix.mjs
           "matrix=$matrix" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
@@ -71,12 +80,28 @@ jobs:
           DSH_MATRIX_ROLE: ${{ matrix.role }}
       - name: Verify current DSH full update, uninstall and rollback lifecycle
         if: matrix.verification == 'full-lifecycle'
-        run: pnpm run ui:verify-lifecycle
+        shell: pwsh
+        run: |
+          $output = "evidence-ci/dsh-matrix/${{ runner.os }}/current-native-ui-${{ matrix.version }}.json"
+          node scripts/verify-native-ui-lifecycle.mjs artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz $output
+      - name: Verify trusted release candidate through the native UI lifecycle
+        if: matrix.verification == 'release-regression' && matrix.expected == 'compatible'
+        shell: pwsh
+        run: |
+          $output = "evidence-ci/dsh-matrix/${{ runner.os }}/candidate-native-ui-${{ matrix.version }}.json"
+          node scripts/verify-native-ui-lifecycle.mjs artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz $output
+      - name: Qualify in-range release candidate install, update, uninstall and rollback
+        if: matrix.verification == 'release-regression' && matrix.expected != 'incompatible'
+        shell: pwsh
+        run: |
+          $root = "evidence-ci/dsh-matrix/${{ runner.os }}"
+          node scripts/verify-transaction-lifecycle.mjs "$root/candidate-transaction-${{ matrix.version }}.json"
+          node scripts/verify-transaction-version-lifecycle.mjs "$root/candidate-version-lifecycle-${{ matrix.version }}.json"
+          node scripts/verify-rollback-lifecycle.mjs "$root/candidate-rollback-${{ matrix.version }}.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dsh-compatibility-${{ matrix.os }}-${{ matrix.role }}-${{ matrix.version }}
           path: |
             evidence-ci/dsh-matrix/**/*.json
-            evidence/m2-native-ui-lifecycle-2026-08-16.json
           if-no-files-found: error

@@ -1,7 +1,7 @@
 import { satisfies, valid, validRange } from 'semver'
 
 const allowedStates = new Set(['compatible', 'unknown', 'incompatible'])
-const allowedVerifications = new Set(['full-lifecycle', 'safe-recovery'])
+const allowedVerifications = new Set(['full-lifecycle', 'safe-recovery', 'release-regression'])
 
 export function validateDshMatrixConfig(config) {
   if (config?.schemaVersion !== 1 || config.package !== '@deepseek-ai/dsh') throw new Error('invalid-dsh-matrix-header')
@@ -23,16 +23,36 @@ export function validateDshMatrixConfig(config) {
   return config
 }
 
-export function buildDshCiMatrix(configInput, distTags = {}) {
+function candidateExpectation(config, version) {
+  const verified = config.entries.find(entry => entry.version === version)
+  if (verified !== undefined) return verified.expected
+  return satisfies(version, config.supportedRange, { includePrerelease: true }) ? 'unknown' : 'incompatible'
+}
+
+export function buildDshCiMatrix(configInput, distTags = {}, options = {}) {
   const config = validateDshMatrixConfig(configInput)
   const entries = config.entries.map(entry => ({ ...entry }))
   const configuredVersions = new Set(entries.map(entry => entry.version))
+  const candidateVersions = new Set()
   for (const tag of ['latest', 'next']) {
     const version = distTags[tag]
     if (typeof version !== 'string' || valid(version) === null || configuredVersions.has(version)) continue
-    const expected = satisfies(version, config.supportedRange, { includePrerelease: true }) ? 'unknown' : 'incompatible'
-    entries.push({ role: `candidate-${tag}`, version, expected, verification: 'safe-recovery' })
+    const expected = candidateExpectation(config, version)
+    entries.push({ role: `candidate-${tag}`, version, expected, verification: 'release-regression' })
     configuredVersions.add(version)
+    candidateVersions.add(version)
+  }
+  const forcedCandidate = options.forcedCandidate
+  if (forcedCandidate !== undefined && forcedCandidate !== '') {
+    if (typeof forcedCandidate !== 'string' || valid(forcedCandidate) === null) throw new Error(`invalid-forced-candidate:${forcedCandidate}`)
+    if (!candidateVersions.has(forcedCandidate)) {
+      entries.push({
+        role: 'candidate-forced',
+        version: forcedCandidate,
+        expected: candidateExpectation(config, forcedCandidate),
+        verification: 'release-regression',
+      })
+    }
   }
   return {
     include: entries.flatMap(entry => config.platforms.map(os => ({ os, ...entry }))),

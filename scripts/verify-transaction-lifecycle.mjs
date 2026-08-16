@@ -1,18 +1,14 @@
 import { createHash } from 'node:crypto'
-import { createRequire } from 'node:module'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 import { createInstallPlan, executeInstallPlan } from '../lib/transaction.js'
-import { runDsh } from './dsh-cli-lib.mjs'
+import { dshPackageInfo, runDsh } from './dsh-cli-lib.mjs'
 
 const projectRoot = resolve('.')
 const fixture = resolve('artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz')
 const output = resolve(process.argv[2] ?? 'evidence/m2-transaction-lifecycle-2026-08-16.json')
 const tempRoot = resolve('../../work/transaction-verifier')
-const require = createRequire(import.meta.url)
-const packagePath = require.resolve('@deepseek-ai/dsh/package.json')
-const pkg = JSON.parse(await readFile(packagePath, 'utf8'))
-const dshCli = resolve(dirname(packagePath), typeof pkg.bin === 'string' ? pkg.bin : pkg.bin.dsh)
+const { package: pkg, cli: dshCli } = dshPackageInfo()
 await mkdir(tempRoot, { recursive: true })
 const home = await mkdtemp(join(tempRoot, 'dsh-home-'))
 

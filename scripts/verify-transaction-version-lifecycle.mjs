@@ -1,17 +1,13 @@
 import { spawnSync } from 'node:child_process'
-import { createRequire } from 'node:module'
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve, sep } from 'node:path'
 import { createInstallPlan, executeInstallPlan } from '../lib/transaction.js'
-import { runDsh } from './dsh-cli-lib.mjs'
+import { dshPackageInfo, runDsh } from './dsh-cli-lib.mjs'
 
 const output = resolve(process.argv[2] ?? 'evidence/m2-transaction-version-lifecycle-2026-08-16.json')
 const tempRoot = resolve('../../work/transaction-version-verifier')
 const stableTgz = resolve('artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz')
-const require = createRequire(import.meta.url)
-const dshPackagePath = require.resolve('@deepseek-ai/dsh/package.json')
-const dshPackage = JSON.parse(await readFile(dshPackagePath, 'utf8'))
-const dshCli = resolve(dirname(dshPackagePath), typeof dshPackage.bin === 'string' ? dshPackage.bin : dshPackage.bin.dsh)
+const { package: dshPackage, cli: dshCli } = dshPackageInfo()
 await mkdir(tempRoot, { recursive: true })
 const runRoot = await mkdtemp(join(tempRoot, 'run-'))
 const home = join(runRoot, 'home')
