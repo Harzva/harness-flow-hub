@@ -1,0 +1,51 @@
+{
+  "date": "2026-08-16",
+  "url": "https://harzva.github.io/harness-flow-hub/",
+  "commit": "bf96300f73b42bbf5cc854e80e4c050e7978a401",
+  "deployment": {
+    "workflowRun": "https://github.com/Harzva/harness-flow-hub/actions/runs/31946915463",
+    "status": "success",
+    "disclosureGateRanBeforeUpload": true
+  },
+  "artifactPolicy": {
+    "exactAllowlist": [
+      ".nojekyll",
+      "app.js",
+      "index.html",
+      "registry.json",
+      "styles.css"
+    ],
+    "ruleCount": 13,
+    "blockedCategories": [
+      "unexpected or missing public files",
+      "developer notes and task markers",
+      "private workstation paths",
+      "source maps",
+      "private key blocks and credential values",
+      "common secret shapes",
+      "HTML comments",
+      "JavaScript comments, debug logging, and debugger statements",
+      "CSS comments",
+      "loopback endpoints in executable site assets",
+      "oversized textual assets"
+    ]
+  },
+  "negativeTests": {
+    "developerCommentRejected": true,
+    "unexpectedNotesFileRejected": true
+  },
+  "liveChecks": {
+    "pageHttp": 200,
+    "unexpectedNotesHttp": 404,
+    "contentSecurityPolicyPresent": true,
+    "noReferrerPolicyPresent": true
+  },
+  "verification": {
+    "command": "pnpm check",
+    "testsPassed": 30,
+    "testsFailed": 0,
+    "registryContractRun": "https://github.com/Harzva/harness-flow-hub/actions/runs/31946915510",
+    "registryContractStatus": "success"
+  },
+  "result": "passed"
+}
