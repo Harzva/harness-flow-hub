@@ -11,10 +11,12 @@ test('bootstrap classifier fails closed across compatible unknown and incompatib
   assert.equal(classifyVersion('0.2.0'), 'incompatible')
 })
 
-test('management endpoint exposes only add update remove', async () => {
+test('management endpoint exposes only fixed plugin actions and structured rollback plans', async () => {
   const source = await import('node:fs/promises').then(fs => fs.readFile('src/index.ts', 'utf8'))
   assert.match(source, /action !== 'add' && action !== 'update' && action !== 'remove'/)
   assert.match(source, /local-same-origin-required/)
+  assert.match(source, /rollback-plan-missing-or-consumed/)
+  assert.match(source, /recovery-point-unavailable/)
 })
 
 test('v1 schemas are valid JSON and keep distinct responsibilities', async () => {
@@ -28,6 +30,7 @@ test('v1 schemas are valid JSON and keep distinct responsibilities', async () =>
     ['discovery-snapshot.schema.json', 'candidates'],
     ['registry-release-manifest.schema.json', 'files'],
     ['install-plan.schema.json', 'phases'],
+    ['rollback-plan.schema.json', 'backupId'],
   ]
   for (const [file, responsibility] of entries) {
     const schema = JSON.parse(await fs.readFile(`schemas/${file}`, 'utf8'))

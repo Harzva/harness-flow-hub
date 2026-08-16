@@ -1,10 +1,14 @@
 import { createRequire } from 'node:module'
-import { dirname, resolve } from 'node:path'
+import { homedir } from 'node:os'
+import { dirname, join, resolve } from 'node:path'
 import { readFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
-import { createInstallPlan, executeInstallPlan, recoverInterruptedTransactions, type InstallPlan, type PluginAction, type TransactionResult } from './transaction.js'
+import {
+  createInstallPlan, createRollbackPlan, executeInstallPlan, executeRollbackPlan, listRecoveryPoints, recoverInterruptedTransactions,
+  type InstallPlan, type PluginAction, type RollbackPlan, type TransactionResult,
+} from './transaction.js'
 
 export const inject = ['webServer']
 
@@ -23,6 +27,7 @@ const MAX_BODY_BYTES = 16 * 1024
 let activeTransaction = false
 const recentTransactions: TaskRecord[] = []
 const pendingPlans = new Map<string, InstallPlan>()
+const pendingRollbackPlans = new Map<string, RollbackPlan>()
 
 function json(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, {
@@ -104,6 +109,39 @@ function resolveDshCli(): string {
   throw new Error('@deepseek-ai/dsh package does not expose a dsh binary')
 }
 
+function configuredDshHome(configured?: string): string {
+  return resolve(configured ?? (process.env.DSH_HOME?.trim() || join(homedir(), '.dsh')))
+}
+
+function publicDependencySource(source: string | null): string | null {
+  if (source === null) return null
+  if (source.startsWith('file:') || source.startsWith('link:') || /^[A-Za-z]:[\\/]/.test(source) || source.startsWith('/') || source.startsWith('.')) return 'configured-local-source'
+  return source
+}
+
+async function profileView(home: string, profile: string): Promise<unknown> {
+  const profileDir = join(home, 'profiles', profile)
+  let source: string | null = null
+  let version: string | null = null
+  let enabled = false
+  try {
+    const manifest = JSON.parse(readFileSync(join(profileDir, 'package.json'), 'utf8')) as {
+      dependencies?: Record<string, unknown>, dsh?: { profile?: { bundles?: unknown[] } },
+    }
+    const dependency = manifest.dependencies?.[PACKAGE_NAME]
+    source = typeof dependency === 'string' ? dependency : null
+    enabled = manifest.dsh?.profile?.bundles?.includes(PACKAGE_NAME) ?? false
+    if (source !== null) {
+      try {
+        const installed = JSON.parse(readFileSync(join(profileDir, 'node_modules', '@harness-flow', 'hello-bundle', 'package.json'), 'utf8')) as { version?: unknown }
+        version = typeof installed.version === 'string' ? installed.version : null
+      } catch {}
+    }
+  } catch {}
+  const recoveryPoints = await listRecoveryPoints({ home, profile })
+  return { id: profile, active: true, managedBy: 'dsh', plugin: { packageName: PACKAGE_NAME, installed: source !== null, enabled, source: publicDependencySource(source), version }, recoveryPoints }
+}
+
 export function classifyVersion(version: string | null): BootstrapState {
   if (version === null) return 'unknown'
   const match = /^0\.1\.(\d+)(?:-rc\.(\d+))?$/.exec(version)
@@ -122,6 +160,7 @@ function publicPlan(plan: InstallPlan): InstallPlan {
 export function apply(ctx: Context, config: Config = {}): void {
   const profile = config.profile?.trim() || 'web'
   const fixtureSpec = config.fixtureSpec?.trim() || ''
+  const home = configuredDshHome(config.dshHome)
   const recoveryPromise = recoverInterruptedTransactions({ home: config.dshHome }).then(recovered => {
     recentTransactions.unshift(...recovered)
     if (recentTransactions.length > 20) recentTransactions.length = 20
@@ -152,7 +191,8 @@ export function apply(ctx: Context, config: Config = {}): void {
       return
     }
     if (pathname === `${API_PATH}/profiles` && req.method === 'GET') {
-      json(res, 200, { ok: true, profiles: [{ id: profile, active: true, managedBy: 'dsh' }] })
+      await recoveryPromise
+      json(res, 200, { ok: true, profiles: [await profileView(home, profile)] })
       return
     }
     if (pathname === `${API_PATH}/tasks` && req.method === 'GET') {
@@ -160,7 +200,8 @@ export function apply(ctx: Context, config: Config = {}): void {
       json(res, 200, { ok: true, active: activeTransaction, tasks: recentTransactions })
       return
     }
-    if ((pathname !== `${API_PATH}/plan` && pathname !== `${API_PATH}/plugin`) || req.method !== 'POST') {
+    const writePaths = [`${API_PATH}/plan`, `${API_PATH}/plugin`, `${API_PATH}/rollback-plan`, `${API_PATH}/rollback`]
+    if (!writePaths.includes(pathname) || req.method !== 'POST') {
       json(res, 404, { ok: false, error: 'not-found' })
       return
     }
@@ -168,15 +209,15 @@ export function apply(ctx: Context, config: Config = {}): void {
       json(res, 403, { ok: false, error: 'local-same-origin-required' })
       return
     }
-    if (fixtureSpec.length === 0) {
+    if ((pathname === `${API_PATH}/plan` || pathname === `${API_PATH}/plugin`) && fixtureSpec.length === 0) {
       json(res, 409, { ok: false, error: 'fixture-not-configured' })
       return
     }
-    if (activeTransaction && pathname === `${API_PATH}/plugin`) {
+    if (activeTransaction && (pathname === `${API_PATH}/plugin` || pathname === `${API_PATH}/rollback`)) {
       json(res, 409, { ok: false, error: 'transaction-in-progress' })
       return
     }
-    if (pathname === `${API_PATH}/plugin`) await recoveryPromise
+    if (pathname === `${API_PATH}/plugin` || pathname === `${API_PATH}/rollback` || pathname === `${API_PATH}/rollback-plan`) await recoveryPromise
     let body: Record<string, unknown>
     try {
       body = await readJson(req)
@@ -206,9 +247,43 @@ export function apply(ctx: Context, config: Config = {}): void {
       }
       return
     }
+    if (pathname === `${API_PATH}/rollback-plan`) {
+      const backupId = body.backupId
+      if (typeof backupId !== 'string' || !/^[a-f0-9]{24}$/.test(backupId)) {
+        json(res, 400, { ok: false, error: 'invalid-backup-id' })
+        return
+      }
+      const points = await listRecoveryPoints({ home, profile })
+      if (!points.some(point => point.backupId === backupId)) {
+        json(res, 409, { ok: false, error: 'recovery-point-unavailable' })
+        return
+      }
+      const plan = createRollbackPlan({ profile, backupId })
+      pendingRollbackPlans.set(plan.id, plan)
+      json(res, 200, { ok: true, plan })
+      return
+    }
     const planId = body.planId
     if (typeof planId !== 'string' || !/^[a-f0-9]{24}$/.test(planId)) {
       json(res, 400, { ok: false, error: 'invalid-plan-id' })
+      return
+    }
+    if (pathname === `${API_PATH}/rollback`) {
+      const rollbackPlan = pendingRollbackPlans.get(planId)
+      if (rollbackPlan === undefined) {
+        json(res, 409, { ok: false, error: 'rollback-plan-missing-or-consumed' })
+        return
+      }
+      pendingRollbackPlans.delete(planId)
+      activeTransaction = true
+      try {
+        const result = await executeRollbackPlan(rollbackPlan, { dshCli: resolveDshCli(), home, dshVersion: resolveDshVersion() ?? undefined })
+        recentTransactions.unshift(result)
+        if (recentTransactions.length > 20) recentTransactions.length = 20
+        json(res, result.ok ? 200 : 502, result)
+      } finally {
+        activeTransaction = false
+      }
       return
     }
     const plan = pendingPlans.get(planId)

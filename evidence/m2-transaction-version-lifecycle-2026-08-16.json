@@ -1,6 +1,6 @@
 {
   "milestone": "M2-update-downgrade-uninstall",
-  "date": "2026-08-16T11:13:03.578Z",
+  "date": "2026-08-16T11:46:20.229Z",
   "dshVersion": "0.1.0-rc.6",
   "privatePathsRecorded": false,
   "install": {
@@ -16,12 +16,12 @@
       {
         "phase": "snapshot",
         "status": "passed",
-        "detail": "snapshot=20cca4550b187bf42a787b17"
+        "detail": "snapshot=a5ff9a611640023c60cb5d52"
       },
       {
         "phase": "staging",
         "status": "passed",
-        "detail": "profile=flow-hub-stage-20cca4550b187bf42a787b17"
+        "detail": "profile=flow-hub-stage-a5ff9a611640023c60cb5d52"
       },
       {
         "phase": "install",
@@ -34,7 +34,12 @@
       {
         "phase": "commit",
         "status": "passed",
-        "detail": "backup=20cca4550b187bf42a787b17"
+        "detail": "backup=a5ff9a611640023c60cb5d52"
+      },
+      {
+        "phase": "relink",
+        "status": "passed",
+        "detail": "official plugin install rebuilt final-path dependencies"
       },
       {
         "phase": "health",
@@ -60,12 +65,12 @@
       {
         "phase": "snapshot",
         "status": "passed",
-        "detail": "snapshot=705afbf4643b007fa02685aa"
+        "detail": "snapshot=1b366732e84c83bc88426585"
       },
       {
         "phase": "staging",
         "status": "passed",
-        "detail": "profile=flow-hub-stage-705afbf4643b007fa02685aa"
+        "detail": "profile=flow-hub-stage-1b366732e84c83bc88426585"
       },
       {
         "phase": "install",
@@ -78,7 +83,12 @@
       {
         "phase": "commit",
         "status": "passed",
-        "detail": "backup=705afbf4643b007fa02685aa"
+        "detail": "backup=1b366732e84c83bc88426585"
+      },
+      {
+        "phase": "relink",
+        "status": "passed",
+        "detail": "official plugin install rebuilt final-path dependencies"
       },
       {
         "phase": "health",
@@ -105,12 +115,12 @@
       {
         "phase": "snapshot",
         "status": "passed",
-        "detail": "snapshot=7643d03894645210bf9aadfc"
+        "detail": "snapshot=ae6aeb5ab3d372eff092ff84"
       },
       {
         "phase": "staging",
         "status": "passed",
-        "detail": "profile=flow-hub-stage-7643d03894645210bf9aadfc"
+        "detail": "profile=flow-hub-stage-ae6aeb5ab3d372eff092ff84"
       },
       {
         "phase": "install",
@@ -123,7 +133,12 @@
       {
         "phase": "commit",
         "status": "passed",
-        "detail": "backup=7643d03894645210bf9aadfc"
+        "detail": "backup=ae6aeb5ab3d372eff092ff84"
+      },
+      {
+        "phase": "relink",
+        "status": "passed",
+        "detail": "official plugin install rebuilt final-path dependencies"
       },
       {
         "phase": "health",

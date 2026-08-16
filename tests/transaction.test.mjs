@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createInstallPlan, executeInstallPlan, inferSourceKind, recoverInterruptedTransactions } from '../lib/transaction.js'
+import {
+  createInstallPlan, createRollbackPlan, executeInstallPlan, executeRollbackPlan, inferSourceKind, listRecoveryPoints, recoverInterruptedTransactions,
+} from '../lib/transaction.js'
 
 const fixedNow = new Date('2026-08-16T12:00:00.000Z')
 
@@ -34,9 +36,19 @@ function fakeDsh(home) {
     if (typeof profileName !== 'string') return { code: 2, stdout: '', stderr: 'missing profile' }
     const manifestPath = join(home, 'profiles', profileName, 'package.json')
     if (args[0] === 'plugin') {
+      const action = args[3]
+      if (action === 'install') {
+        await readFile(manifestPath, 'utf8')
+        return { code: 0, stdout: '', stderr: '' }
+      }
       const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
-      manifest.dependencies['@harness-flow/hello-bundle'] = '0.0.1'
-      manifest.dsh.profile.bundles.push('@harness-flow/hello-bundle')
+      if (action === 'remove') {
+        delete manifest.dependencies['@harness-flow/hello-bundle']
+        manifest.dsh.profile.bundles = manifest.dsh.profile.bundles.filter(item => item !== '@harness-flow/hello-bundle')
+      } else {
+        manifest.dependencies['@harness-flow/hello-bundle'] = '0.0.1'
+        if (!manifest.dsh.profile.bundles.includes('@harness-flow/hello-bundle')) manifest.dsh.profile.bundles.push('@harness-flow/hello-bundle')
+      }
       await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n')
       return { code: 0, stdout: '', stderr: '' }
     }
@@ -62,7 +74,7 @@ test('transaction stages through official commands and retains a recoverable bac
       home: fixture.home, dshCli: 'unused', now: () => fixedNow, run: fakeDsh(fixture.home), minimumFreeBytes: 0, networkProbe: async () => true,
     })
     assert.equal(result.ok, true)
-    assert.deepEqual(result.phases.map(item => item.phase), ['preflight', 'snapshot', 'staging', 'install', 'dump-config', 'commit', 'health', 'complete'])
+    assert.deepEqual(result.phases.map(item => item.phase), ['preflight', 'snapshot', 'staging', 'install', 'dump-config', 'commit', 'relink', 'health', 'complete'])
     const installed = JSON.parse(await readFile(join(fixture.profile, 'package.json'), 'utf8'))
     assert.equal(installed.dependencies['@harness-flow/hello-bundle'], '0.0.1')
     const backup = JSON.parse(await readFile(join(fixture.home, 'flow-hub', 'backups', plan().id, 'web', 'package.json'), 'utf8'))
@@ -147,7 +159,7 @@ test('startup recovery restores a Profile interrupted after commit', async () =>
 })
 
 test('failure injection at every executable phase preserves the original Profile', async () => {
-  for (const phase of ['preflight', 'snapshot', 'staging', 'install', 'dump-config', 'commit', 'health', 'complete']) {
+  for (const phase of ['preflight', 'snapshot', 'staging', 'install', 'dump-config', 'commit', 'relink', 'health', 'complete']) {
     const fixture = await fixtureHome()
     try {
       const before = await readFile(join(fixture.profile, 'package.json'))
@@ -162,4 +174,53 @@ test('failure injection at every executable phase preserves the original Profile
       await rm(fixture.home, { recursive: true, force: true })
     }
   }
+})
+
+test('structured rollback restores a completed recovery point and retains an undo backup', async () => {
+  const fixture = await fixtureHome()
+  try {
+    const add = await executeInstallPlan(plan(), {
+      home: fixture.home, dshCli: 'unused', now: () => fixedNow, run: fakeDsh(fixture.home), minimumFreeBytes: 0, networkProbe: async () => true,
+    })
+    assert.equal(add.ok, true)
+    const points = await listRecoveryPoints({ home: fixture.home, profile: 'web' })
+    assert.deepEqual(points.map(point => point.backupId), [add.backupId])
+    const rollbackPlan = createRollbackPlan({ profile: 'web', backupId: add.backupId, now: new Date('2026-08-16T12:01:00.000Z') })
+    const rollback = await executeRollbackPlan(rollbackPlan, {
+      home: fixture.home, dshCli: 'unused', now: () => new Date('2026-08-16T12:01:00.000Z'), run: fakeDsh(fixture.home), minimumFreeBytes: 0,
+    })
+    assert.equal(rollback.ok, true)
+    const restored = JSON.parse(await readFile(join(fixture.profile, 'package.json'), 'utf8'))
+    assert.equal(restored.dependencies['@harness-flow/hello-bundle'], undefined)
+    const undo = JSON.parse(await readFile(join(fixture.home, 'flow-hub', 'backups', rollbackPlan.id, 'web', 'package.json'), 'utf8'))
+    assert.equal(undo.dependencies['@harness-flow/hello-bundle'], '0.0.1')
+    const nextPoints = await listRecoveryPoints({ home: fixture.home, profile: 'web' })
+    assert.ok(nextPoints.some(point => point.backupId === rollbackPlan.id && point.createdBy === 'rollback'))
+  } finally {
+    await rm(fixture.home, { recursive: true, force: true })
+  }
+})
+
+test('rollback health failure restores the pre-rollback Profile byte-for-byte', async () => {
+  const fixture = await fixtureHome()
+  try {
+    const add = await executeInstallPlan(plan(), {
+      home: fixture.home, dshCli: 'unused', now: () => fixedNow, run: fakeDsh(fixture.home), minimumFreeBytes: 0, networkProbe: async () => true,
+    })
+    assert.equal(add.ok, true)
+    const installed = await readFile(join(fixture.profile, 'package.json'))
+    const rollbackPlan = createRollbackPlan({ profile: 'web', backupId: add.backupId, now: new Date('2026-08-16T12:02:00.000Z') })
+    const rollback = await executeRollbackPlan(rollbackPlan, {
+      home: fixture.home, dshCli: 'unused', now: () => new Date('2026-08-16T12:02:00.000Z'), run: fakeDsh(fixture.home), minimumFreeBytes: 0, failAt: 'health',
+    })
+    assert.equal(rollback.ok, false)
+    assert.equal(rollback.phases.find(item => item.phase === 'rollback')?.status, 'passed')
+    assert.deepEqual(await readFile(join(fixture.profile, 'package.json')), installed)
+  } finally {
+    await rm(fixture.home, { recursive: true, force: true })
+  }
+})
+
+test('rollback plan rejects untrusted backup identifiers', () => {
+  assert.throws(() => createRollbackPlan({ profile: 'web', backupId: '../escape', now: fixedNow }), /invalid-backup-id/)
 })

@@ -5,7 +5,8 @@ import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 export const inject = ['slots']
 
 type BootstrapState = 'compatible' | 'unknown' | 'incompatible'
-type Action = 'add' | 'update' | 'remove'
+type PluginAction = 'add' | 'update' | 'remove'
+type Action = PluginAction | 'rollback'
 type View = 'home' | 'plugins' | 'flows' | 'profiles' | 'tasks'
 type VerificationState = 'unknown' | 'unverified' | 'passed' | 'failed' | 'stale'
 
@@ -34,7 +35,7 @@ interface ActionResponse {
 
 interface InstallPlan {
   id: string
-  action: Action
+  action: PluginAction
   profile: string
   packageName: string
   expiresAt: string
@@ -43,6 +44,18 @@ interface InstallPlan {
   risk: { lifecycleScriptsDisabled: boolean, permissions: string[], credentials: string[], verification: string, signature: string }
   phases: string[]
 }
+
+interface RollbackPlan {
+  id: string
+  action: 'rollback'
+  profile: string
+  backupId: string
+  expiresAt: string
+  requirements: { dshVersion: string, platforms: string[] }
+  phases: string[]
+}
+
+type OperationPlan = InstallPlan | RollbackPlan
 
 interface PluginRecord {
   id: string
@@ -57,7 +70,14 @@ interface PluginRecord {
 }
 
 interface Registry { registryVersion: string, plugins: PluginRecord[], flows: unknown[] }
-interface ProfileRecord { id: string, active: boolean, managedBy: string }
+interface RecoveryPoint { backupId: string, profile: string, createdAt: string, createdBy: Action }
+interface ProfileRecord {
+  id: string
+  active: boolean
+  managedBy: string
+  plugin: { packageName: string, installed: boolean, enabled: boolean, source: string | null, version: string | null }
+  recoveryPoints: RecoveryPoint[]
+}
 
 const views: Array<{ id: View, label: string, mark: string }> = [
   { id: 'home', label: '总览', mark: '01' },
@@ -78,7 +98,7 @@ async function api<T>(path: string): Promise<T> {
   return body
 }
 
-async function requestPlan(action: Action): Promise<InstallPlan> {
+async function requestPlan(action: PluginAction): Promise<InstallPlan> {
   const response = await fetch('/flow-hub/api/plan', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action }),
   })
@@ -87,9 +107,18 @@ async function requestPlan(action: Action): Promise<InstallPlan> {
   return body.plan
 }
 
-async function runAction(planId: string): Promise<ActionResponse> {
-  const response = await fetch('/flow-hub/api/plugin', {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ planId }),
+async function requestRollbackPlan(backupId: string): Promise<RollbackPlan> {
+  const response = await fetch('/flow-hub/api/rollback-plan', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ backupId }),
+  })
+  const body = await response.json() as { ok: boolean, plan?: RollbackPlan, error?: string }
+  if (!response.ok || body.plan === undefined) throw new Error(body.error ?? '无法生成回滚计划')
+  return body.plan
+}
+
+async function runAction(plan: OperationPlan): Promise<ActionResponse> {
+  const response = await fetch(`/flow-hub/api/${plan.action === 'rollback' ? 'rollback' : 'plugin'}`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ planId: plan.id }),
   })
   const body = await response.json() as ActionResponse
   return response.ok ? body : { ...body, ok: false }
@@ -103,6 +132,11 @@ function Metric({ value, label, note }: { value: string | number, label: string,
   return <article className="flowHubMetric"><strong>{value}</strong><span>{label}</span><small>{note}</small></article>
 }
 
+function PlanPreview({ plan, running, execute, cancel }: { plan: OperationPlan, running: Action | null, execute: () => void, cancel: () => void }): ReactNode {
+  const rollback = plan.action === 'rollback'
+  return <div className="flowHubPlan" role="dialog" aria-label={rollback ? '回滚计划预览' : '安装计划预览'}><b>确认结构化{rollback ? '回滚' : '安装'}计划</b><dl><dt>动作</dt><dd>{plan.action}</dd><dt>Profile</dt><dd>{plan.profile}</dd>{rollback ? <><dt>恢复点</dt><dd className="flowHubCode">{plan.backupId}</dd></> : <><dt>来源</dt><dd className="flowHubCode">{plan.source.kind} · {plan.source.spec}</dd><dt>网络</dt><dd>{plan.requirements.network.required ? `需要 · ${plan.requirements.network.endpoint ?? '端点未披露'}` : '不需要'}</dd><dt>验证</dt><dd>{plan.risk.verification}</dd><dt>签名</dt><dd>{plan.risk.signature}</dd><dt>脚本</dt><dd>{plan.risk.lifecycleScriptsDisabled ? '生命周期脚本禁用' : '允许执行'}</dd><dt>权限</dt><dd>{plan.risk.permissions.length ? plan.risk.permissions.join('、') : '无额外声明'}</dd><dt>凭据</dt><dd>{plan.risk.credentials.length ? plan.risk.credentials.join('、') : '无'}</dd></>}<dt>DSH 版本</dt><dd>{plan.requirements.dshVersion}</dd><dt>平台</dt><dd>{plan.requirements.platforms.join('、')}</dd><dt>阶段</dt><dd>{plan.phases.join(' → ')}</dd></dl><div className="flowHubActions"><button className="flowHubButton flowHubButton--primary" disabled={running !== null} onClick={execute}>确认并执行</button><button className="flowHubButton" disabled={running !== null} onClick={cancel}>取消</button></div></div>
+}
+
 export function FlowHubTab(): ReactNode {
   const [view, setView] = useState<View>('home')
   const [bootstrap, setBootstrap] = useState<BootstrapResponse | null>(null)
@@ -112,7 +146,7 @@ export function FlowHubTab(): ReactNode {
   const [error, setError] = useState<string | null>(null)
   const [running, setRunning] = useState<Action | null>(null)
   const [result, setResult] = useState<ActionResponse | null>(null)
-  const [plan, setPlan] = useState<InstallPlan | null>(null)
+  const [plan, setPlan] = useState<OperationPlan | null>(null)
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
 
@@ -134,7 +168,7 @@ export function FlowHubTab(): ReactNode {
     if (selected === null && registry?.plugins[0] !== undefined) setSelected(registry.plugins[0].id)
   }, [registry, selected])
 
-  const prepare = (action: Action): void => {
+  const prepare = (action: PluginAction): void => {
     setRunning(action)
     setResult(null)
     setPlan(null)
@@ -143,11 +177,21 @@ export function FlowHubTab(): ReactNode {
     }).finally(() => { setRunning(null) })
   }
 
+  const prepareRollback = (backupId: string): void => {
+    setView('home')
+    setRunning('rollback')
+    setResult(null)
+    setPlan(null)
+    void requestRollbackPlan(backupId).then(setPlan, reason => {
+      setResult({ ok: false, error: reason instanceof Error ? reason.message : String(reason) })
+    }).finally(() => { setRunning(null) })
+  }
+
   const execute = (): void => {
     if (plan === null) return
     setRunning(plan.action)
     setResult(null)
-    void runAction(plan.id).then(response => { setResult(response); setPlan(null); refresh() }, reason => {
+    void runAction(plan).then(response => { setResult(response); setPlan(null); refresh() }, reason => {
       setResult({ ok: false, error: reason instanceof Error ? reason.message : String(reason) })
     }).finally(() => { setRunning(null) })
   }
@@ -183,10 +227,10 @@ export function FlowHubTab(): ReactNode {
         <nav className="flowHubNav" aria-label="Flow Hub 区域">{views.map(item => <button key={item.id} type="button" aria-selected={view === item.id} onClick={() => { setView(item.id) }}><small>{item.mark}</small><span>{item.label}</span></button>)}</nav>
         <main className="flowHubMain">
           {error ? <div className="flowHubAlert" role="alert">无法读取 Hub 数据：{error}</div> : null}
-          {view === 'home' ? <><div className="flowHubSectionHead"><div><h3>可信能力地图</h3><p>Registry 只陈述证据，不把“被发现”包装成“已可信”。</p></div><button className="flowHubButton" type="button" onClick={refresh}>刷新状态</button></div><div className="flowHubGrid"><Metric value={registry?.plugins.length ?? '—'} label="候选插件" note={`Registry ${registry?.registryVersion ?? '载入中'}`} /><Metric value={verifiedCount} label="验证通过" note="完整运行证据" /><Metric value={failedCount} label="验证失败" note="失败同样公开" /><Metric value={registry?.flows.length ?? 0} label="专家 Flow" note="即将进入首发批次" /></div><div className="flowHubPanel"><h4>测试安装通道</h4><p>当前 Alpha 只允许固定的 hello bundle 进入写操作。兼容性不确定时，Bootstrap 会自动保持只读。</p><div className="flowHubActions"><button className="flowHubButton flowHubButton--primary" disabled={blocked} onClick={() => { prepare('add') }}>{running === 'add' ? '生成计划中…' : '安装测试 Bundle'}</button><button className="flowHubButton" disabled={blocked} onClick={() => { prepare('update') }}>{running === 'update' ? '生成计划中…' : '更新'}</button><button className="flowHubButton" disabled={blocked} onClick={() => { prepare('remove') }}>{running === 'remove' ? '生成计划中…' : '卸载'}</button></div>{plan ? <div className="flowHubPlan" role="dialog" aria-label="安装计划预览"><b>确认结构化安装计划</b><dl><dt>动作</dt><dd>{plan.action}</dd><dt>Profile</dt><dd>{plan.profile}</dd><dt>来源</dt><dd className="flowHubCode">{plan.source.kind} · {plan.source.spec}</dd><dt>DSH 版本</dt><dd>{plan.requirements.dshVersion}</dd><dt>平台</dt><dd>{plan.requirements.platforms.join('、')}</dd><dt>网络</dt><dd>{plan.requirements.network.required ? `需要 · ${plan.requirements.network.endpoint ?? '端点未披露'}` : '不需要'}</dd><dt>验证</dt><dd>{plan.risk.verification}</dd><dt>签名</dt><dd>{plan.risk.signature}</dd><dt>脚本</dt><dd>{plan.risk.lifecycleScriptsDisabled ? '生命周期脚本禁用' : '允许执行'}</dd><dt>权限</dt><dd>{plan.risk.permissions.length ? plan.risk.permissions.join('、') : '无额外声明'}</dd><dt>凭据</dt><dd>{plan.risk.credentials.length ? plan.risk.credentials.join('、') : '无'}</dd><dt>阶段</dt><dd>{plan.phases.join(' → ')}</dd></dl><div className="flowHubActions"><button className="flowHubButton flowHubButton--primary" disabled={running !== null} onClick={execute}>确认并执行</button><button className="flowHubButton" disabled={running !== null} onClick={() => { setPlan(null) }}>取消</button></div></div> : null}{result ? <div className={`flowHubResult${result.ok ? '' : ' flowHubResult--bad'}`} role="status"><b>{result.ok ? '事务成功' : '事务失败并已处理恢复'}</b><pre>{result.error ?? result.phases?.map(item => `${item.phase}: ${item.status}${item.detail ? ` (${item.detail})` : ''}`).join('\n') ?? '无阶段结果'}</pre></div> : null}</div></> : null}
+          {view === 'home' ? <><div className="flowHubSectionHead"><div><h3>可信能力地图</h3><p>Registry 只陈述证据，不把“被发现”包装成“已可信”。</p></div><button className="flowHubButton" type="button" onClick={refresh}>刷新状态</button></div><div className="flowHubGrid"><Metric value={registry?.plugins.length ?? '—'} label="候选插件" note={`Registry ${registry?.registryVersion ?? '载入中'}`} /><Metric value={verifiedCount} label="验证通过" note="完整运行证据" /><Metric value={failedCount} label="验证失败" note="失败同样公开" /><Metric value={registry?.flows.length ?? 0} label="专家 Flow" note="即将进入首发批次" /></div><div className="flowHubPanel"><h4>测试安装通道</h4><p>当前 Alpha 只允许固定的 hello bundle 进入写操作。兼容性不确定时，Bootstrap 会自动保持只读。</p><div className="flowHubActions"><button className="flowHubButton flowHubButton--primary" disabled={blocked || profiles[0]?.plugin.installed === true} onClick={() => { prepare('add') }}>{running === 'add' ? '生成计划中…' : profiles[0]?.plugin.installed ? '已安装' : '安装测试 Bundle'}</button><button className="flowHubButton" disabled={blocked || profiles[0]?.plugin.installed !== true} onClick={() => { prepare('update') }}>{running === 'update' ? '生成计划中…' : '更新'}</button><button className="flowHubButton" disabled={blocked || profiles[0]?.plugin.installed !== true} onClick={() => { prepare('remove') }}>{running === 'remove' ? '生成计划中…' : '卸载'}</button></div>{plan ? <PlanPreview plan={plan} running={running} execute={execute} cancel={() => { setPlan(null) }} /> : null}{result ? <div className={`flowHubResult${result.ok ? '' : ' flowHubResult--bad'}`} role="status"><b>{result.ok ? '事务成功' : '事务失败并已处理恢复'}</b><pre>{result.error ?? result.phases?.map(item => `${item.phase}: ${item.status}${item.detail ? ` (${item.detail})` : ''}`).join('\n') ?? '无阶段结果'}</pre></div> : null}</div></> : null}
           {view === 'plugins' ? <><div className="flowHubSectionHead"><div><h3>插件 Registry</h3><p>{plugins.length} 个结果 · 来源与验证状态始终可见</p></div><input className="flowHubSearch" aria-label="搜索插件" value={query} placeholder="搜索名称或许可证…" onChange={event => { setQuery(event.target.value) }} /></div><div className="flowHubPluginLayout"><div className="flowHubList">{plugins.map(plugin => <button className="flowHubPlugin" type="button" key={plugin.id} aria-current={selected === plugin.id} onClick={() => { setSelected(plugin.id) }}><span><strong>{plugin.package}</strong><small>{plugin.version} · {plugin.license ?? '许可证未知'}</small></span><StatePill state={plugin.verification.state} /></button>)}</div><aside className="flowHubDetail">{selectedPlugin ? <><StatePill state={selectedPlugin.verification.state} /><h4>{selectedPlugin.package}</h4><small>{selectedPlugin.id}</small><dl><dt>版本</dt><dd>{selectedPlugin.version}</dd><dt>来源</dt><dd className="flowHubCode">{selectedPlugin.source.spec}</dd><dt>完整性</dt><dd className="flowHubCode">{selectedPlugin.source.integrity ?? selectedPlugin.source.commit ?? '未披露'}</dd><dt>许可证</dt><dd>{selectedPlugin.license ?? '未披露'}</dd><dt>安装脚本</dt><dd>{Object.keys(selectedPlugin.lifecycleScripts).length ? Object.keys(selectedPlugin.lifecycleScripts).join('、') : '无披露脚本'}</dd><dt>权限</dt><dd>{selectedPlugin.permissions.length ? selectedPlugin.permissions.join('、') : '未声明额外权限'}</dd><dt>凭据</dt><dd>{selectedPlugin.credentials.length ? selectedPlugin.credentials.join('、') : '未声明凭据需求'}</dd><dt>环境</dt><dd>{selectedPlugin.verification.platform ?? '尚无运行证据'} {selectedPlugin.verification.dshVersion ?? ''}</dd></dl></> : <div className="flowHubEmpty"><div><b>选择一个插件</b><p>查看固定来源、许可证、生命周期脚本与验证环境。</p></div></div>}</aside></div></> : null}
           {view === 'flows' ? <><div className="flowHubSectionHead"><div><h3>Harness Flows</h3><p>完整的领域专家方案，而不是一串无上下文插件。</p></div></div><div className="flowHubEmpty"><div><b>首批专家 Flow 正在编译</b><p>Coding、Research 与 Design 将各自包含角色、插件组合、权限、Profile 和验收任务。</p></div></div></> : null}
-          {view === 'profiles' ? <><div className="flowHubSectionHead"><div><h3>Profiles</h3><p>每个 Flow 安装到独立 DSH Profile，避免污染现有工作环境。</p></div></div>{profiles.map(profile => <article className="flowHubPanel" key={profile.id}><h4>{profile.id} {profile.active ? '· 当前' : ''}</h4><p>由 {profile.managedBy} 管理。后续将在这里提供克隆、启动、更新预览和恢复点。</p></article>)}</> : null}
+          {view === 'profiles' ? <><div className="flowHubSectionHead"><div><h3>Profiles</h3><p>安装状态、来源和恢复点来自 Host，不依赖浏览器猜测。</p></div></div>{profiles.map(profile => <article className="flowHubPanel" key={profile.id}><h4>{profile.id} {profile.active ? '· 当前' : ''}</h4><p>{profile.plugin.installed ? `${profile.plugin.packageName} ${profile.plugin.version ?? '版本未知'} · ${profile.plugin.enabled ? '已启用' : '未启用'} · ${profile.plugin.source ?? '来源未知'}` : '测试 Bundle 未安装'}。由 {profile.managedBy} 管理。</p><div className="flowHubActions"><button className="flowHubButton" disabled={blocked || !profile.plugin.installed} onClick={() => { prepare('update'); setView('home') }}>更新预览</button><button className="flowHubButton" disabled={blocked || !profile.plugin.installed} onClick={() => { prepare('remove'); setView('home') }}>卸载预览</button><button className="flowHubButton" disabled title="等待 DSH 提供外部插件设置契约">设置</button><button className="flowHubButton" disabled title="等待 DSH 提供稳定启停契约">{profile.plugin.enabled ? '停用' : '启用'}</button></div><h4>恢复点</h4>{profile.recoveryPoints.length ? profile.recoveryPoints.map(point => <div className="flowHubTask" key={point.backupId}><b>{point.createdBy}</b><span>{new Date(point.createdAt).toLocaleString()} · <span className="flowHubCode">{point.backupId}</span></span><button className="flowHubButton" disabled={blocked} onClick={() => { prepareRollback(point.backupId) }}>回滚预览</button></div>) : <p>尚无可用恢复点。成功安装、更新、卸载或回滚后会保留恢复点。</p>}</article>)}</> : null}
           {view === 'tasks' ? <><div className="flowHubSectionHead"><div><h3>安装任务</h3><p>每一步都留下结果，失败不会被成功提示覆盖。</p></div></div><div className="flowHubPanel">{tasks.length ? tasks.map((task, index) => <div className="flowHubTask" key={`${task.startedAt ?? index}`}><b>{task.action ?? '任务'}</b><span>{task.startedAt ? new Date(task.startedAt).toLocaleString() : '时间未知'} · {task.phases?.map(item => item.phase).join(' → ')}</span><span>{task.ok ? '成功' : '已回滚'}</span></div>) : <div className="flowHubEmpty"><div><b>还没有安装任务</b><p>从总览发起测试安装后，结果会出现在这里。</p></div></div>}</div></> : null}
         </main>
       </div>

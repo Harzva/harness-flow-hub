@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness-flow.dev/schemas/rollback-plan.schema.json",
+  "title": "Harness Flow Hub Rollback Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "createdAt", "expiresAt", "action", "profile", "backupId", "requirements", "phases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-f0-9]{24}$" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "action": { "const": "rollback" },
+    "profile": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$" },
+    "backupId": { "type": "string", "pattern": "^[a-f0-9]{24}$" },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dshVersion", "platforms"],
+      "properties": {
+        "dshVersion": { "type": "string", "minLength": 1 },
+        "platforms": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["win32", "linux", "darwin"] } }
+      }
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "enum": ["preflight", "staging", "dump-config", "commit", "relink", "health", "rollback", "complete"] }
+    }
+  }
+}

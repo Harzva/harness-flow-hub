@@ -6,8 +6,9 @@ import { arch, homedir, platform } from 'node:os'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 
 export type PluginAction = 'add' | 'update' | 'remove'
+export type TransactionAction = PluginAction | 'rollback'
 export type SourceKind = 'npm' | 'tgz' | 'github-sha' | 'local-directory'
-export type TransactionPhase = 'preflight' | 'snapshot' | 'staging' | 'install' | 'dump-config' | 'commit' | 'health' | 'rollback' | 'complete'
+export type TransactionPhase = 'preflight' | 'snapshot' | 'staging' | 'install' | 'dump-config' | 'commit' | 'relink' | 'health' | 'rollback' | 'complete'
 
 export interface InstallPlan {
   schemaVersion: 1
@@ -33,6 +34,25 @@ export interface InstallPlan {
   phases: TransactionPhase[]
 }
 
+export interface RollbackPlan {
+  schemaVersion: 1
+  id: string
+  createdAt: string
+  expiresAt: string
+  action: 'rollback'
+  profile: string
+  backupId: string
+  requirements: { dshVersion: string, platforms: string[] }
+  phases: TransactionPhase[]
+}
+
+export interface RecoveryPoint {
+  backupId: string
+  profile: string
+  createdAt: string
+  createdBy: TransactionAction
+}
+
 export interface PhaseResult { phase: TransactionPhase, status: 'passed' | 'failed' | 'skipped', detail?: string }
 export interface PreflightReport {
   platform: string
@@ -47,7 +67,7 @@ export interface PreflightReport {
 export interface TransactionResult {
   ok: boolean
   planId: string
-  action: PluginAction
+  action: TransactionAction
   profile: string
   phases: PhaseResult[]
   preflight?: PreflightReport
@@ -74,7 +94,7 @@ export interface TransactionOptions {
 
 interface TransactionJournal {
   schemaVersion: 1
-  plan: InstallPlan
+  plan: InstallPlan | RollbackPlan
   pid: number
   status: 'started' | 'staged' | 'original-moved' | 'committed' | 'complete' | 'rolled-back' | 'recovered'
   updatedAt: string
@@ -138,7 +158,25 @@ export function createInstallPlan(input: {
       verification: input.verification ?? 'unverified',
       signature: input.signature ?? 'unverified',
     },
-    phases: ['preflight', 'snapshot', 'staging', 'install', 'dump-config', 'commit', 'health', 'complete'] as TransactionPhase[],
+    phases: ['preflight', 'snapshot', 'staging', 'install', 'dump-config', 'commit', 'relink', 'health', 'complete'] as TransactionPhase[],
+  }
+  const id = createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 24)
+  return { ...body, id }
+}
+
+export function createRollbackPlan(input: { profile: string, backupId: string, dshVersion?: string, platforms?: string[], now?: Date }): RollbackPlan {
+  safeProfile(input.profile)
+  if (!/^[a-f0-9]{24}$/.test(input.backupId)) throw new Error('invalid-backup-id')
+  const now = input.now ?? new Date()
+  const body = {
+    schemaVersion: 1 as const,
+    createdAt: now.toISOString(),
+    expiresAt: new Date(now.getTime() + PLAN_TTL_MS).toISOString(),
+    action: 'rollback' as const,
+    profile: input.profile,
+    backupId: input.backupId,
+    requirements: { dshVersion: input.dshVersion ?? '>=0.1.0-rc.6 <0.2.0', platforms: [...(input.platforms ?? ['win32', 'linux', 'darwin'])] },
+    phases: ['preflight', 'staging', 'dump-config', 'commit', 'relink', 'health', 'complete'] as TransactionPhase[],
   }
   const id = createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 24)
   return { ...body, id }
@@ -177,8 +215,33 @@ async function atomicJson(path: string, value: unknown): Promise<void> {
   await rename(temporary, path)
 }
 
-function journalFor(plan: InstallPlan, status: TransactionJournal['status'], now: Date): TransactionJournal {
+function journalFor(plan: InstallPlan | RollbackPlan, status: TransactionJournal['status'], now: Date): TransactionJournal {
   return { schemaVersion: 1, plan, pid: process.pid, status, updatedAt: now.toISOString() }
+}
+
+export async function listRecoveryPoints(options: { home?: string, profile: string }): Promise<RecoveryPoint[]> {
+  safeProfile(options.profile)
+  const home = dshHome(options.home)
+  const journalsRoot = join(home, 'flow-hub', 'transactions')
+  let names: string[]
+  try { names = await readdir(journalsRoot) } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
+    throw error
+  }
+  const points: RecoveryPoint[] = []
+  for (const name of names.filter(value => /^[a-f0-9]{24}\.json$/.test(value))) {
+    try {
+      const journal = JSON.parse(await readFile(join(journalsRoot, name), 'utf8')) as TransactionJournal
+      if (journal.schemaVersion !== 1 || journal.status !== 'complete' || journal.plan.profile !== options.profile) continue
+      if (`${journal.plan.id}.json` !== name) continue
+      const backupDir = join(home, 'flow-hub', 'backups', journal.plan.id, options.profile)
+      if (!inside(home, backupDir) || !await exists(join(backupDir, 'package.json'))) continue
+      points.push({ backupId: journal.plan.id, profile: options.profile, createdAt: journal.plan.createdAt, createdBy: journal.plan.action })
+    } catch {
+      continue
+    }
+  }
+  return points.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
 
 async function exists(path: string): Promise<boolean> {
@@ -352,6 +415,7 @@ export async function executeInstallPlan(plan: InstallPlan, options: Transaction
     if (stagedDump.code !== 0) throw new Error(`staged-dump-config-failed:${stagedDump.code ?? 'spawn'}`)
     failPoint('dump-config'); pass('dump-config')
 
+    await rm(join(stageDir, 'node_modules'), { recursive: true, force: true })
     await mkdir(dirname(backupDir), { recursive: true })
     await rename(profileDir, backupDir)
     await atomicJson(journalPath, journalFor(plan, 'original-moved', options.now?.() ?? new Date()))
@@ -362,6 +426,10 @@ export async function executeInstallPlan(plan: InstallPlan, options: Transaction
     committed = true
     await atomicJson(journalPath, journalFor(plan, 'committed', options.now?.() ?? new Date()))
     failPoint('commit'); pass('commit', `backup=${plan.id}`)
+
+    const relink = await run(['plugin', '--profile', plan.profile, 'install', '--ignore-scripts', '--reporter=silent'], { ...process.env, DSH_HOME: home })
+    if (relink.code !== 0) throw new Error(`final-profile-relink-failed:${relink.code ?? 'spawn'}`)
+    failPoint('relink'); pass('relink', 'official plugin install rebuilt final-path dependencies')
 
     const health = await run(['--profile', plan.profile, '--dump-config'], { ...process.env, DSH_HOME: home })
     if (health.code !== 0) throw new Error(`committed-profile-health-failed:${health.code ?? 'spawn'}`)
@@ -389,6 +457,110 @@ export async function executeInstallPlan(plan: InstallPlan, options: Transaction
     }
     await atomicJson(journalPath, journalFor(plan, 'rolled-back', options.now?.() ?? new Date())).catch(() => {})
     return { ok: false, planId: plan.id, action: plan.action, profile: plan.profile, phases, preflight, error: message, startedAt, finishedAt: (options.now?.() ?? new Date()).toISOString() }
+  } finally {
+    if (locked) await rm(lockDir, { recursive: true, force: true }).catch(() => {})
+  }
+}
+
+export async function executeRollbackPlan(plan: RollbackPlan, options: TransactionOptions): Promise<TransactionResult> {
+  const startedAt = (options.now?.() ?? new Date()).toISOString()
+  const phases: PhaseResult[] = []
+  const home = dshHome(options.home)
+  const profilesRoot = join(home, 'profiles')
+  const stateRoot = join(home, 'flow-hub')
+  const profileDir = join(profilesRoot, plan.profile)
+  const sourceBackupDir = join(stateRoot, 'backups', plan.backupId, plan.profile)
+  const stageProfile = `flow-hub-stage-${plan.id}`
+  const stageDir = join(profilesRoot, stageProfile)
+  const undoBackupDir = join(stateRoot, 'backups', plan.id, plan.profile)
+  const lockDir = join(stateRoot, 'locks', `${plan.profile}.lock`)
+  const failedDir = join(stateRoot, 'failed', plan.id)
+  const journalPath = join(stateRoot, 'transactions', `${plan.id}.json`)
+  const run = options.run ?? ((args, env) => defaultRun(options.dshCli, args, env))
+  let locked = false
+  let committed = false
+  const pass = (phase: TransactionPhase, detail?: string): void => { phases.push({ phase, status: 'passed', ...(detail ? { detail } : {}) }) }
+  const failPoint = (phase: TransactionPhase): void => { if (options.failAt === phase) throw new Error(`injected-failure:${phase}`) }
+  try {
+    safeProfile(plan.profile)
+    if (!/^[a-f0-9]{24}$/.test(plan.backupId)) throw new Error('invalid-backup-id')
+    if (Date.parse(plan.expiresAt) <= Date.parse(startedAt)) throw new Error('rollback-plan-expired')
+    for (const target of [profileDir, sourceBackupDir, stageDir, undoBackupDir, lockDir, failedDir, journalPath]) {
+      if (!inside(home, target)) throw new Error('transaction-path-outside-dsh-home')
+    }
+    await mkdir(dirname(lockDir), { recursive: true })
+    try { await mkdir(lockDir) } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error('profile-transaction-locked')
+      throw error
+    }
+    locked = true
+    await writeFile(join(lockDir, 'owner.json'), JSON.stringify({ planId: plan.id, startedAt }) + '\n', 'utf8')
+    await atomicJson(journalPath, journalFor(plan, 'started', options.now?.() ?? new Date()))
+    if (!await exists(join(profileDir, 'package.json'))) throw new Error('profile-not-initialized')
+    if (!await exists(join(sourceBackupDir, 'package.json'))) throw new Error('recovery-point-missing')
+    const actualPlatform = options.runtimePlatform ?? platform()
+    if (!plan.requirements.platforms.includes(actualPlatform)) throw new Error(`unsupported-platform:${actualPlatform}`)
+    const actualDshVersion = options.dshVersion ?? detectedDshVersion()
+    if (actualDshVersion === null) throw new Error('dsh-version-unknown')
+    if (!compatibleDshVersion(actualDshVersion, plan.requirements.dshVersion)) throw new Error(`unsupported-dsh-version:${actualDshVersion}`)
+    const disk = await statfs(home)
+    const free = Number(disk.bavail) * Number(disk.bsize)
+    if (free < (options.minimumFreeBytes ?? 128 * 1024 * 1024)) throw new Error('insufficient-disk-space')
+    failPoint('preflight'); pass('preflight', `backup=${plan.backupId}; platform=${actualPlatform}; dsh=${actualDshVersion}`)
+
+    await rm(stageDir, { recursive: true, force: true })
+    await copyProfileControl(sourceBackupDir, stageDir)
+    const stagedInstall = await run(['plugin', '--profile', stageProfile, 'install', '--ignore-scripts', '--reporter=silent'], { ...process.env, DSH_HOME: home })
+    if (stagedInstall.code !== 0) throw new Error(`rollback-stage-install-failed:${stagedInstall.code ?? 'spawn'}`)
+    await atomicJson(journalPath, journalFor(plan, 'staged', options.now?.() ?? new Date()))
+    failPoint('staging'); pass('staging', `profile=${stageProfile}`)
+
+    const stagedDump = await run(['--profile', stageProfile, '--dump-config'], { ...process.env, DSH_HOME: home })
+    if (stagedDump.code !== 0) throw new Error(`staged-dump-config-failed:${stagedDump.code ?? 'spawn'}`)
+    failPoint('dump-config'); pass('dump-config')
+
+    await rm(join(stageDir, 'node_modules'), { recursive: true, force: true })
+    await mkdir(dirname(undoBackupDir), { recursive: true })
+    await rename(profileDir, undoBackupDir)
+    await atomicJson(journalPath, journalFor(plan, 'original-moved', options.now?.() ?? new Date()))
+    try { await rename(stageDir, profileDir) } catch (error) {
+      await rename(undoBackupDir, profileDir)
+      throw error
+    }
+    committed = true
+    await atomicJson(journalPath, journalFor(plan, 'committed', options.now?.() ?? new Date()))
+    failPoint('commit'); pass('commit', `undo-backup=${plan.id}`)
+
+    const relink = await run(['plugin', '--profile', plan.profile, 'install', '--ignore-scripts', '--reporter=silent'], { ...process.env, DSH_HOME: home })
+    if (relink.code !== 0) throw new Error(`final-profile-relink-failed:${relink.code ?? 'spawn'}`)
+    failPoint('relink'); pass('relink', 'official plugin install rebuilt final-path dependencies')
+
+    const health = await run(['--profile', plan.profile, '--dump-config'], { ...process.env, DSH_HOME: home })
+    if (health.code !== 0) throw new Error(`restored-profile-health-failed:${health.code ?? 'spawn'}`)
+    failPoint('health'); pass('health', 'official dump-config passed')
+    failPoint('complete'); pass('complete')
+    await atomicJson(journalPath, journalFor(plan, 'complete', options.now?.() ?? new Date()))
+    return { ok: true, planId: plan.id, action: plan.action, profile: plan.profile, phases, backupId: plan.id, startedAt, finishedAt: (options.now?.() ?? new Date()).toISOString() }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    const failedPhase = plan.phases.find(phase => !phases.some(result => result.phase === phase)) ?? 'preflight'
+    phases.push({ phase: failedPhase, status: 'failed', detail: message })
+    if (committed) {
+      try {
+        await mkdir(dirname(failedDir), { recursive: true })
+        await rm(failedDir, { recursive: true, force: true })
+        await rename(profileDir, failedDir)
+        await rename(undoBackupDir, profileDir)
+        phases.push({ phase: 'rollback', status: 'passed', detail: `rollback-operation-restored=${plan.id}` })
+      } catch (rollbackError) {
+        phases.push({ phase: 'rollback', status: 'failed', detail: rollbackError instanceof Error ? rollbackError.message : String(rollbackError) })
+      }
+    } else {
+      await rm(stageDir, { recursive: true, force: true }).catch(() => {})
+      phases.push({ phase: 'rollback', status: 'passed', detail: 'current-profile-untouched' })
+    }
+    await atomicJson(journalPath, journalFor(plan, 'rolled-back', options.now?.() ?? new Date())).catch(() => {})
+    return { ok: false, planId: plan.id, action: plan.action, profile: plan.profile, phases, error: message, startedAt, finishedAt: (options.now?.() ?? new Date()).toISOString() }
   } finally {
     if (locked) await rm(lockDir, { recursive: true, force: true }).catch(() => {})
   }

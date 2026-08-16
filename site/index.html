@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Harness Flow Hub — 面向 DeepSeek Harness 的可信插件 Registry 与可执行专家 Flow 方案。">
+  <meta name="theme-color" content="#11100d">
+  <title>Harness Flow Hub · Agent Stack Observatory</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="masthead">
+    <a class="wordmark" href="#top" aria-label="Harness Flow Hub 首页">
+      <span class="wordmark__sigil">HF</span>
+      <span>Harness Flow Hub<small>for DeepSeek Harness</small></span>
+    </a>
+    <nav aria-label="主导航">
+      <a href="#registry">Registry</a>
+      <a href="#flows">Flows</a>
+      <a href="#boundary">边界</a>
+      <a class="nav-github" href="https://github.com/Harzva/harness-flow-hub">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero__copy">
+        <p class="eyebrow"><span></span> AGENT STACK OBSERVATORY / ALPHA</p>
+        <h1>不是另一个<br><em>插件商店。</em></h1>
+        <p class="hero__dek">插件是能力。Flow 是带角色、边界、工具、记忆、工作流、权限与验收任务的完整专家方案。每次安装都应该能解释、能验证、能恢复。</p>
+        <div class="hero__actions">
+          <a class="button button--signal" href="#registry">浏览可信证据</a>
+          <a class="button" href="https://github.com/Harzva/harness-flow-hub#readme">查看 Alpha 进度 ↗</a>
+        </div>
+        <p class="microcopy">核心安装流程留在 DSH 原生 UI；本站不执行远程安装。</p>
+      </div>
+
+      <div class="stack-instrument" aria-label="Harness Flow Stack 组成示意">
+        <div class="instrument-head"><span>STACK / 001</span><span class="live-dot">SPECIMEN</span></div>
+        <ol>
+          <li style="--i:0"><b>01</b><span>Expert Role</span><small>研究员 / 工程师 / 设计师</small></li>
+          <li style="--i:1"><b>02</b><span>Skills + Plugins</span><small>固定来源 · 可替代组合</small></li>
+          <li style="--i:2"><b>03</b><span>Memory + Workflow</span><small>过程、状态与边界</small></li>
+          <li style="--i:3"><b>04</b><span>Permissions</span><small>安装前明确展示</small></li>
+          <li style="--i:4"><b>05</b><span>Validation Tasks</span><small>不是提示词合集</small></li>
+        </ol>
+        <div class="instrument-foot"><span>COMPILES TO</span><strong>DSH PROFILE + STACK LOCK</strong></div>
+      </div>
+    </section>
+
+    <section class="status-strip" aria-label="Registry 实时摘要">
+      <div><span id="metric-total">—</span><small>候选插件</small></div>
+      <div><span id="metric-passed">—</span><small>验证通过</small></div>
+      <div><span id="metric-failed">—</span><small>验证失败</small></div>
+      <div><span id="metric-version">载入中</span><small>Registry 版本</small></div>
+      <p><i></i> 签名发布 · 失败也公开 · 浮动来源不进入推荐</p>
+    </section>
+
+    <section class="registry-section" id="registry">
+      <header class="section-heading">
+        <div><p class="eyebrow">01 / EVIDENCE LEDGER</p><h2>可信能力地图</h2></div>
+        <p>“被发现”不等于“可信”。每条记录同时呈现来源、固定版本、脚本、许可证和验证环境。</p>
+      </header>
+
+      <div class="registry-toolbar" role="search">
+        <label><span>搜索 Registry</span><input id="registry-search" type="search" placeholder="包名、许可证或来源…" autocomplete="off"></label>
+        <div class="filters" aria-label="按验证状态筛选">
+          <button class="filter is-active" data-filter="all" type="button">全部 <span id="count-all">0</span></button>
+          <button class="filter" data-filter="passed" type="button">通过 <span id="count-passed">0</span></button>
+          <button class="filter" data-filter="failed" type="button">失败 <span id="count-failed">0</span></button>
+          <button class="filter" data-filter="unverified" type="button">待验证 <span id="count-unverified">0</span></button>
+        </div>
+      </div>
+
+      <div class="registry-layout">
+        <div>
+          <p class="result-count" id="result-count" aria-live="polite">正在读取 Registry…</p>
+          <div class="plugin-ledger" id="plugin-ledger" aria-label="插件列表"></div>
+        </div>
+        <aside class="plugin-inspector" id="plugin-inspector" aria-live="polite">
+          <p class="inspector-index">DETAIL / —</p>
+          <h3>选择一条记录</h3>
+          <p>查看它声明了什么，以及真实验证发现了什么。</p>
+        </aside>
+      </div>
+      <div class="registry-error" id="registry-error" hidden>Registry 暂时不可达。本站保持只读，已安装的 DSH Profile 不受影响。</div>
+    </section>
+
+    <section class="flows-section" id="flows">
+      <header class="section-heading section-heading--light">
+        <div><p class="eyebrow">02 / FLOW LAB</p><h2>领域专家，不是主题皮肤</h2></div>
+        <p>首批 Flow 仍在 Alpha 编译阶段。下列是冻结的产品方向，不代表已经发布。</p>
+      </header>
+      <div class="flow-rack">
+        <article class="flow-card flow-card--active">
+          <span class="flow-card__number">A01</span><span class="badge">PLANNED</span>
+          <h3>Coding Expert</h3><p>代码理解、实现、测试、审查与可恢复交付。</p>
+          <ul><li>Lite / Standard</li><li>Git + Shell + LSP</li><li>Validation: repository task</li></ul>
+        </article>
+        <article class="flow-card">
+          <span class="flow-card__number">A02</span><span class="badge">PLANNED</span>
+          <h3>Research Expert</h3><p>检索、阅读、证据追踪、引用管理与报告生产。</p>
+          <ul><li>Local / Connected</li><li>Browser + PDF + Citation</li><li>Validation: sourced brief</li></ul>
+        </article>
+        <article class="flow-card">
+          <span class="flow-card__number">A03</span><span class="badge">PLANNED</span>
+          <h3>Design Expert</h3><p>界面策略、视觉系统、实现与可访问性验收。</p>
+          <ul><li>Rapid / Production</li><li>UI + Assets + Preview</li><li>Validation: rendered artifact</li></ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="boundary-section" id="boundary">
+      <div class="boundary-copy">
+        <p class="eyebrow">03 / TRUST BOUNDARY</p>
+        <h2>网页负责发现。<br>DSH 负责改变。</h2>
+        <p>GitHub Pages 是公开、可缓存的只读观察站。真正的安装计划、权限确认、Profile 快照、暂存验证、原子提交与回滚全部发生在本机 DSH Web UI。</p>
+      </div>
+      <div class="boundary-diagram" role="img" aria-label="公开网站与本机 DSH 之间的信任边界">
+        <div class="zone zone--public"><small>PUBLIC / GITHUB.IO</small><strong>Discover</strong><span>Registry · Evidence · Flows</span></div>
+        <div class="firebreak"><span>READ-ONLY</span><i></i><span>NO CREDENTIALS</span></div>
+        <div class="zone zone--local"><small>LOCAL / DSH WEB UI</small><strong>Apply</strong><span>Plan · Confirm · Stage · Recover</span></div>
+      </div>
+    </section>
+
+    <section class="install-note">
+      <p class="eyebrow">ALPHA DISTRIBUTION</p>
+      <h2>遵循 DSH 原生包机制</h2>
+      <div class="distribution-grid">
+        <div><b>npm bundle</b><span>正式分发，固定精确版本</span></div>
+        <div><b>.tgz</b><span>离线验证与可追溯交付</span></div>
+        <div><b>GitHub SHA</b><span>开发来源必须固定 40 位提交</span></div>
+      </div>
+      <p class="release-warning">当前仍是开发 Alpha，npm 包尚未宣称公开可安装。请以仓库 Release 与验证证据为准。</p>
+      <a class="button button--dark" href="https://github.com/Harzva/harness-flow-hub/releases">查看 Releases ↗</a>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wordmark"><span class="wordmark__sigil">HF</span><span>Harness Flow Hub<small>Evidence before installation.</small></span></div>
+    <p>Independent community project for DeepSeek Harness.<br>Core mutations stay inside your local DSH environment.</p>
+    <div><a href="https://github.com/Harzva/harness-flow-hub">Source</a><a href="https://deepseek-harness.github.io/deepseek-harness/reference/">DSH Reference</a></div>
+  </footer>
+</body>
+</html>

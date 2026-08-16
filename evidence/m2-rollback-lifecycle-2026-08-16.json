@@ -1,0 +1,98 @@
+{
+  "milestone": "M2-native-recovery-points",
+  "date": "2026-08-16T11:46:38.431Z",
+  "dshVersion": "0.1.0-rc.6",
+  "privatePathsRecorded": false,
+  "install": {
+    "ok": true,
+    "backupId": "2c8be48c6b2d4e6a1c01f54a"
+  },
+  "rollbackToPreInstall": {
+    "ok": true,
+    "planId": "22f1bfb0eab02428704ae6a1",
+    "phases": [
+      {
+        "phase": "preflight",
+        "status": "passed",
+        "detail": "backup=2c8be48c6b2d4e6a1c01f54a; platform=win32; dsh=0.1.0-rc.6"
+      },
+      {
+        "phase": "staging",
+        "status": "passed",
+        "detail": "profile=flow-hub-stage-22f1bfb0eab02428704ae6a1"
+      },
+      {
+        "phase": "dump-config",
+        "status": "passed"
+      },
+      {
+        "phase": "commit",
+        "status": "passed",
+        "detail": "undo-backup=22f1bfb0eab02428704ae6a1"
+      },
+      {
+        "phase": "relink",
+        "status": "passed",
+        "detail": "official plugin install rebuilt final-path dependencies"
+      },
+      {
+        "phase": "health",
+        "status": "passed",
+        "detail": "official dump-config passed"
+      },
+      {
+        "phase": "complete",
+        "status": "passed"
+      }
+    ],
+    "officialDumpConfig": "passed"
+  },
+  "undoRollback": {
+    "ok": true,
+    "planId": "de3e1dfe6381b7626c000792",
+    "manifestRestoredByteForByte": true,
+    "officialDumpConfig": "passed"
+  },
+  "injectedRollbackFailure": {
+    "at": "health",
+    "ok": false,
+    "restoredCurrentProfileByteForByte": true,
+    "officialDumpConfig": "passed",
+    "phases": [
+      {
+        "phase": "preflight",
+        "status": "passed",
+        "detail": "backup=2c8be48c6b2d4e6a1c01f54a; platform=win32; dsh=0.1.0-rc.6"
+      },
+      {
+        "phase": "staging",
+        "status": "passed",
+        "detail": "profile=flow-hub-stage-fde21f3c3865a6d64322993d"
+      },
+      {
+        "phase": "dump-config",
+        "status": "passed"
+      },
+      {
+        "phase": "commit",
+        "status": "passed",
+        "detail": "undo-backup=fde21f3c3865a6d64322993d"
+      },
+      {
+        "phase": "relink",
+        "status": "passed",
+        "detail": "official plugin install rebuilt final-path dependencies"
+      },
+      {
+        "phase": "health",
+        "status": "failed",
+        "detail": "injected-failure:health"
+      },
+      {
+        "phase": "rollback",
+        "status": "passed",
+        "detail": "rollback-operation-restored=fde21f3c3865a6d64322993d"
+      }
+    ]
+  }
+}

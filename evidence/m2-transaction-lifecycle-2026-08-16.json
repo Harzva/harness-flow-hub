@@ -1,6 +1,6 @@
 {
   "milestone": "M2-transaction-installer-real-lifecycle",
-  "date": "2026-08-16T11:19:54.336Z",
+  "date": "2026-08-16T11:45:28.772Z",
   "dshVersion": "0.1.0-rc.6",
   "fixture": "artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz",
   "privatePathsRecorded": false,
@@ -15,12 +15,12 @@
       {
         "phase": "snapshot",
         "status": "passed",
-        "detail": "snapshot=86136a9413db3b44560c7d22"
+        "detail": "snapshot=5657ef4e5f6c9d6bcf84adcf"
       },
       {
         "phase": "staging",
         "status": "passed",
-        "detail": "profile=flow-hub-stage-86136a9413db3b44560c7d22"
+        "detail": "profile=flow-hub-stage-5657ef4e5f6c9d6bcf84adcf"
       },
       {
         "phase": "install",
@@ -33,7 +33,12 @@
       {
         "phase": "commit",
         "status": "passed",
-        "detail": "backup=86136a9413db3b44560c7d22"
+        "detail": "backup=5657ef4e5f6c9d6bcf84adcf"
+      },
+      {
+        "phase": "relink",
+        "status": "passed",
+        "detail": "official plugin install rebuilt final-path dependencies"
       },
       {
         "phase": "health",
@@ -45,7 +50,8 @@
         "status": "passed"
       }
     ],
-    "backupRetained": true
+    "backupRetained": true,
+    "officialCliInstallAfterCommit": "passed"
   },
   "injectedFailure": {
     "at": "health",
@@ -59,12 +65,12 @@
       {
         "phase": "snapshot",
         "status": "passed",
-        "detail": "snapshot=3ad550a34d09d6c31fd25f17"
+        "detail": "snapshot=9b4a848ffa3b1ad5cb9d4927"
       },
       {
         "phase": "staging",
         "status": "passed",
-        "detail": "profile=flow-hub-stage-3ad550a34d09d6c31fd25f17"
+        "detail": "profile=flow-hub-stage-9b4a848ffa3b1ad5cb9d4927"
       },
       {
         "phase": "install",
@@ -77,7 +83,12 @@
       {
         "phase": "commit",
         "status": "passed",
-        "detail": "backup=3ad550a34d09d6c31fd25f17"
+        "detail": "backup=9b4a848ffa3b1ad5cb9d4927"
+      },
+      {
+        "phase": "relink",
+        "status": "passed",
+        "detail": "official plugin install rebuilt final-path dependencies"
       },
       {
         "phase": "health",
@@ -87,7 +98,7 @@
       {
         "phase": "rollback",
         "status": "passed",
-        "detail": "restored=3ad550a34d09d6c31fd25f17"
+        "detail": "restored=9b4a848ffa3b1ad5cb9d4927"
       }
     ],
     "manifestRestoredByteForByte": true,
@@ -105,12 +116,12 @@
       {
         "phase": "snapshot",
         "status": "passed",
-        "detail": "snapshot=f3b56b05b6c59935adb04b30"
+        "detail": "snapshot=dde31ca955a6be03e05d2cd4"
       },
       {
         "phase": "staging",
         "status": "passed",
-        "detail": "profile=flow-hub-stage-f3b56b05b6c59935adb04b30"
+        "detail": "profile=flow-hub-stage-dde31ca955a6be03e05d2cd4"
       },
       {
         "phase": "install",
@@ -123,7 +134,12 @@
       {
         "phase": "commit",
         "status": "passed",
-        "detail": "backup=f3b56b05b6c59935adb04b30"
+        "detail": "backup=dde31ca955a6be03e05d2cd4"
+      },
+      {
+        "phase": "relink",
+        "status": "passed",
+        "detail": "official plugin install rebuilt final-path dependencies"
       },
       {
         "phase": "health",

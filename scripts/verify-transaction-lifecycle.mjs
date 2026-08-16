@@ -38,6 +38,8 @@ try {
   const beforeFailureLock = await readFile(lockPath)
   const installedManifest = JSON.parse(beforeFailureManifest.toString('utf8'))
   assert(typeof installedManifest.dependencies?.['@harness-flow/hello-bundle'] === 'string', 'hello dependency missing after add')
+  const directCliInstall = runDsh(dshCli, home, ['plugin', '--profile', 'web', 'install', '--ignore-scripts', '--reporter=silent'])
+  assert(directCliInstall.status === 0, `official CLI could not manage committed Profile: ${directCliInstall.stderr}`)
 
   const updatePlan = createInstallPlan({
     action: 'update', profile: 'web', packageName: '@harness-flow/hello-bundle', sourceSpec: fixture,
@@ -72,7 +74,7 @@ try {
     dshVersion: pkg.version,
     fixture: relative(projectRoot, fixture).replaceAll('\\', '/'),
     privatePathsRecorded: false,
-    add: { ok: add.ok, phases: add.phases, backupRetained: typeof add.backupId === 'string' },
+    add: { ok: add.ok, phases: add.phases, backupRetained: typeof add.backupId === 'string', officialCliInstallAfterCommit: 'passed' },
     injectedFailure: {
       at: 'health', ok: injectedFailure.ok, phases: injectedFailure.phases,
       manifestRestoredByteForByte: true, lockfileRestoredByteForByte: true, officialDumpConfigAfterRollback: 'passed',

@@ -1,6 +1,6 @@
 {
   "milestone": "M2-four-transaction-source-adapters",
-  "date": "2026-08-16T11:08:43.293Z",
+  "date": "2026-08-16T11:46:05.324Z",
   "dshVersion": "0.1.0-rc.6",
   "privatePathsRecorded": false,
   "lifecycleScriptsDisabled": true,
@@ -20,12 +20,12 @@
           {
             "phase": "snapshot",
             "status": "passed",
-            "detail": "snapshot=b85cdc7b18249bb99d8a7325"
+            "detail": "snapshot=a3a934e171d4e06cdc30b661"
           },
           {
             "phase": "staging",
             "status": "passed",
-            "detail": "profile=flow-hub-stage-b85cdc7b18249bb99d8a7325"
+            "detail": "profile=flow-hub-stage-a3a934e171d4e06cdc30b661"
           },
           {
             "phase": "install",
@@ -38,7 +38,12 @@
           {
             "phase": "commit",
             "status": "passed",
-            "detail": "backup=b85cdc7b18249bb99d8a7325"
+            "detail": "backup=a3a934e171d4e06cdc30b661"
+          },
+          {
+            "phase": "relink",
+            "status": "passed",
+            "detail": "official plugin install rebuilt final-path dependencies"
           },
           {
             "phase": "health",
@@ -54,7 +59,7 @@
           "platform": "win32",
           "architecture": "x64",
           "dshVersion": "0.1.0-rc.6",
-          "freeBytes": 2273861632,
+          "freeBytes": 2288091136,
           "network": "passed",
           "credentials": "not-required",
           "signature": "not-applicable-trusted-fixture",
@@ -74,12 +79,12 @@
           {
             "phase": "snapshot",
             "status": "passed",
-            "detail": "snapshot=b083b650766348838c9e3250"
+            "detail": "snapshot=611d4393bb40378051c01c41"
           },
           {
             "phase": "staging",
             "status": "passed",
-            "detail": "profile=flow-hub-stage-b083b650766348838c9e3250"
+            "detail": "profile=flow-hub-stage-611d4393bb40378051c01c41"
           },
           {
             "phase": "install",
@@ -92,7 +97,12 @@
           {
             "phase": "commit",
             "status": "passed",
-            "detail": "backup=b083b650766348838c9e3250"
+            "detail": "backup=611d4393bb40378051c01c41"
+          },
+          {
+            "phase": "relink",
+            "status": "passed",
+            "detail": "official plugin install rebuilt final-path dependencies"
           },
           {
             "phase": "health",
@@ -120,12 +130,12 @@
           {
             "phase": "snapshot",
             "status": "passed",
-            "detail": "snapshot=a8513ec0a8cadd2726c9a845"
+            "detail": "snapshot=be9553fd8187a0ad87bdff8e"
           },
           {
             "phase": "staging",
             "status": "passed",
-            "detail": "profile=flow-hub-stage-a8513ec0a8cadd2726c9a845"
+            "detail": "profile=flow-hub-stage-be9553fd8187a0ad87bdff8e"
           },
           {
             "phase": "install",
@@ -138,7 +148,12 @@
           {
             "phase": "commit",
             "status": "passed",
-            "detail": "backup=a8513ec0a8cadd2726c9a845"
+            "detail": "backup=be9553fd8187a0ad87bdff8e"
+          },
+          {
+            "phase": "relink",
+            "status": "passed",
+            "detail": "official plugin install rebuilt final-path dependencies"
           },
           {
             "phase": "health",
@@ -154,7 +169,7 @@
           "platform": "win32",
           "architecture": "x64",
           "dshVersion": "0.1.0-rc.6",
-          "freeBytes": 2277298176,
+          "freeBytes": 2287550464,
           "network": "not-required",
           "credentials": "not-required",
           "signature": "not-applicable-trusted-fixture",
@@ -174,12 +189,12 @@
           {
             "phase": "snapshot",
             "status": "passed",
-            "detail": "snapshot=9a3119de7ce3dce513d86d26"
+            "detail": "snapshot=63cd6431c638fca802e6a042"
           },
           {
             "phase": "staging",
             "status": "passed",
-            "detail": "profile=flow-hub-stage-9a3119de7ce3dce513d86d26"
+            "detail": "profile=flow-hub-stage-63cd6431c638fca802e6a042"
           },
           {
             "phase": "install",
@@ -192,7 +207,12 @@
           {
             "phase": "commit",
             "status": "passed",
-            "detail": "backup=9a3119de7ce3dce513d86d26"
+            "detail": "backup=63cd6431c638fca802e6a042"
+          },
+          {
+            "phase": "relink",
+            "status": "passed",
+            "detail": "official plugin install rebuilt final-path dependencies"
           },
           {
             "phase": "health",
@@ -220,12 +240,12 @@
           {
             "phase": "snapshot",
             "status": "passed",
-            "detail": "snapshot=405535395f308e0096a1be75"
+            "detail": "snapshot=030451b01f732fee336e6ef8"
           },
           {
             "phase": "staging",
             "status": "passed",
-            "detail": "profile=flow-hub-stage-405535395f308e0096a1be75"
+            "detail": "profile=flow-hub-stage-030451b01f732fee336e6ef8"
           },
           {
             "phase": "install",
@@ -238,7 +258,12 @@
           {
             "phase": "commit",
             "status": "passed",
-            "detail": "backup=405535395f308e0096a1be75"
+            "detail": "backup=030451b01f732fee336e6ef8"
+          },
+          {
+            "phase": "relink",
+            "status": "passed",
+            "detail": "official plugin install rebuilt final-path dependencies"
           },
           {
             "phase": "health",
@@ -254,7 +279,7 @@
           "platform": "win32",
           "architecture": "x64",
           "dshVersion": "0.1.0-rc.6",
-          "freeBytes": 2275094528,
+          "freeBytes": 2286350336,
           "network": "passed",
           "credentials": "not-required",
           "signature": "not-applicable-trusted-fixture",
@@ -274,12 +299,12 @@
           {
             "phase": "snapshot",
             "status": "passed",
-            "detail": "snapshot=7ede8e870a09eded47b86942"
+            "detail": "snapshot=e4a00fa5fa64576420d0b6f7"
           },
           {
             "phase": "staging",
             "status": "passed",
-            "detail": "profile=flow-hub-stage-7ede8e870a09eded47b86942"
+            "detail": "profile=flow-hub-stage-e4a00fa5fa64576420d0b6f7"
           },
           {
             "phase": "install",
@@ -292,7 +317,12 @@
           {
             "phase": "commit",
             "status": "passed",
-            "detail": "backup=7ede8e870a09eded47b86942"
+            "detail": "backup=e4a00fa5fa64576420d0b6f7"
+          },
+          {
+            "phase": "relink",
+            "status": "passed",
+            "detail": "official plugin install rebuilt final-path dependencies"
           },
           {
             "phase": "health",
@@ -320,12 +350,12 @@
           {
             "phase": "snapshot",
             "status": "passed",
-            "detail": "snapshot=30da6db004a2f2dcdabcfc15"
+            "detail": "snapshot=14bf9678d37bb093cb64b9ad"
           },
           {
             "phase": "staging",
             "status": "passed",
-            "detail": "profile=flow-hub-stage-30da6db004a2f2dcdabcfc15"
+            "detail": "profile=flow-hub-stage-14bf9678d37bb093cb64b9ad"
           },
           {
             "phase": "install",
@@ -338,7 +368,12 @@
           {
             "phase": "commit",
             "status": "passed",
-            "detail": "backup=30da6db004a2f2dcdabcfc15"
+            "detail": "backup=14bf9678d37bb093cb64b9ad"
+          },
+          {
+            "phase": "relink",
+            "status": "passed",
+            "detail": "official plugin install rebuilt final-path dependencies"
           },
           {
             "phase": "health",
@@ -354,7 +389,7 @@
           "platform": "win32",
           "architecture": "x64",
           "dshVersion": "0.1.0-rc.6",
-          "freeBytes": 2271363072,
+          "freeBytes": 2285355008,
           "network": "not-required",
           "credentials": "not-required",
           "signature": "not-applicable-trusted-fixture",
@@ -374,12 +409,12 @@
           {
             "phase": "snapshot",
             "status": "passed",
-            "detail": "snapshot=0a9287609dbd3e8d9b97421d"
+            "detail": "snapshot=ae9b94e066a7c385baf1eb00"
           },
           {
             "phase": "staging",
             "status": "passed",
-            "detail": "profile=flow-hub-stage-0a9287609dbd3e8d9b97421d"
+            "detail": "profile=flow-hub-stage-ae9b94e066a7c385baf1eb00"
           },
           {
             "phase": "install",
@@ -392,7 +427,12 @@
           {
             "phase": "commit",
             "status": "passed",
-            "detail": "backup=0a9287609dbd3e8d9b97421d"
+            "detail": "backup=ae9b94e066a7c385baf1eb00"
+          },
+          {
+            "phase": "relink",
+            "status": "passed",
+            "detail": "official plugin install rebuilt final-path dependencies"
           },
           {
             "phase": "health",

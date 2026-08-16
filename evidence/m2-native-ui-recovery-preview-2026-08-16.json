@@ -1,0 +1,37 @@
+{
+  "date": "2026-08-16",
+  "dshVersion": "0.1.0-rc.6",
+  "route": "Settings > Plugins > Flow Hub > Profiles",
+  "profile": "web",
+  "credentialHandling": "No credential value was read, displayed, or logged.",
+  "installedFixture": {
+    "package": "@harness-flow/hello-bundle",
+    "version": "0.0.1-m0",
+    "enabled": true,
+    "sourceDisplay": "configured-local-source"
+  },
+  "recoveryPointsVisible": 2,
+  "rollbackPreview": {
+    "generated": true,
+    "structuredFieldsVisible": [
+      "action",
+      "profile",
+      "recoveryPoint",
+      "dshVersionRange",
+      "platforms",
+      "phases"
+    ],
+    "phases": [
+      "preflight",
+      "staging",
+      "dump-config",
+      "commit",
+      "relink",
+      "health",
+      "complete"
+    ],
+    "executed": false,
+    "closedWith": "cancel"
+  },
+  "result": "passed"
+}
