@@ -154,7 +154,7 @@ jobs:
           python-version: '3.12'
       - run: pnpm install --frozen-lockfile
       - name: Prepare the exact local visual runtime dependency
-        run: python -m pip install --disable-pip-version-check pillow==12.3.0
+        run: python -m pip install --disable-pip-version-check pillow==12.3.0 numpy==2.4.6 vtracer==0.6.15
       - name: Locate the official DSH package
         shell: pwsh
         run: |

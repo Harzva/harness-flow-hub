@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises'
 import { basename, join, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -43,6 +43,45 @@ function requireExit(result, label) {
 
 function runDsh(home, args) {
   return run(process.execPath, [cli, ...args], { env: safeEnvironment(home) })
+}
+
+function subprocessRuntime(home) {
+  return {
+    spawn(spec) {
+      const [program, ...args] = spec.argv
+      if (typeof program !== 'string' || program === '') throw new Error('subprocess argv requires a program')
+      const env = safeEnvironment(home)
+      for (const [name, value] of Object.entries(spec.env ?? {})) {
+        if (value === undefined) delete env[name]
+        else env[name] = String(value)
+      }
+      const child = spawn(program, args, {
+        cwd: spec.cwd, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
+      })
+      const stdout = []
+      const stderr = []
+      child.stdout.on('data', chunk => stdout.push(Buffer.from(chunk)))
+      child.stderr.on('data', chunk => stderr.push(Buffer.from(chunk)))
+      const abort = () => child.kill('SIGTERM')
+      if (spec.signal?.aborted) abort()
+      else spec.signal?.addEventListener('abort', abort, { once: true })
+      const done = new Promise((resolveDone, rejectDone) => {
+        child.once('error', rejectDone)
+        child.once('exit', (code, signal) => {
+          spec.signal?.removeEventListener('abort', abort)
+          resolveDone({ exitCode: code, signal })
+        })
+      })
+      const read = chunks => ({ text: Buffer.concat(chunks).toString('utf8'), lossy: false })
+      return {
+        done,
+        collected: {
+          stdout: { readFrom: () => read(stdout) },
+          stderr: { readFrom: () => read(stderr) },
+        },
+      }
+    },
+  }
 }
 
 async function installExact(home, packageName, version) {
@@ -100,6 +139,16 @@ async function executeDefinition(definitions, name, args, workspace) {
   })
 }
 
+async function executeNativeDefinition(definition, args, workspace) {
+  if (definition === undefined) throw new Error('native visual tool definition is missing')
+  return definition.execute(args, {
+    callId: `fixture-${definition.name}`, name: definition.name, arguments: args,
+    signal: new AbortController().signal,
+    agent: { session: { header: { id: 'fixture-vision-session', cwd: workspace } } },
+    deferContext() {},
+  })
+}
+
 async function verifyCoding(home, workspace) {
   await installExact(home, 'dsh-openwolf', '0.9.1')
   await mkdir(join(workspace, 'src'), { recursive: true })
@@ -143,51 +192,64 @@ async function verifyCoding(home, workspace) {
   }
 }
 
-function differenceOf(output) {
-  const match = /overall difference:\s*([0-9.]+)%/i.exec(output)
-  if (match === null) throw new Error('pixel diff output omitted the overall percentage')
-  return Number(match[1])
-}
-
 async function verifyUi(home, workspace) {
   await installExact(home, '@anionex/dsh-vision-toolkit', '0.1.8')
   const packageRoot = await realpath(join(home, 'profiles', 'web', 'node_modules', '@anionex', 'dsh-vision-toolkit'))
   const example = join(packageRoot, 'examples', 'ui-restoration')
-  const packagedScripts = join(packageRoot, 'vendor', 'agent-vision-toolkit', 'skills', 'vision-tools', 'scripts')
+  const packagedUpstreamRoot = join(packageRoot, 'vendor', 'agent-vision-toolkit')
   await mkdir(workspace, { recursive: true })
   for (const name of ['initial.html', 'implementation.html']) await cp(join(example, name), join(workspace, name))
   for (const name of ['reference.png', 'initial.png', 'implementation.png']) await cp(join(example, 'assets', name), join(workspace, name))
-  for (const name of ['html_shot.py', 'pixel_diff.py']) await cp(join(packagedScripts, name), join(workspace, name))
-  const htmlShot = join(workspace, 'html_shot.py')
-  const pixelDiff = join(workspace, 'pixel_diff.py')
+  const upstreamRoot = join(workspace, 'pinned-agent-vision-toolkit')
+  await cp(packagedUpstreamRoot, upstreamRoot, { recursive: true })
 
   const python = process.env.PYTHON ?? (process.platform === 'win32' ? 'python' : 'python3')
-  const pillow = requireExit(run(python, ['-c', 'import PIL; print(PIL.__version__)']), 'Pillow availability').stdout.trim()
-  const renderInitial = requireExit(run(python, [htmlShot, join(workspace, 'initial.html'), '-o', join(workspace, 'runner-initial.png'), '--width', '1200', '--height', '720']), 'initial HTML screenshot')
-  const renderFinal = requireExit(run(python, [htmlShot, join(workspace, 'implementation.html'), '-o', join(workspace, 'runner-final.png'), '--width', '1200', '--height', '720']), 'final HTML screenshot')
-  const renderedInitialDiff = requireExit(run(python, [pixelDiff, join(workspace, 'reference.png'), join(workspace, 'runner-initial.png'), '--grid', '8', '--top', '6', '-o', join(workspace, 'runner-initial-heatmap.png')]), 'rendered initial pixel diff')
-  const renderedFinalDiff = requireExit(run(python, [pixelDiff, join(workspace, 'reference.png'), join(workspace, 'runner-final.png'), '--grid', '8', '--top', '6', '-o', join(workspace, 'runner-final-heatmap.png')]), 'rendered final pixel diff')
-  const canonicalInitialDiff = requireExit(run(python, [pixelDiff, join(workspace, 'reference.png'), join(workspace, 'initial.png'), '--grid', '8', '--top', '6', '-o', join(workspace, 'canonical-initial-heatmap.png')]), 'canonical initial pixel diff')
-  const canonicalFinalDiff = requireExit(run(python, [pixelDiff, join(workspace, 'reference.png'), join(workspace, 'implementation.png'), '--grid', '8', '--top', '6', '-o', join(workspace, 'canonical-final-heatmap.png')]), 'canonical final pixel diff')
+  const dependencyProbe = requireExit(run(python, ['-c', 'import json; from importlib.metadata import version; print(json.dumps({"pillow":version("pillow"),"numpy":version("numpy"),"vtracer":version("vtracer")}))']), 'Vision runtime dependencies')
+  const dependencies = JSON.parse(dependencyProbe.stdout)
+  const [{ resolveConfig }, { UpstreamAdapter }, { VisionToolkitRuntime }, { createVisionTools }] = await Promise.all([
+    import(pathToFileURL(join(packageRoot, 'lib', 'config.js')).href),
+    import(pathToFileURL(join(packageRoot, 'lib', 'upstream.js')).href),
+    import(pathToFileURL(join(packageRoot, 'lib', 'runtime.js')).href),
+    import(pathToFileURL(join(packageRoot, 'lib', 'tools.js')).href),
+  ])
+  const runtimeCtx = {
+    subprocess: subprocessRuntime(home),
+    credentials: { resolve: async () => undefined },
+    logger: { info() {}, warn() {}, error() {}, debug() {} },
+  }
+  const config = resolveConfig({ runtime: { mode: 'external', agentVisionToolkitPath: upstreamRoot, python }, allowedDirs: [] })
+  const adapter = new UpstreamAdapter(runtimeCtx, config)
+  await adapter.prepare()
+  const runtime = new VisionToolkitRuntime(runtimeCtx, config, adapter)
+  const definitions = new Map(createVisionTools(runtime).map(definition => [definition.name, definition]))
+  const htmlScreenshot = definitions.get('vision_html_screenshot')
+  const pixelDiff = definitions.get('vision_pixel_diff')
+  const renderedInitial = await executeNativeDefinition(htmlScreenshot, { source: 'initial.html', width: 1200, height: 720, scale: 1, output: 'runner-initial.png' }, workspace)
+  const renderedFinal = await executeNativeDefinition(htmlScreenshot, { source: 'implementation.html', width: 1200, height: 720, scale: 1, output: 'runner-final.png' }, workspace)
+  const renderedInitialDiff = await executeNativeDefinition(pixelDiff, { original: 'reference.png', rebuilt: renderedInitial.artifact.path, grid: 8, top: 6, runName: 'runner-initial-diff' }, workspace)
+  const renderedFinalDiff = await executeNativeDefinition(pixelDiff, { original: 'reference.png', rebuilt: renderedFinal.artifact.path, grid: 8, top: 6, runName: 'runner-final-diff' }, workspace)
+  const canonicalInitialDiff = await executeNativeDefinition(pixelDiff, { original: 'reference.png', rebuilt: 'initial.png', grid: 8, top: 6, runName: 'canonical-initial-diff' }, workspace)
+  const canonicalFinalDiff = await executeNativeDefinition(pixelDiff, { original: 'reference.png', rebuilt: 'implementation.png', grid: 8, top: 6, runName: 'canonical-final-diff' }, workspace)
 
-  const runnerInitial = differenceOf(renderedInitialDiff.stdout)
-  const runnerFinal = differenceOf(renderedFinalDiff.stdout)
-  const canonicalInitial = differenceOf(canonicalInitialDiff.stdout)
-  const canonicalFinal = differenceOf(canonicalFinalDiff.stdout)
+  const runnerInitial = renderedInitialDiff.overallDifferencePct
+  const runnerFinal = renderedFinalDiff.overallDifferencePct
+  const canonicalInitial = canonicalInitialDiff.overallDifferencePct
+  const canonicalFinal = canonicalFinalDiff.overallDifferencePct
   if (canonicalInitial < 1 || canonicalFinal > 0.02) throw new Error('portable UI restoration thresholds failed')
   if (!(runnerFinal < runnerInitial)) throw new Error('current runner rendering did not improve over the initial reconstruction')
-  if (!renderInitial.stdout.includes('(1200x720)') || !renderFinal.stdout.includes('(1200x720)')) throw new Error('HTML renderer dimensions were not confirmed')
+  if (renderedInitial.width !== 1200 || renderedInitial.height !== 720 || renderedFinal.width !== 1200 || renderedFinal.height !== 720) throw new Error('native HTML renderer dimensions were not confirmed')
 
   return {
     state: 'passed', package: '@anionex/dsh-vision-toolkit', version: '0.1.8',
     exactProfileInstall: true, lifecycleScriptsDisabled: true,
-    workflow: ['local-reference', 'render-initial-html', 'pixel-diff-initial', 'render-final-html', 'pixel-diff-final', 'numeric-acceptance'],
-    runtime: { python: 'available', pillow, chromeFamily: 'available' },
+    workflow: ['local-reference', 'vision_html_screenshot-initial', 'vision_pixel_diff-initial', 'vision_html_screenshot-final', 'vision_pixel_diff-final', 'numeric-acceptance'],
+    runtime: { python: 'available', dependencies, chromeFamily: 'available', nativeDefinitions: ['vision_html_screenshot', 'vision_pixel_diff'] },
     canonical: { initialDifferencePct: canonicalInitial, finalDifferencePct: canonicalFinal },
     currentRunner: { initialDifferencePct: runnerInitial, finalDifferencePct: runnerFinal, improved: true },
     localOnly: true, externalVisionApiCalled: false, credentialConfigured: false,
     artifactsWrittenInsideSyntheticWorkspace: true, userContentUsed: false,
-    limitation: 'The exact package vendor workflow executed, but Agent-scoped activation and native ToolRuntime dispatch remain a separate gate.',
+    nativeToolDefinitionsExecuted: true,
+    limitation: 'The exact package native tool definitions and runtime executed; Agent-scoped Skill activation through the official ToolRuntime pipeline remains a separate gate.',
   }
 }
 
@@ -210,7 +272,7 @@ try {
     coding, ui, result: 'passed',
     capabilityDecision: {
       codingExpert: 'fixture-workflow-passed',
-      uiDesignStudio: 'vendor-workflow-passed-native-agent-dispatch-pending',
+      uiDesignStudio: 'native-tool-definition-workflow-passed-agent-scope-pending',
       registryVerificationStateChanged: false,
     },
   }
