@@ -1,0 +1,353 @@
+{
+  "date": "2026-08-16T14:55:07.061Z",
+  "subject": "Published DSH current, previous and RC compatibility matrix",
+  "governance": {
+    "config": "compatibility/dsh-matrix.json",
+    "workflow": ".github/workflows/dsh-compatibility.yml",
+    "package": "@deepseek-ai/dsh",
+    "hubVersion": "0.0.2-m0",
+    "supportedRange": ">=0.1.0-rc.6 <0.2.0",
+    "observedDistTags": {
+      "latest": "0.1.0-rc.6",
+      "next": "0.1.0-rc.6"
+    },
+    "nextIsDistinct": false,
+    "platforms": [
+      "windows-latest",
+      "ubuntu-latest"
+    ]
+  },
+  "commands": [
+    "pnpm run compatibility:resolve-matrix",
+    "pnpm run ui:verify-dsh-version-entry",
+    "pnpm run ui:verify-lifecycle",
+    "pnpm check"
+  ],
+  "entries": [
+    {
+      "role": "current",
+      "version": "0.1.0-rc.6",
+      "expected": "compatible",
+      "verification": "full-lifecycle",
+      "environment": {
+        "os": "win32",
+        "arch": "x64",
+        "node": "v25.2.0",
+        "profile": "isolated web"
+      },
+      "checks": {
+        "cliVersion": {
+          "status": "passed",
+          "value": "0.1.0-rc.6"
+        },
+        "webBoot": {
+          "status": "passed",
+          "http": 200
+        },
+        "bootstrap": {
+          "status": "passed",
+          "state": "compatible",
+          "dimensions": {
+            "dsh": {
+              "actual": "0.1.0-rc.6",
+              "supported": ">=0.1.0-rc.6 <0.2.0",
+              "state": "compatible",
+              "reason": "verified-matrix-entry"
+            },
+            "hub": {
+              "actual": "0.0.2-m0",
+              "supported": ">=0.0.2-m0 <0.1.0",
+              "state": "compatible",
+              "reason": "range-satisfied"
+            },
+            "registrySchema": {
+              "actual": "1",
+              "supported": "1.x",
+              "state": "compatible",
+              "reason": "schema-supported"
+            },
+            "flowSchema": {
+              "actual": "1",
+              "supported": "1.x",
+              "state": "compatible",
+              "reason": "all-flow-schemas-supported"
+            }
+          }
+        },
+        "clientModule": {
+          "status": "passed",
+          "http": 200
+        },
+        "fullUiReads": {
+          "status": "passed",
+          "endpoints": {
+            "registry": 200,
+            "profiles": 200,
+            "tasks": 200,
+            "flows": 200
+          }
+        },
+        "safeModeWriteGate": {
+          "status": "not-applicable"
+        },
+        "cliRescue": {
+          "status": "passed",
+          "preDumpConfig": 0,
+          "remove": 0,
+          "postDumpConfig": 0
+        }
+      },
+      "result": "passed"
+    },
+    {
+      "role": "previous",
+      "version": "0.1.0-rc.3",
+      "expected": "incompatible",
+      "verification": "safe-recovery",
+      "environment": {
+        "os": "win32",
+        "arch": "x64",
+        "node": "v25.2.0",
+        "profile": "isolated web"
+      },
+      "checks": {
+        "cliVersion": {
+          "status": "passed",
+          "value": "0.1.0-rc.3"
+        },
+        "webBoot": {
+          "status": "passed",
+          "http": 200
+        },
+        "bootstrap": {
+          "status": "passed",
+          "state": "incompatible",
+          "dimensions": {
+            "dsh": {
+              "actual": "0.1.0-rc.3",
+              "supported": ">=0.1.0-rc.6 <0.2.0",
+              "state": "incompatible",
+              "reason": "range-not-satisfied"
+            },
+            "hub": {
+              "actual": "0.0.2-m0",
+              "supported": ">=0.0.2-m0 <0.1.0",
+              "state": "compatible",
+              "reason": "range-satisfied"
+            },
+            "registrySchema": {
+              "actual": "1",
+              "supported": "1.x",
+              "state": "compatible",
+              "reason": "schema-supported"
+            },
+            "flowSchema": {
+              "actual": "1",
+              "supported": "1.x",
+              "state": "compatible",
+              "reason": "all-flow-schemas-supported"
+            }
+          }
+        },
+        "clientModule": {
+          "status": "passed",
+          "http": 200
+        },
+        "fullUiReads": {
+          "status": "not-applicable"
+        },
+        "safeModeWriteGate": {
+          "status": "passed",
+          "http": 409,
+          "error": "bootstrap-compatibility-required",
+          "profileMutationAttempted": false
+        },
+        "cliRescue": {
+          "status": "passed",
+          "preDumpConfig": 0,
+          "remove": 0,
+          "postDumpConfig": 0
+        }
+      },
+      "result": "passed"
+    },
+    {
+      "role": "older-rc",
+      "version": "0.1.0-rc.2",
+      "expected": "incompatible",
+      "verification": "safe-recovery",
+      "environment": {
+        "os": "win32",
+        "arch": "x64",
+        "node": "v25.2.0",
+        "profile": "isolated web"
+      },
+      "checks": {
+        "cliVersion": {
+          "status": "passed",
+          "value": "0.1.0-rc.2"
+        },
+        "webBoot": {
+          "status": "passed",
+          "http": 200
+        },
+        "bootstrap": {
+          "status": "passed",
+          "state": "incompatible",
+          "dimensions": {
+            "dsh": {
+              "actual": "0.1.0-rc.2",
+              "supported": ">=0.1.0-rc.6 <0.2.0",
+              "state": "incompatible",
+              "reason": "range-not-satisfied"
+            },
+            "hub": {
+              "actual": "0.0.2-m0",
+              "supported": ">=0.0.2-m0 <0.1.0",
+              "state": "compatible",
+              "reason": "range-satisfied"
+            },
+            "registrySchema": {
+              "actual": "1",
+              "supported": "1.x",
+              "state": "compatible",
+              "reason": "schema-supported"
+            },
+            "flowSchema": {
+              "actual": "1",
+              "supported": "1.x",
+              "state": "compatible",
+              "reason": "all-flow-schemas-supported"
+            }
+          }
+        },
+        "clientModule": {
+          "status": "passed",
+          "http": 200
+        },
+        "fullUiReads": {
+          "status": "not-applicable"
+        },
+        "safeModeWriteGate": {
+          "status": "passed",
+          "http": 409,
+          "error": "bootstrap-compatibility-required",
+          "profileMutationAttempted": false
+        },
+        "cliRescue": {
+          "status": "passed",
+          "preDumpConfig": 0,
+          "remove": 0,
+          "postDumpConfig": 0
+        }
+      },
+      "result": "passed"
+    }
+  ],
+  "simulatedIncompatible": {
+    "version": "0.2.0",
+    "expected": "incompatible",
+    "verification": "host-only-safe-recovery",
+    "checks": {
+      "status": "passed",
+      "aggregate": "incompatible",
+      "dimensions": {
+        "dsh": {
+          "actual": "0.2.0",
+          "supported": ">=0.1.0-rc.6 <0.2.0",
+          "state": "incompatible",
+          "reason": "range-not-satisfied"
+        },
+        "hub": {
+          "actual": "0.0.2-m0",
+          "supported": ">=0.0.2-m0 <0.1.0",
+          "state": "compatible",
+          "reason": "range-satisfied"
+        },
+        "registrySchema": {
+          "actual": "1",
+          "supported": "1.x",
+          "state": "compatible",
+          "reason": "schema-supported"
+        },
+        "flowSchema": {
+          "actual": "1",
+          "supported": "1.x",
+          "state": "compatible",
+          "reason": "all-flow-schemas-supported"
+        }
+      }
+    },
+    "hostWriteGate": {
+      "status": "passed",
+      "http": 409,
+      "error": "bootstrap-compatibility-required",
+      "profileMutationAttempted": false
+    }
+  },
+  "currentFullLifecycle": {
+    "bootstrap": {
+      "status": "passed",
+      "state": "compatible"
+    },
+    "update": {
+      "status": "passed",
+      "http": 200,
+      "phases": [
+        "preflight",
+        "snapshot",
+        "staging",
+        "install",
+        "dump-config",
+        "commit",
+        "relink",
+        "health",
+        "complete"
+      ]
+    },
+    "remove": {
+      "status": "passed",
+      "http": 200,
+      "inventoryInstalled": false
+    },
+    "rollback": {
+      "status": "passed",
+      "http": 200,
+      "inventoryInstalled": true
+    },
+    "injectedFailure": {
+      "status": "passed",
+      "phase": "health",
+      "http": 502,
+      "rollback": "passed"
+    },
+    "byteForByteRecovery": {
+      "status": "passed",
+      "packageJsonSha256": "62a7e5144835abeba8921a101e664d237d0244f2e365f90ae58260e35bf5435f",
+      "lockfileSha256": "c234cbb2355503083cccee9df856ec4120ae3d9c454a2f8680423ae6469d8daa"
+    },
+    "postFailureDumpConfig": {
+      "status": "passed",
+      "exitCode": 0
+    },
+    "cliRescue": {
+      "status": "passed",
+      "removeExitCode": 0,
+      "reinstallExitCode": 0
+    }
+  },
+  "policy": {
+    "verifiedVersionsLoadFullUi": [
+      "0.1.0-rc.6"
+    ],
+    "rangeCompatibleButUnverifiedState": "unknown",
+    "unknownAndIncompatibleAllowMutations": false,
+    "duplicateNextTagReusesCurrentEntry": true
+  },
+  "trustBoundary": {
+    "userProfileTouched": false,
+    "credentialsCaptured": false,
+    "browserWriteActionPerformed": false
+  },
+  "result": "passed"
+}

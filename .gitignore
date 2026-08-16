@@ -3,5 +3,6 @@ artifacts/*.tgz
 lib/
 dist/
 _site/
+evidence-ci/
 *.log
 .DS_Store

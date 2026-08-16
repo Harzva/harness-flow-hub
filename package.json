@@ -44,6 +44,7 @@
     "lib/client.js.map",
     "lib/types/**/*.d.ts",
     "cordis.patch.yml",
+    "compatibility/*.json",
     "registry/generated/registry.json",
     "registry/flows/*.dsh-flow.yml",
     "schemas/*.schema.json"
@@ -82,6 +83,9 @@
     "ui:prepare-spike": "pnpm build && node scripts/prepare-native-ui-spike.mjs",
     "ui:verify-lifecycle": "pnpm build && node scripts/verify-native-ui-lifecycle.mjs",
     "ui:verify-bootstrap-compatibility": "pnpm build && node scripts/verify-bootstrap-compatibility.mjs",
+    "ui:verify-dsh-version-entry": "pnpm build && node scripts/verify-dsh-version-entry.mjs",
+    "compatibility:resolve-matrix": "node scripts/resolve-dsh-ci-matrix.mjs",
+    "compatibility:aggregate-matrix": "node scripts/aggregate-dsh-version-matrix.mjs",
     "site:audit": "node scripts/audit-public-site.mjs _site",
     "site:serve": "node scripts/serve-site.mjs",
     "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts",

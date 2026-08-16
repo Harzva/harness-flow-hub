@@ -1,0 +1,81 @@
+name: DSH compatibility matrix
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 3 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: matrix
+        name: Resolve published DSH versions
+        shell: pwsh
+        run: |
+          $matrix = node scripts/resolve-dsh-ci-matrix.mjs
+          "matrix=$matrix" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+  verify:
+    needs: configure
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.configure.outputs.matrix) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build trusted matrix artifacts
+        run: |
+          pnpm run pack:fixture
+          pnpm run pack:hub
+      - name: Install exact published DSH package
+        shell: pwsh
+        run: |
+          $matrixRoot = Join-Path $env:RUNNER_TEMP "dsh-${{ matrix.role }}-${{ matrix.version }}"
+          New-Item -ItemType Directory -Force -Path $matrixRoot | Out-Null
+          '{"name":"dsh-matrix-runtime","private":true,"version":"0.0.0"}' | Set-Content -LiteralPath (Join-Path $matrixRoot 'package.json') -Encoding utf8
+          pnpm --dir $matrixRoot add --save-exact --allow-build=node-pty "@deepseek-ai/dsh@${{ matrix.version }}"
+          "DSH_PACKAGE_ROOT=$matrixRoot/node_modules/@deepseek-ai/dsh" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Verify Web, Bootstrap, client module and rescue contract
+        run: pnpm run ui:verify-dsh-version-entry
+        env:
+          DSH_MATRIX_VERSION: ${{ matrix.version }}
+          DSH_MATRIX_EXPECTED: ${{ matrix.expected }}
+          DSH_MATRIX_ROLE: ${{ matrix.role }}
+      - name: Verify current DSH full update, uninstall and rollback lifecycle
+        if: matrix.verification == 'full-lifecycle'
+        run: pnpm run ui:verify-lifecycle
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dsh-compatibility-${{ matrix.os }}-${{ matrix.role }}-${{ matrix.version }}
+          path: |
+            evidence-ci/dsh-matrix/**/*.json
+            evidence/m2-native-ui-lifecycle-2026-08-16.json
+          if-no-files-found: error

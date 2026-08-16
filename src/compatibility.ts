@@ -23,6 +23,7 @@ export interface CompatibilityInput {
 }
 
 export const SUPPORTED_DSH_RANGE = '>=0.1.0-rc.6 <0.2.0'
+export const VERIFIED_DSH_VERSIONS = ['0.1.0-rc.6'] as const
 export const SUPPORTED_HUB_RANGE = '>=0.0.2-m0 <0.1.0'
 export const SUPPORTED_REGISTRY_SCHEMA = 1
 export const SUPPORTED_FLOW_SCHEMA = 1
@@ -36,7 +37,15 @@ function versionDimension(actual: string | null, supported: string): Compatibili
 }
 
 export function classifyDshVersion(actual: string | null): CompatibilityState {
-  return versionDimension(actual, SUPPORTED_DSH_RANGE).state
+  return dshVersionDimension(actual).state
+}
+
+function dshVersionDimension(actual: string | null): CompatibilityDimension {
+  const dimension = versionDimension(actual, SUPPORTED_DSH_RANGE)
+  if (dimension.state !== 'compatible') return dimension
+  return VERIFIED_DSH_VERSIONS.includes(actual as typeof VERIFIED_DSH_VERSIONS[number])
+    ? { ...dimension, reason: 'verified-matrix-entry' }
+    : { ...dimension, state: 'unknown', reason: 'version-not-verified' }
 }
 
 function schemaDimension(actual: unknown, supported: number): CompatibilityDimension {
@@ -61,7 +70,7 @@ function flowSchemaDimension(actual: unknown, supported: number): CompatibilityD
 
 export function evaluateCompatibility(input: CompatibilityInput): CompatibilitySnapshot {
   const dimensions = {
-    dsh: versionDimension(input.dshVersion, SUPPORTED_DSH_RANGE),
+    dsh: dshVersionDimension(input.dshVersion),
     hub: versionDimension(input.hubVersion, SUPPORTED_HUB_RANGE),
     registrySchema: schemaDimension(input.registrySchemaVersion, SUPPORTED_REGISTRY_SCHEMA),
     flowSchema: flowSchemaDimension(input.flowSchemaVersions, SUPPORTED_FLOW_SCHEMA),

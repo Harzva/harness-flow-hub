@@ -1,6 +1,6 @@
 {
-  "date": "2026-08-16T12:52:35.971Z",
-  "baseCommit": "1c867813c1457b4ce46db945218138b78acfb434",
+  "date": "2026-08-16T14:53:06.787Z",
+  "baseCommit": "a6d1ce864b97888fd632f64e8459721115a59bfe",
   "subject": "DSH native Flow Hub lifecycle through same-origin Host API used by the client UI",
   "environment": {
     "os": "win32",
@@ -18,7 +18,7 @@
   "artifacts": {
     "hub": {
       "file": "artifacts/harness-flow-dsh-flow-hub-0.0.2-m0.tgz",
-      "sha256": "995bec407c1088e6fc74f5ced8715710f7d102970997ed9eb3c3b5796a6de55d"
+      "sha256": "53e0d191ef2a52c4289ec402dfe542d1b338e74dc4a505446314d133264bf93e"
     },
     "fixture": {
       "file": "artifacts/harness-flow-hello-bundle-0.0.1-m0.tgz",
@@ -64,7 +64,7 @@
     "byteForByteRecovery": {
       "status": "passed",
       "packageJsonSha256": "62a7e5144835abeba8921a101e664d237d0244f2e365f90ae58260e35bf5435f",
-      "lockfileSha256": "7ebcd8a36ea15e6b69157a2d2b812e8d4db19aa1298bc7196d557bf8aa249079"
+      "lockfileSha256": "c234cbb2355503083cccee9df856ec4120ae3d9c454a2f8680423ae6469d8daa"
     },
     "postFailureDumpConfig": {
       "status": "passed",

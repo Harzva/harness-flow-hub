@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "hubVersion": "0.0.2-m0",
+  "package": "@deepseek-ai/dsh",
+  "supportedRange": ">=0.1.0-rc.6 <0.2.0",
+  "observedAt": "2026-08-16",
+  "observedDistTags": {
+    "latest": "0.1.0-rc.6",
+    "next": "0.1.0-rc.6"
+  },
+  "platforms": ["windows-latest", "ubuntu-latest"],
+  "entries": [
+    {
+      "role": "current",
+      "version": "0.1.0-rc.6",
+      "expected": "compatible",
+      "verification": "full-lifecycle"
+    },
+    {
+      "role": "previous",
+      "version": "0.1.0-rc.3",
+      "expected": "incompatible",
+      "verification": "safe-recovery"
+    },
+    {
+      "role": "older-rc",
+      "version": "0.1.0-rc.2",
+      "expected": "incompatible",
+      "verification": "safe-recovery"
+    }
+  ],
+  "simulatedIncompatible": {
+    "version": "0.2.0",
+    "expected": "incompatible",
+    "verification": "host-only-safe-recovery"
+  }
+}
