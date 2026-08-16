@@ -32,7 +32,7 @@
   },
   "checks": { "tests": 3, "passed": 3, "failed": 0 },
   "artifacts": {
-    "harness-flow-dsh-flow-hub-0.0.2-m0.tgz": "sha256:f219d1a817982b12afeed873229b497cb845ab7d2354ecce36bcbcc304b13ff8",
+    "harness-flow-dsh-flow-hub-0.0.2-m0.tgz": "sha256:995bec407c1088e6fc74f5ced8715710f7d102970997ed9eb3c3b5796a6de55d",
     "harness-flow-hello-bundle-0.0.1-m0.tgz": "sha256:a62d6cca7c7ec0bfd436d559bd296c445b74d7fcc914e331d1d5f68972d09578"
   },
   "publishedFixture": {

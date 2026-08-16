@@ -63,7 +63,7 @@
     "site:audit": "node scripts/audit-public-site.mjs _site",
     "site:serve": "node scripts/serve-site.mjs",
     "pack:fixture": "pnpm --dir fixtures/hello-bundle pack --pack-destination ../../artifacts",
-    "pack:hub": "pnpm pack --pack-destination artifacts"
+    "pack:hub": "pnpm build && pnpm pack --pack-destination artifacts"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",

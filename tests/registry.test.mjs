@@ -207,6 +207,10 @@ test('Registry release becomes publishable only with a valid detached signature'
 
 test('hosted worker workflow parses and retains full Windows and Linux evidence on failure', async () => {
   const workflow = parseYaml(await readFile(resolve('.github/workflows/registry.yml'), 'utf8'))
+  const workspace = parseYaml(await readFile(resolve('pnpm-workspace.yaml'), 'utf8'))
+  const packageManifest = JSON.parse(await readFile(resolve('package.json'), 'utf8'))
+  assert.equal(workspace.allowBuilds['node-pty'], true)
+  assert.match(packageManifest.scripts['pack:hub'], /^pnpm build && pnpm pack/)
   const job = workflow.jobs['install-transaction']
   assert.deepEqual(job.strategy.matrix.os, ['windows-latest', 'ubuntu-latest'])
   assert.equal(job['timeout-minutes'], 45)
